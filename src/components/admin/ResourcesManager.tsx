@@ -85,17 +85,16 @@ export function ResourcesManager() {
     try {
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `resources/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('resources')
-        .upload(filePath, selectedFile);
+        .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
         .from('resources')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       return data.publicUrl;
     } catch (error: any) {

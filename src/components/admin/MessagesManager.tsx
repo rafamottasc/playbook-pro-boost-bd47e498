@@ -60,29 +60,35 @@ const FUNNELS = [
 
 const STAGES_BY_FUNNEL: Record<string, string[]> = {
   "lead-novo": [
-    "1ª Abordagem",
-    "Sondagem",
-    "Qualificação",
-    "Apresentação",
-    "Negociação",
-    "Fechamento",
+    "Primeira Abordagem",
+    "Segunda Abordagem",
+    "Terceira Abordagem",
+    "Quarta Abordagem",
+    "Quinta Abordagem",
+    "Sexta Abordagem",
+    "Sétima Abordagem",
   ],
   atendimento: [
-    "Recepção",
-    "Identificação da Necessidade",
-    "Solução",
-    "Encerramento",
-  ],
-  repescagem: [
-    "Recontato",
-    "Reaquecimento",
-    "Nova Proposta",
+    "Sondagem",
+    "Apresentação Produto",
+    "Visita/Call",
+    "Proposta",
     "Fechamento",
   ],
+  repescagem: [
+    "Etapa 1",
+    "Etapa 2",
+  ],
   nutricao: [
-    "Engajamento",
-    "Educação",
-    "Conversão",
+    "Etapa 1",
+    "Etapa 2",
+    "Etapa 3",
+    "Etapa 4",
+    "Etapa 5",
+    "Etapa 6",
+    "Etapa 7",
+    "Etapa 8",
+    "Etapa 9",
   ],
 };
 
@@ -319,23 +325,31 @@ export function MessagesManager() {
 
   const handleDuplicate = async (message: Message) => {
     try {
-      // Find the current message position
       const newDisplayOrder = message.display_order + 1;
 
-      // Increment display_order for all messages after this one
-      const messagesToUpdate = messages.filter(
-        (m) => m.display_order >= newDisplayOrder
-      );
+      // Get all messages in the same funnel that need to be shifted
+      const { data: messagesToShift, error: fetchError } = await supabase
+        .from("messages")
+        .select("id, display_order")
+        .eq("funnel", message.funnel)
+        .gte("display_order", newDisplayOrder)
+        .order("display_order", { ascending: false });
 
-      for (const msg of messagesToUpdate) {
-        await supabase
-          .from("messages")
-          .update({ display_order: msg.display_order + 1 })
-          .eq("id", msg.id);
+      if (fetchError) throw fetchError;
+
+      // Shift messages in bulk using RPC or multiple updates
+      if (messagesToShift && messagesToShift.length > 0) {
+        const updates = messagesToShift.map(msg => 
+          supabase
+            .from("messages")
+            .update({ display_order: msg.display_order + 1 })
+            .eq("id", msg.id)
+        );
+        await Promise.all(updates);
       }
 
-      // Insert the duplicate
-      const { error } = await supabase.from("messages").insert([
+      // Insert duplicate
+      const { error: insertError } = await supabase.from("messages").insert([
         {
           title: `${message.title} (cópia)`,
           content: message.content,
@@ -345,9 +359,10 @@ export function MessagesManager() {
         },
       ]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
+      
       toast({ title: "Mensagem duplicada com sucesso!" });
-      loadMessages();
+      await loadMessages();
     } catch (error: any) {
       toast({
         title: "Erro ao duplicar mensagem",
