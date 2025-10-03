@@ -52,7 +52,7 @@ export function Header({ userPoints, userName }: HeaderProps) {
       .from("profiles")
       .select("full_name, avatar_url, gender")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
     
     if (data) {
       setProfile(data);

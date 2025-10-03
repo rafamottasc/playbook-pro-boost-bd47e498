@@ -253,48 +253,48 @@ export function UsersManager() {
                   </div>
                 </div>
                 
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant={user.roles.includes("admin") ? "destructive" : "default"}
-                    onClick={() => toggleAdminRole(user.id, user.roles, user.isFirstAdmin || false)}
-                    size="sm"
-                    disabled={user.isFirstAdmin}
-                    title={user.isFirstAdmin ? "O administrador principal não pode ser removido" : ""}
-                  >
-                    {user.roles.includes("admin")
-                      ? "Remover Admin"
-                      : "Tornar Admin"}
-                  </Button>
-                  
-                  <Button
-                    variant={user.blocked ? "default" : "outline"}
-                    onClick={() => toggleBlockUser(user.id, user.blocked)}
-                    size="sm"
-                    className={!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}
-                  >
-                    {user.blocked ? (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Desbloquear
-                      </>
-                    ) : (
-                      <>
-                        <Ban className="mr-2 h-4 w-4" />
-                        Bloquear
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => setDeleteUserId(user.id)}
-                    size="sm"
-                    className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir
-                  </Button>
-                </div>
+                {!user.isFirstAdmin && (
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant={user.roles.includes("admin") ? "destructive" : "default"}
+                      onClick={() => toggleAdminRole(user.id, user.roles, user.isFirstAdmin || false)}
+                      size="sm"
+                    >
+                      {user.roles.includes("admin")
+                        ? "Remover Admin"
+                        : "Tornar Admin"}
+                    </Button>
+                    
+                    <Button
+                      variant={user.blocked ? "default" : "outline"}
+                      onClick={() => toggleBlockUser(user.id, user.blocked)}
+                      size="sm"
+                      className={!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}
+                    >
+                      {user.blocked ? (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Desbloquear
+                        </>
+                      ) : (
+                        <>
+                          <Ban className="mr-2 h-4 w-4" />
+                          Bloquear
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteUserId(user.id)}
+                      size="sm"
+                      className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
