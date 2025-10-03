@@ -377,15 +377,27 @@ export function ResourcesManager() {
                       <p className="text-sm text-muted-foreground">
                         {resource.description}
                       </p>
-                      <a
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-comarc-green hover:underline flex items-center gap-1 mt-1"
-                      >
-                        Abrir recurso
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                      <div className="flex gap-2 mt-1">
+                        <a
+                          href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-comarc-green hover:underline flex items-center gap-1"
+                        >
+                          Abrir recurso
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                        {resource.resource_type === "pdf" && (
+                          <a
+                            href={resource.url}
+                            download
+                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            Baixar PDF
+                            <Upload className="h-3 w-3 rotate-180" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button
