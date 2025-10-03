@@ -33,6 +33,7 @@ export function UsersManager() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [removeAdminUserId, setRemoveAdminUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export function UsersManager() {
         toast({ title: "Permissão de admin concedida!" });
       }
 
+      setRemoveAdminUserId(null);
       loadUsers();
     } catch (error: any) {
       toast({
@@ -128,6 +130,18 @@ export function UsersManager() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleAdminRoleClick = (userId: string, currentRoles: string[], isFirstAdmin: boolean) => {
+    const isAdmin = currentRoles.includes("admin");
+    
+    // Se está removendo admin, mostra confirmação
+    if (isAdmin) {
+      setRemoveAdminUserId(userId);
+    } else {
+      // Se está adicionando admin, executa direto
+      toggleAdminRole(userId, currentRoles, isFirstAdmin);
     }
   };
 
@@ -266,7 +280,7 @@ export function UsersManager() {
                   <div className="flex flex-col gap-2">
                     <Button
                       variant={user.roles.includes("admin") ? "destructive" : "default"}
-                      onClick={() => toggleAdminRole(user.id, user.roles, user.isFirstAdmin || false)}
+                      onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
                       size="sm"
                     >
                       {user.roles.includes("admin")
@@ -310,22 +324,52 @@ export function UsersManager() {
         </div>
       </div>
 
+      {/* Dialog de confirmação para exclusão de usuário */}
       <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza que deseja efetuar essa ação?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este usuário permanentemente? 
+              Você está prestes a excluir este usuário permanentemente. 
               Esta ação não pode ser desfeita e todos os dados do usuário serão removidos do sistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>Não</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => deleteUserId && deleteUser(deleteUserId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Excluir Permanentemente
+              Sim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog de confirmação para remoção de admin */}
+      <AlertDialog open={!!removeAdminUserId} onOpenChange={(open) => !open && setRemoveAdminUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja efetuar essa ação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a remover as permissões de administrador deste usuário. 
+              O usuário perderá acesso ao painel administrativo e suas funcionalidades.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (removeAdminUserId) {
+                  const user = users.find(u => u.id === removeAdminUserId);
+                  if (user) {
+                    toggleAdminRole(removeAdminUserId, user.roles, user.isFirstAdmin || false);
+                  }
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sim
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
