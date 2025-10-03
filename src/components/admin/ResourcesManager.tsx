@@ -88,13 +88,13 @@ export function ResourcesManager() {
       const filePath = `resources/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('resources')
         .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
-        .from('avatars')
+        .from('resources')
         .getPublicUrl(filePath);
 
       return data.publicUrl;

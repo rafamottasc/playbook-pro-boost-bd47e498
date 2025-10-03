@@ -22,6 +22,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Message {
   id: string;
@@ -41,6 +58,113 @@ const FUNNELS = [
   { id: "nutricao", name: "Nutrição" },
 ];
 
+const STAGES_BY_FUNNEL: Record<string, string[]> = {
+  "lead-novo": [
+    "1ª Abordagem",
+    "Sondagem",
+    "Qualificação",
+    "Apresentação",
+    "Negociação",
+    "Fechamento",
+  ],
+  atendimento: [
+    "Recepção",
+    "Identificação da Necessidade",
+    "Solução",
+    "Encerramento",
+  ],
+  repescagem: [
+    "Recontato",
+    "Reaquecimento",
+    "Nova Proposta",
+    "Fechamento",
+  ],
+  nutricao: [
+    "Engajamento",
+    "Educação",
+    "Conversão",
+  ],
+};
+
+function SortableMessageCard({
+  message,
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: {
+  message: Message;
+  onEdit: (message: Message) => void;
+  onDuplicate: (message: Message) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: message.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className="p-4">
+      <div className="flex items-start gap-4">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-move touch-none"
+        >
+          <GripVertical className="mt-1 text-muted-foreground" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-semibold">{message.title}</h3>
+              <p className="text-sm text-muted-foreground">
+                {FUNNELS.find((f) => f.id === message.funnel)?.name} - {message.stage}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEdit(message)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDuplicate(message)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(message.id)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          </div>
+          <p className="mt-2 text-sm whitespace-pre-wrap">
+            {message.content}
+          </p>
+          <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+            <span>👍 {message.likes}</span>
+            <span>👎 {message.dislikes}</span>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export function MessagesManager() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
@@ -56,6 +180,13 @@ export function MessagesManager() {
     funnel: "lead-novo",
     stage: "",
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     loadMessages();
@@ -74,7 +205,6 @@ export function MessagesManager() {
       const { data, error } = await supabase
         .from("messages")
         .select("*")
-        .order("funnel")
         .order("display_order");
 
       if (error) throw error;
@@ -87,6 +217,43 @@ export function MessagesManager() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filteredMessages.findIndex((msg) => msg.id === active.id);
+    const newIndex = filteredMessages.findIndex((msg) => msg.id === over.id);
+
+    const newOrder = arrayMove(filteredMessages, oldIndex, newIndex);
+    setFilteredMessages(newOrder);
+
+    // Update display_order in database
+    try {
+      const updates = newOrder.map((msg, index) => ({
+        id: msg.id,
+        display_order: index,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("messages")
+          .update({ display_order: update.display_order })
+          .eq("id", update.id);
+      }
+
+      toast({ title: "Ordem atualizada com sucesso!" });
+      loadMessages();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar ordem",
+        description: error.message,
+        variant: "destructive",
+      });
+      loadMessages(); // Reload to restore correct order
     }
   };
 
@@ -152,13 +319,29 @@ export function MessagesManager() {
 
   const handleDuplicate = async (message: Message) => {
     try {
+      // Find the current message position
+      const newDisplayOrder = message.display_order + 1;
+
+      // Increment display_order for all messages after this one
+      const messagesToUpdate = messages.filter(
+        (m) => m.display_order >= newDisplayOrder
+      );
+
+      for (const msg of messagesToUpdate) {
+        await supabase
+          .from("messages")
+          .update({ display_order: msg.display_order + 1 })
+          .eq("id", msg.id);
+      }
+
+      // Insert the duplicate
       const { error } = await supabase.from("messages").insert([
         {
           title: `${message.title} (cópia)`,
           content: message.content,
           funnel: message.funnel,
           stage: message.stage,
-          display_order: messages.length,
+          display_order: newDisplayOrder,
         },
       ]);
 
@@ -194,6 +377,8 @@ export function MessagesManager() {
       stage: "",
     });
   };
+
+  const availableStages = STAGES_BY_FUNNEL[formData.funnel] || [];
 
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>;
@@ -252,7 +437,7 @@ export function MessagesManager() {
                 <Select
                   value={formData.funnel}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, funnel: value })
+                    setFormData({ ...formData, funnel: value, stage: "" })
                   }
                 >
                   <SelectTrigger>
@@ -269,14 +454,23 @@ export function MessagesManager() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="stage">Etapa</Label>
-                <Input
-                  id="stage"
+                <Select
                   value={formData.stage}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stage: e.target.value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, stage: value })
                   }
-                  placeholder="Ex: 1ª Abordagem, Sondagem, etc"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma etapa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStages.map((stage) => (
+                      <SelectItem key={stage} value={stage}>
+                        {stage}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="content">Conteúdo da Mensagem</Label>
@@ -311,55 +505,28 @@ export function MessagesManager() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredMessages.map((message) => (
-          <Card key={message.id} className="p-4">
-            <div className="flex items-start gap-4">
-              <GripVertical className="mt-1 text-muted-foreground cursor-move" />
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold">{message.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {message.funnel} - {message.stage}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(message)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDuplicate(message)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(message.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="mt-2 text-sm whitespace-pre-wrap">
-                  {message.content}
-                </p>
-                <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-                  <span>👍 {message.likes}</span>
-                  <span>👎 {message.dislikes}</span>
-                </div>
-              </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={filteredMessages.map((m) => m.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="grid gap-4">
+              {filteredMessages.map((message) => (
+                <SortableMessageCard
+                  key={message.id}
+                  message={message}
+                  onEdit={openEditDialog}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                />
+              ))}
             </div>
-          </Card>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
