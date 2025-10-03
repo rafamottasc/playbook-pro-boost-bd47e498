@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessagesManager } from "@/components/admin/MessagesManager";
+import { SuggestionsManager } from "@/components/admin/SuggestionsManager";
+import { MetricsView } from "@/components/admin/MetricsView";
+import { ResourcesManager } from "@/components/admin/ResourcesManager";
+import { UsersManager } from "@/components/admin/UsersManager";
 
 export default function Admin() {
   const [userPoints] = useState(127);
@@ -23,73 +27,23 @@ export default function Admin() {
           </TabsList>
 
           <TabsContent value="messages">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciar Mensagens</CardTitle>
-                <CardDescription>
-                  Adicionar, editar, excluir e reordenar mensagens do playbook
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Em desenvolvimento...</p>
-              </CardContent>
-            </Card>
+            <MessagesManager />
           </TabsContent>
 
           <TabsContent value="suggestions">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sugestões Pendentes</CardTitle>
-                <CardDescription>
-                  Revisar e aprovar sugestões dos corretores
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Em desenvolvimento...</p>
-              </CardContent>
-            </Card>
+            <SuggestionsManager />
           </TabsContent>
 
           <TabsContent value="metrics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Métricas de Uso</CardTitle>
-                <CardDescription>
-                  Visualizar estatísticas de cópias, likes e dislikes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Em desenvolvimento...</p>
-              </CardContent>
-            </Card>
+            <MetricsView />
           </TabsContent>
 
           <TabsContent value="resources">
-            <Card>
-              <CardHeader>
-                <CardTitle>Central de Recursos</CardTitle>
-                <CardDescription>
-                  Gerenciar PDFs, links e vídeos educativos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Em desenvolvimento...</p>
-              </CardContent>
-            </Card>
+            <ResourcesManager />
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciar Usuários</CardTitle>
-                <CardDescription>
-                  Visualizar e gerenciar permissões de usuários
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Em desenvolvimento...</p>
-              </CardContent>
-            </Card>
+            <UsersManager />
           </TabsContent>
         </Tabs>
       </main>
