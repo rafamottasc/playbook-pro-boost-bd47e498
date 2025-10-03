@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { Moon, Sun, User, LogOut, FileText, Settings, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
