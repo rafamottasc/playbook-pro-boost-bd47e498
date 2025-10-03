@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X } from "lucide-react";
+import { Check, X, CheckCircle2, Trash2 } from "lucide-react";
 
 interface Suggestion {
   id: string;
@@ -92,6 +92,46 @@ export function SuggestionsManager() {
     }
   };
 
+  const handleMarkAsApplied = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("suggestions")
+        .update({ status: "applied" })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast({ title: "Sugestão marcada como aplicada!" });
+      loadSuggestions();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao marcar sugestão",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta sugestão?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("suggestions")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      toast({ title: "Sugestão excluída com sucesso!" });
+      loadSuggestions();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir sugestão",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>;
   }
@@ -145,6 +185,8 @@ export function SuggestionsManager() {
                         ? "default"
                         : suggestion.status === "approved"
                         ? "secondary"
+                        : suggestion.status === "applied"
+                        ? "default"
                         : "destructive"
                     }
                   >
@@ -152,6 +194,8 @@ export function SuggestionsManager() {
                       ? "Pendente"
                       : suggestion.status === "approved"
                       ? "Aprovada"
+                      : suggestion.status === "applied"
+                      ? "Aplicada"
                       : "Rejeitada"}
                   </Badge>
                   <span className="text-sm text-muted-foreground">
@@ -168,24 +212,50 @@ export function SuggestionsManager() {
                   {suggestion.suggestion_text}
                 </p>
               </div>
-              {suggestion.status === "pending" && (
-                <div className="flex gap-2">
+              
+              <div className="flex flex-col gap-2">
+                {suggestion.status === "pending" && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => handleApprove(suggestion.id)}
+                    >
+                      <Check className="mr-2 h-4 w-4" />
+                      Aprovar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleReject(suggestion.id)}
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Rejeitar
+                    </Button>
+                  </>
+                )}
+                
+                {suggestion.status === "approved" && (
                   <Button
-                    size="icon"
-                    variant="default"
-                    onClick={() => handleApprove(suggestion.id)}
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleMarkAsApplied(suggestion.id)}
                   >
-                    <Check className="h-4 w-4" />
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Aplicada
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    onClick={() => handleReject(suggestion.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+                )}
+                
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleDelete(suggestion.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </Button>
+              </div>
             </div>
           </Card>
         ))}

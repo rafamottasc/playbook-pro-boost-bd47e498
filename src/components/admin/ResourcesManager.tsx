@@ -30,6 +30,7 @@ interface Resource {
   url: string;
   resource_type: string;
   display_order: number;
+  created_at: string;
 }
 
 const RESOURCE_TYPES = [
@@ -63,7 +64,7 @@ export function ResourcesManager() {
       const { data, error } = await supabase
         .from("resources")
         .select("*")
-        .order("display_order");
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setResources(data || []);
@@ -76,6 +77,10 @@ export function ResourcesManager() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getResourcesByType = (type: string) => {
+    return resources.filter(r => r.resource_type === type);
   };
 
   const handleFileUpload = async (): Promise<string | null> => {
@@ -363,63 +368,91 @@ export function ResourcesManager() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {resources.map((resource) => (
-            <Card key={resource.id} className="p-4">
-              <div className="flex items-start gap-4">
-                <div className="text-comarc-green">
-                  {getResourceIcon(resource.resource_type)}
+        <div className="space-y-6">
+          {RESOURCE_TYPES.map((type) => {
+            const typeResources = getResourcesByType(type.id);
+            if (typeResources.length === 0) return null;
+            
+            const Icon = type.icon;
+            
+            return (
+              <div key={type.id} className="space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Icon className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">{type.name}s</h3>
+                  <span className="text-sm text-muted-foreground">
+                    ({typeResources.length})
+                  </span>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold">{resource.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {resource.description}
-                      </p>
-                      <div className="flex gap-2 mt-1">
-                        <a
-                          href={resource.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-comarc-green hover:underline flex items-center gap-1"
-                        >
-                          Abrir recurso
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                        {resource.resource_type === "pdf" && (
-                          <a
-                            href={resource.url}
-                            download
-                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
-                          >
-                            Baixar PDF
-                            <Upload className="h-3 w-3 rotate-180" />
-                          </a>
-                        )}
+                
+                <div className="grid gap-3">
+                  {typeResources.map((resource) => (
+                    <Card key={resource.id} className="p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <div className="text-primary">
+                          {getResourceIcon(resource.resource_type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold truncate">{resource.title}</h4>
+                              {resource.description && (
+                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                  {resource.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 mt-2">
+                                <span className="text-xs text-muted-foreground">
+                                  Adicionado em {new Date(resource.created_at).toLocaleDateString("pt-BR")}
+                                </span>
+                                <div className="flex gap-3">
+                                  <a
+                                    href={resource.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                                  >
+                                    Abrir
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                  {resource.resource_type === "pdf" && (
+                                    <a
+                                      href={resource.url}
+                                      download
+                                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                    >
+                                      Baixar
+                                      <Upload className="h-3 w-3 rotate-180" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(resource)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(resource.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(resource)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(resource.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
+                    </Card>
+                  ))}
                 </div>
               </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

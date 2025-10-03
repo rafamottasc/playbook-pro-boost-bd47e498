@@ -34,9 +34,10 @@ export function Header({ userPoints, userName }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null }>({
+  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null; gender: string | null }>({
     full_name: userName,
     avatar_url: null,
+    gender: null,
   });
 
   useEffect(() => {
@@ -49,13 +50,23 @@ export function Header({ userPoints, userName }: HeaderProps) {
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("full_name, avatar_url")
+      .select("full_name, avatar_url, gender")
       .eq("id", user.id)
       .single();
     
     if (data) {
       setProfile(data);
     }
+  };
+
+  const getWelcomeMessage = () => {
+    const firstName = profile.full_name.split(" ")[0];
+    if (profile.gender === "feminino") {
+      return `Seja Bem-Vinda ${firstName}`;
+    } else if (profile.gender === "masculino") {
+      return `Seja Bem-Vindo ${firstName}`;
+    }
+    return `Olá ${firstName}`;
   };
 
   const currentBadge = [...BADGE_THRESHOLDS]
@@ -100,7 +111,7 @@ export function Header({ userPoints, userName }: HeaderProps) {
           {/* User Profile with Gamification */}
           <div className="flex items-center gap-3">
             <div className="hidden md:block text-right">
-              <p className="text-sm font-medium">{profile.full_name}</p>
+              <p className="text-sm font-medium text-primary">{getWelcomeMessage()}</p>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">
                   {currentBadge.icon} {currentBadge.name}

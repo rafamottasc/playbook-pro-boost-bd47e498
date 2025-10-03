@@ -56,27 +56,33 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          blocked: boolean | null
           created_at: string | null
           email: string | null
           full_name: string
+          gender: string | null
           id: string
           updated_at: string | null
           whatsapp: string
         }
         Insert: {
           avatar_url?: string | null
+          blocked?: boolean | null
           created_at?: string | null
           email?: string | null
           full_name: string
+          gender?: string | null
           id: string
           updated_at?: string | null
           whatsapp: string
         }
         Update: {
           avatar_url?: string | null
+          blocked?: boolean | null
           created_at?: string | null
           email?: string | null
           full_name?: string
+          gender?: string | null
           id?: string
           updated_at?: string | null
           whatsapp?: string

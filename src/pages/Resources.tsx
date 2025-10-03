@@ -11,6 +11,7 @@ interface Resource {
   description: string | null;
   url: string;
   resource_type: string;
+  created_at: string;
 }
 
 export default function Resources() {
@@ -27,7 +28,7 @@ export default function Resources() {
       const { data, error } = await supabase
         .from("resources")
         .select("*")
-        .order("display_order");
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setResources(data || []);
@@ -60,51 +61,61 @@ export default function Resources() {
     const Icon = getIcon(type);
 
     return (
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
           <CardTitle className="flex items-center gap-2">
             <Icon className="h-5 w-5 text-primary" />
             {title}
           </CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {loading ? (
             <p className="text-sm text-muted-foreground">Carregando...</p>
           ) : typeResources.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground text-center py-4">
               Nenhum recurso disponível ainda
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {typeResources.map((resource) => (
-                <div key={resource.id} className="border-l-2 border-primary pl-3">
-                  <h4 className="font-medium text-sm">{resource.title}</h4>
+                <div 
+                  key={resource.id} 
+                  className="group border-l-4 border-primary/50 hover:border-primary pl-4 pr-2 py-2 rounded-r transition-all hover:bg-accent/50"
+                >
+                  <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
+                    {resource.title}
+                  </h4>
                   {resource.description && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                       {resource.description}
                     </p>
                   )}
-                  <div className="flex gap-3 mt-2">
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-comarc-green hover:underline flex items-center gap-1"
-                    >
-                      Abrir
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                    {resource.resource_type === "pdf" && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(resource.created_at).toLocaleDateString("pt-BR")}
+                    </span>
+                    <div className="flex gap-3">
                       <a
                         href={resource.url}
-                        download
-                        className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
                       >
-                        Baixar
-                        <Upload className="h-3 w-3 rotate-180" />
+                        Abrir
+                        <ExternalLink className="h-3 w-3" />
                       </a>
-                    )}
+                      {resource.resource_type === "pdf" && (
+                        <a
+                          href={resource.url}
+                          download
+                          className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium"
+                        >
+                          Baixar
+                          <Upload className="h-3 w-3 rotate-180" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

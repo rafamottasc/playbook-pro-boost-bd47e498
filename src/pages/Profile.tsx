@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ export default function Profile() {
     full_name: "",
     whatsapp: "",
     avatar_url: "",
+    gender: "",
   });
 
   useEffect(() => {
@@ -110,6 +112,7 @@ export default function Profile() {
         .update({
           full_name: validated.fullName,
           whatsapp: validated.whatsapp,
+          gender: profile.gender || null,
         })
         .eq("id", user.id);
 
@@ -189,6 +192,26 @@ export default function Profile() {
                   onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                   disabled={loading}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gênero</Label>
+                <Select
+                  value={profile.gender || ""}
+                  onValueChange={(value) => setProfile({ ...profile, gender: value })}
+                  disabled={loading}
+                >
+                  <SelectTrigger id="gender">
+                    <SelectValue placeholder="Selecione seu gênero" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Usado para personalizar mensagens de boas-vindas
+                </p>
               </div>
 
               <div className="space-y-2">
