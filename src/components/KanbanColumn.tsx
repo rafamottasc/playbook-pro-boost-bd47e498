@@ -26,11 +26,11 @@ export function KanbanColumn({
   onMessageSuggest,
 }: KanbanColumnProps) {
   return (
-    <div className="flex min-w-[320px] flex-col">
+    <div className="flex w-full flex-col">
       {/* Column Header */}
       <div className="mb-4 rounded-lg border bg-card p-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-foreground">{stage}</h3>
+          <h3 className="font-semibold text-foreground text-sm">{stage}</h3>
           <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
             {messages.length}
           </span>

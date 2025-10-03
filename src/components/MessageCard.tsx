@@ -139,7 +139,7 @@ export function MessageCard({
             variant={userFeedback === "like" ? "default" : "outline"}
             size="icon"
             onClick={handleLike}
-            className="h-8 w-8"
+            className={`h-8 w-8 ${userFeedback === "like" ? "bg-green-500 hover:bg-green-600 text-white border-green-500" : ""}`}
           >
             <ThumbsUp className="h-4 w-4" />
           </Button>
@@ -148,7 +148,7 @@ export function MessageCard({
             variant={userFeedback === "dislike" ? "secondary" : "outline"}
             size="icon"
             onClick={handleDislike}
-            className="h-8 w-8"
+            className={`h-8 w-8 ${userFeedback === "dislike" ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-500" : ""}`}
           >
             <ThumbsDown className="h-4 w-4" />
           </Button>
