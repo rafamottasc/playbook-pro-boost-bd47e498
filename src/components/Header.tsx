@@ -1,8 +1,20 @@
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, User, LogOut, FileText, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   userPoints: number;
@@ -18,6 +30,31 @@ const BADGE_THRESHOLDS = [
 
 export function Header({ userPoints, userName }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const { user, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null }>({
+    full_name: userName,
+    avatar_url: null,
+  });
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .single();
+    
+    if (data) {
+      setProfile(data);
+    }
+  };
 
   const currentBadge = [...BADGE_THRESHOLDS]
     .reverse()
@@ -57,27 +94,55 @@ export function Header({ userPoints, userName }: HeaderProps) {
 
           {/* User Profile with Gamification */}
           <div className="flex items-center gap-3">
-          <div className="hidden md:block text-right">
-            <p className="text-sm font-medium">{userName}</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {currentBadge.icon} {currentBadge.name}
-              </span>
-              <span className="text-xs font-bold text-primary">{userPoints} pts</span>
+            <div className="hidden md:block text-right">
+              <p className="text-sm font-medium">{profile.full_name}</p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {currentBadge.icon} {currentBadge.name}
+                </span>
+                <span className="text-xs font-bold text-primary">{userPoints} pts</span>
+              </div>
             </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                  <Avatar className="h-10 w-10 border-2 border-primary">
+                    <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} />
+                    <AvatarFallback className="bg-gradient-primary text-white font-semibold">
+                      {profile.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1 w-16">
+                    <Progress value={progressPercentage} className="h-1" />
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <User className="mr-2 h-4 w-4" />
+                  Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/resources")}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Central de Recursos
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Painel Admin
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div className="relative">
-            <Avatar className="h-10 w-10 border-2 border-primary">
-              <AvatarImage src="" alt={userName} />
-              <AvatarFallback className="bg-gradient-primary text-white font-semibold">
-                {userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-1 -right-1 w-16">
-              <Progress value={progressPercentage} className="h-1" />
-            </div>
-          </div>
-        </div>
         </div>
       </div>
     </header>
