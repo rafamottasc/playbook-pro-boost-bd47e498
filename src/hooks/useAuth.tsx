@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string, whatsapp: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
@@ -62,13 +62,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(!!data);
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
-    if (!error) {
+    if (!error && data.session) {
+      // If user doesn't want to be remembered, move session to sessionStorage
+      if (!rememberMe) {
+        // Get all supabase auth keys from localStorage
+        const keys = Object.keys(localStorage).filter(key => 
+          key.includes('supabase.auth.token') || key.startsWith('sb-')
+        );
+        
+        // Move them to sessionStorage
+        keys.forEach(key => {
+          const value = localStorage.getItem(key);
+          if (value) {
+            sessionStorage.setItem(key, value);
+            localStorage.removeItem(key);
+          }
+        });
+      }
+      
       navigate("/");
     }
     
