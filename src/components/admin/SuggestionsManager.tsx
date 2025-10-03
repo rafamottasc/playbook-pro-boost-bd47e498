@@ -111,6 +111,25 @@ export function SuggestionsManager() {
     }
   };
 
+  const handleMarkAsDiscarded = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("suggestions")
+        .update({ status: "rejected" })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast({ title: "Sugestão marcada como descartada!" });
+      loadSuggestions();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao marcar sugestão",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir esta sugestão?")) return;
 
@@ -184,19 +203,26 @@ export function SuggestionsManager() {
                       suggestion.status === "pending"
                         ? "default"
                         : suggestion.status === "approved"
-                        ? "secondary"
+                        ? "default"
                         : suggestion.status === "applied"
                         ? "default"
                         : "destructive"
+                    }
+                    className={
+                      suggestion.status === "applied"
+                        ? "bg-green-600 hover:bg-green-700"
+                        : suggestion.status === "rejected"
+                        ? "bg-gray-500 hover:bg-gray-600"
+                        : ""
                     }
                   >
                     {suggestion.status === "pending"
                       ? "Pendente"
                       : suggestion.status === "approved"
-                      ? "Aprovada"
+                      ? "Pendente"
                       : suggestion.status === "applied"
-                      ? "Aplicada"
-                      : "Rejeitada"}
+                      ? "✓ Aplicada"
+                      : "✗ Descartada"}
                   </Badge>
                   <span className="text-sm text-muted-foreground">
                     {new Date(suggestion.created_at).toLocaleDateString("pt-BR")}
@@ -214,36 +240,27 @@ export function SuggestionsManager() {
               </div>
               
               <div className="flex flex-col gap-2">
-                {suggestion.status === "pending" && (
+                {(suggestion.status === "pending" || suggestion.status === "approved") && (
                   <>
                     <Button
                       size="sm"
                       variant="default"
-                      onClick={() => handleApprove(suggestion.id)}
+                      onClick={() => handleMarkAsApplied(suggestion.id)}
+                      className="bg-green-600 hover:bg-green-700"
                     >
-                      <Check className="mr-2 h-4 w-4" />
-                      Aprovar
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Aplicada
                     </Button>
                     <Button
                       size="sm"
-                      variant="destructive"
-                      onClick={() => handleReject(suggestion.id)}
+                      variant="outline"
+                      onClick={() => handleMarkAsDiscarded(suggestion.id)}
+                      className="border-gray-400 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800"
                     >
                       <X className="mr-2 h-4 w-4" />
-                      Rejeitar
+                      Descartada
                     </Button>
                   </>
-                )}
-                
-                {suggestion.status === "approved" && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => handleMarkAsApplied(suggestion.id)}
-                  >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Aplicada
-                  </Button>
                 )}
                 
                 <Button
