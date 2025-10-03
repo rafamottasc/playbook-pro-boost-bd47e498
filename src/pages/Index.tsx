@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -356,10 +356,37 @@ const STAGES = {
 };
 
 export default function Index() {
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [userPoints, setUserPoints] = useState(127);
   const [activeFunnel, setActiveFunnel] = useState("lead-novo");
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  const loadMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .order("display_order");
+
+      if (error) throw error;
+      
+      setMessages(data || []);
+    } catch (error: any) {
+      console.error("Erro ao carregar mensagens:", error);
+      toast({
+        title: "Erro ao carregar mensagens",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMessageCopy = (messageId: string) => {
     setUserPoints((prev) => prev + 1);
@@ -428,6 +455,20 @@ export default function Index() {
   };
 
   const currentStages = STAGES[activeFunnel as keyof typeof STAGES];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header userPoints={userPoints} userName="Carregando..." />
+        <main className="container py-6 px-4 flex items-center justify-center">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando mensagens...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
