@@ -247,9 +247,10 @@ export function UsersManager() {
                   </Button>
                   
                   <Button
-                    variant={user.blocked ? "default" : "secondary"}
+                    variant={user.blocked ? "default" : "outline"}
                     onClick={() => toggleBlockUser(user.id, user.blocked)}
                     size="sm"
+                    className={!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}
                   >
                     {user.blocked ? (
                       <>
@@ -268,7 +269,7 @@ export function UsersManager() {
                     variant="outline"
                     onClick={() => setDeleteUserId(user.id)}
                     size="sm"
-                    className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950"
+                    className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Excluir
