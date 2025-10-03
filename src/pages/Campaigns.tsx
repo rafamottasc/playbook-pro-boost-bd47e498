@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Building, Building2, Users, ExternalLink, Pencil, Trash2, User } from "lucide-react";
+import { Plus, Building, Building2, Users, ExternalLink, Pencil, Trash2, User, Globe, MapPin } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { COUNTRIES, BRAZILIAN_STATES, getCountryFlag, getStateName } from "@/lib/locations";
 
 interface Campaign {
   id: string;
@@ -38,6 +39,8 @@ interface Campaign {
   link_anuncio: string | null;
   status: string;
   created_at: string;
+  countries: string[];
+  states: string[];
   campaign_participants?: Array<{
     user_id: string;
     profiles: {
@@ -66,6 +69,8 @@ export default function Campaigns() {
   const [linkAnuncio, setLinkAnuncio] = useState("");
   const [status, setStatus] = useState("ativa");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -99,7 +104,14 @@ export default function Campaigns() {
       }
       
       console.log("Campaigns fetched:", data);
-      setCampaigns(data || []);
+      
+      // Sort campaigns by status: ativa -> pausada -> encerrada
+      const sortedData = (data || []).sort((a, b) => {
+        const statusOrder = { ativa: 0, pausada: 1, encerrada: 2 };
+        return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
+      });
+      
+      setCampaigns(sortedData);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       toast({
@@ -148,6 +160,8 @@ export default function Campaigns() {
             empreendimento,
             link_anuncio: linkAnuncio || null,
             status,
+            countries: selectedCountries,
+            states: selectedStates,
           })
           .eq("id", editingCampaign.id);
 
@@ -202,6 +216,8 @@ export default function Campaigns() {
             empreendimento,
             link_anuncio: linkAnuncio || null,
             status,
+            countries: selectedCountries,
+            states: selectedStates,
           })
           .select()
           .single();
@@ -289,6 +305,8 @@ export default function Campaigns() {
     setEmpreendimento(campaign.empreendimento);
     setLinkAnuncio(campaign.link_anuncio || "");
     setStatus(campaign.status);
+    setSelectedCountries(campaign.countries || []);
+    setSelectedStates(campaign.states || []);
     setSelectedParticipants(
       campaign.campaign_participants?.map((p) => p.user_id) || []
     );
@@ -302,6 +320,8 @@ export default function Campaigns() {
     setLinkAnuncio("");
     setStatus("ativa");
     setSelectedParticipants([]);
+    setSelectedCountries([]);
+    setSelectedStates([]);
   };
 
   const toggleParticipant = (userId: string) => {
@@ -309,6 +329,54 @@ export default function Campaigns() {
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
         : [...prev, userId]
+    );
+  };
+
+  const toggleCountry = (countryCode: string) => {
+    setSelectedCountries((prev) =>
+      prev.includes(countryCode)
+        ? prev.filter((code) => code !== countryCode)
+        : [...prev, countryCode]
+    );
+    // If deselecting Brazil, clear states
+    if (countryCode === "BR" && selectedCountries.includes("BR")) {
+      setSelectedStates([]);
+    }
+  };
+
+  const toggleState = (stateCode: string) => {
+    setSelectedStates((prev) =>
+      prev.includes(stateCode)
+        ? prev.filter((code) => code !== stateCode)
+        : [...prev, stateCode]
+    );
+  };
+
+  const renderLocationInfo = (campaign: Campaign) => {
+    const countries = campaign.countries || [];
+    const states = campaign.states || [];
+    
+    if (countries.length === 0 && states.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="text-xs text-muted-foreground mt-1">
+        {countries.length > 0 && (
+          <span className="flex items-center gap-1">
+            <Globe className="h-3 w-3" />
+            {countries.map(code => getCountryFlag(code)).join(" ")}
+            {countries.length > 3 && ` +${countries.length - 3}`}
+          </span>
+        )}
+        {states.length > 0 && (
+          <span className="flex items-center gap-1 mt-0.5">
+            <MapPin className="h-3 w-3" />
+            {states.slice(0, 3).map(code => getStateName(code)).join(", ")}
+            {states.length > 3 && ` +${states.length - 3}`}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -427,6 +495,50 @@ export default function Campaigns() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label>🌍 Países de Veiculação</Label>
+                      <div className="border rounded-md p-4 space-y-2 max-h-48 overflow-y-auto">
+                        {COUNTRIES.map((country) => (
+                          <div key={country.code} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`country-${country.code}`}
+                              checked={selectedCountries.includes(country.code)}
+                              onCheckedChange={() => toggleCountry(country.code)}
+                            />
+                            <label
+                              htmlFor={`country-${country.code}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {country.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {selectedCountries.includes("BR") && (
+                      <div className="space-y-2">
+                        <Label>📍 Estados do Brasil</Label>
+                        <div className="border rounded-md p-4 space-y-2 max-h-48 overflow-y-auto">
+                          {BRAZILIAN_STATES.map((state) => (
+                            <div key={state.code} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`state-${state.code}`}
+                                checked={selectedStates.includes(state.code)}
+                                onCheckedChange={() => toggleState(state.code)}
+                              />
+                              <label
+                                htmlFor={`state-${state.code}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                              >
+                                {state.code} - {state.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
                       <Label>Corretores Participantes</Label>
                       <div className="border rounded-md p-4 space-y-2 max-h-60 overflow-y-auto">
                         {profiles.map((profile) => (
@@ -492,6 +604,7 @@ export default function Campaigns() {
                             <Building2 className="h-3 w-3" />
                             {campaign.empreendimento}
                           </p>
+                          {renderLocationInfo(campaign)}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

@@ -53,28 +53,34 @@ export type Database = {
       campaigns: {
         Row: {
           construtora: string
+          countries: string[] | null
           created_at: string
           empreendimento: string
           id: string
           link_anuncio: string | null
+          states: string[] | null
           status: string
           updated_at: string
         }
         Insert: {
           construtora: string
+          countries?: string[] | null
           created_at?: string
           empreendimento: string
           id?: string
           link_anuncio?: string | null
+          states?: string[] | null
           status?: string
           updated_at?: string
         }
         Update: {
           construtora?: string
+          countries?: string[] | null
           created_at?: string
           empreendimento?: string
           id?: string
           link_anuncio?: string | null
+          states?: string[] | null
           status?: string
           updated_at?: string
         }
