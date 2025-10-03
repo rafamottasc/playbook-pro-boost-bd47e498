@@ -53,20 +53,14 @@ export function UsersManager() {
 
       if (rolesError) throw rolesError;
 
-      const usersWithRoles = profiles?.map((profile) => {
-        const blockedStatus = profile.blocked === true;
-        console.log(`Usuário ${profile.full_name} - blocked:`, profile.blocked, '-> convertido para:', blockedStatus);
-        
-        return {
-          ...profile,
-          blocked: blockedStatus,
-          roles: userRoles
-            ?.filter((role) => role.user_id === profile.id)
-            .map((role) => role.role) || [],
-        };
-      }) || [];
+      const usersWithRoles = profiles?.map((profile) => ({
+        ...profile,
+        blocked: profile.blocked === true,
+        roles: userRoles
+          ?.filter((role) => role.user_id === profile.id)
+          .map((role) => role.role) || [],
+      })) || [];
 
-      console.log('Usuários carregados:', usersWithRoles);
       setUsers(usersWithRoles);
     } catch (error: any) {
       toast({
@@ -113,16 +107,12 @@ export function UsersManager() {
 
   const toggleBlockUser = async (userId: string, currentBlocked: boolean) => {
     try {
-      console.log('Bloqueando usuário:', userId, 'Estado atual:', currentBlocked);
-      
       const { error } = await supabase
         .from("profiles")
         .update({ blocked: !currentBlocked })
         .eq("id", userId);
 
       if (error) throw error;
-      
-      console.log('Usuário atualizado. Novo estado:', !currentBlocked);
       
       toast({ 
         title: currentBlocked ? "Usuário desbloqueado!" : "Usuário bloqueado!",
@@ -133,7 +123,6 @@ export function UsersManager() {
       
       await loadUsers();
     } catch (error: any) {
-      console.error('Erro ao bloquear/desbloquear:', error);
       toast({
         title: "Erro ao bloquear/desbloquear usuário",
         description: error.message,
