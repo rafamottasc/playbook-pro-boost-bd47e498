@@ -3,6 +3,8 @@ import { Header } from "@/components/Header";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -357,6 +359,7 @@ export default function Index() {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [userPoints, setUserPoints] = useState(127);
   const [activeFunnel, setActiveFunnel] = useState("lead-novo");
+  const { toast } = useToast();
 
   const handleMessageCopy = (messageId: string) => {
     setUserPoints((prev) => prev + 1);
@@ -379,8 +382,49 @@ export default function Index() {
     );
   };
 
-  const handleMessageSuggest = (messageId: string, suggestion: string) => {
-    console.log("Sugestão recebida:", { messageId, suggestion });
+  const handleMessageSuggest = async (messageId: string, suggestion: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para enviar sugestões",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("suggestions")
+        .insert([
+          {
+            message_id: messageId,
+            user_id: user.id,
+            suggestion_text: suggestion,
+            status: "pending",
+          },
+        ]);
+
+      if (error) {
+        toast({
+          title: "Erro ao enviar sugestão",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sugestão enviada!",
+          description: "Sua sugestão foi enviada para análise do administrador",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar sugestão",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const currentStages = STAGES[activeFunnel as keyof typeof STAGES];
