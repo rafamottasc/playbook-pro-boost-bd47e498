@@ -61,9 +61,6 @@ export function UsersManager() {
       );
       const firstAdminId = adminProfiles?.[0]?.id;
 
-      console.log('Primeiro Admin ID:', firstAdminId);
-      console.log('Admin Profiles:', adminProfiles?.map(p => ({ id: p.id, name: p.full_name })));
-
       const usersWithRoles = profiles?.map((profile) => ({
         ...profile,
         blocked: profile.blocked === true,
@@ -72,12 +69,6 @@ export function UsersManager() {
           .map((role) => role.role) || [],
         isFirstAdmin: profile.id === firstAdminId,
       })) || [];
-
-      console.log('Users with roles:', usersWithRoles.map(u => ({ 
-        name: u.full_name, 
-        isFirstAdmin: u.isFirstAdmin, 
-        roles: u.roles 
-      })));
 
       setUsers(usersWithRoles);
     } catch (error: any) {

@@ -54,9 +54,6 @@ export function Header({ userPoints, userName }: HeaderProps) {
       .eq("id", user.id)
       .maybeSingle();
     
-    console.log('Profile loaded:', data);
-    console.log('Profile error:', error);
-    
     if (data) {
       setProfile(data);
     }
@@ -64,8 +61,6 @@ export function Header({ userPoints, userName }: HeaderProps) {
 
   const getWelcomeMessage = () => {
     const firstName = profile.full_name.split(" ")[0];
-    console.log('Welcome message - Profile:', profile);
-    console.log('Gender:', profile.gender);
     
     if (profile.gender === "feminino") {
       return `Seja Bem-Vinda ${firstName}`;
