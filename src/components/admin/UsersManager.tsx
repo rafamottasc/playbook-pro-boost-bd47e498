@@ -42,7 +42,7 @@ export function UsersManager() {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, email, whatsapp, avatar_url, created_at, blocked")
         .order("created_at");
 
       if (profilesError) throw profilesError;
@@ -55,6 +55,7 @@ export function UsersManager() {
 
       const usersWithRoles = profiles?.map((profile) => ({
         ...profile,
+        blocked: profile.blocked || false,
         roles: userRoles
           ?.filter((role) => role.user_id === profile.id)
           .map((role) => role.role) || [],
