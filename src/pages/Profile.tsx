@@ -9,6 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload } from "lucide-react";
+import { profileUpdateSchema } from "@/lib/validations";
+import { ZodError } from "zod";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -95,29 +97,45 @@ export default function Profile() {
     e.preventDefault();
     if (!user) return;
 
-    setLoading(true);
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: profile.full_name,
+    try {
+      const validated = profileUpdateSchema.parse({
+        fullName: profile.full_name,
         whatsapp: profile.whatsapp,
-      })
-      .eq("id", user.id);
-
-    setLoading(false);
-
-    if (error) {
-      toast({
-        title: "Erro ao atualizar",
-        description: error.message,
-        variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram atualizadas com sucesso",
-      });
+
+      setLoading(true);
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: validated.fullName,
+          whatsapp: validated.whatsapp,
+        })
+        .eq("id", user.id);
+
+      setLoading(false);
+
+      if (error) {
+        toast({
+          title: "Erro ao atualizar",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Perfil atualizado!",
+          description: "Suas informações foram atualizadas com sucesso",
+        });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        toast({
+          title: "Erro de validação",
+          description: error.issues[0].message,
+          variant: "destructive",
+        });
+      }
+      setLoading(false);
     }
   };
 

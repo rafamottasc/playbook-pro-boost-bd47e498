@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
+import { signInSchema, signUpSchema, resetPasswordSchema } from "@/lib/validations";
+import { ZodError } from "zod";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -32,96 +34,104 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast({
-        title: "Erro",
-        description: "Por favor, preencha todos os campos",
-        variant: "destructive",
-      });
-      return;
-    }
+    
+    try {
+      const validated = signInSchema.parse({ email, password });
+      
+      setLoading(true);
+      const { error } = await signIn(validated.email, validated.password);
+      setLoading(false);
 
-    setLoading(true);
-    const { error } = await signIn(email, password);
-    setLoading(false);
-
-    if (error) {
-      toast({
-        title: "Erro no login",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        toast({
+          title: "Erro de validação",
+          description: error.issues[0].message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !fullName || !whatsapp) {
-      toast({
-        title: "Erro",
-        description: "Por favor, preencha todos os campos",
-        variant: "destructive",
-      });
-      return;
-    }
+    
+    try {
+      const validated = signUpSchema.parse({ email, password, fullName, whatsapp });
+      
+      setLoading(true);
+      const { error } = await signUp(
+        validated.email, 
+        validated.password, 
+        validated.fullName, 
+        validated.whatsapp
+      );
+      setLoading(false);
 
-    if (password.length < 6) {
-      toast({
-        title: "Erro",
-        description: "A senha deve ter no mínimo 6 caracteres",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    const { error } = await signUp(email, password, fullName, whatsapp);
-    setLoading(false);
-
-    if (error) {
-      toast({
-        title: "Erro no cadastro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Cadastro realizado!",
-        description: "Bem-vindo ao sistema COMARC",
-      });
+      if (error) {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Cadastro realizado!",
+          description: "Bem-vindo ao sistema COMARC",
+        });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        toast({
+          title: "Erro de validação",
+          description: error.issues[0].message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!resetEmail) {
-      toast({
-        title: "Erro",
-        description: "Por favor, preencha o e-mail",
-        variant: "destructive",
-      });
-      return;
-    }
+    
+    try {
+      const validated = resetPasswordSchema.parse({ email: resetEmail });
 
-    setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth`,
-    });
-    setLoading(false);
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(validated.email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      setLoading(false);
 
-    if (error) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "E-mail enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha",
-      });
-      setShowResetPassword(false);
-      setResetEmail("");
+      if (error) {
+        toast({
+          title: "Erro",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "E-mail enviado!",
+          description: "Verifique sua caixa de entrada para redefinir sua senha",
+        });
+        setShowResetPassword(false);
+        setResetEmail("");
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        toast({
+          title: "Erro de validação",
+          description: error.issues[0].message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
