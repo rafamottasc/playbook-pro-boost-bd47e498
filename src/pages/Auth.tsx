@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import comarcLogo from "@/assets/logo-comarc.png";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -128,8 +129,14 @@ export default function Auth() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-comarc-green">Recuperar Senha</CardTitle>
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <img 
+                src={comarcLogo} 
+                alt="COMARC" 
+                className="h-10 w-auto object-contain"
+              />
+            </div>
             <CardDescription>Digite seu e-mail para receber o link de recuperação</CardDescription>
           </CardHeader>
           <CardContent>
@@ -166,8 +173,14 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-comarc-green">COMARC</CardTitle>
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <img 
+              src={comarcLogo} 
+              alt="COMARC" 
+              className="h-12 w-auto object-contain"
+            />
+          </div>
           <CardDescription>Dashboard de Playbooks de Mensagens</CardDescription>
         </CardHeader>
         <CardContent>
