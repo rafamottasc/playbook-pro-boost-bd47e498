@@ -78,9 +78,9 @@ export default function Campaigns() {
         .from("campaigns")
         .select(`
           *,
-          campaign_participants!inner (
+          campaign_participants (
             user_id,
-            profiles!inner (
+            profiles (
               full_name
             )
           )
@@ -88,25 +88,7 @@ export default function Campaigns() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
-      // Agrupar participantes por campanha
-      const campaignsMap = new Map();
-      
-      data?.forEach((row: any) => {
-        if (!campaignsMap.has(row.id)) {
-          campaignsMap.set(row.id, {
-            ...row,
-            campaign_participants: []
-          });
-        }
-        
-        const campaign = campaignsMap.get(row.id);
-        if (row.campaign_participants && !campaign.campaign_participants.some((p: any) => p.user_id === row.campaign_participants.user_id)) {
-          campaign.campaign_participants.push(row.campaign_participants);
-        }
-      });
-      
-      setCampaigns(Array.from(campaignsMap.values()));
+      setCampaigns(data || []);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       toast({
