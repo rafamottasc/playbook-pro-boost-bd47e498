@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link } from "lucide-react";
+import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,8 @@ export function ResourcesManager() {
     url: "",
     resource_type: "pdf",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadResources();
@@ -76,15 +78,67 @@ export function ResourcesManager() {
     }
   };
 
+  const handleFileUpload = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `resources/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer upload",
+        description: error.message,
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const normalizeUrl = (url: string): string => {
+    if (!url) return url;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `https://${url}`;
+  };
+
   const handleSave = async () => {
     try {
+      let finalUrl = formData.url;
+
+      // Se há arquivo selecionado, fazer upload
+      if (selectedFile) {
+        const uploadedUrl = await handleFileUpload();
+        if (!uploadedUrl) return;
+        finalUrl = uploadedUrl;
+      } else if (finalUrl) {
+        // Normalizar URL se for link ou vídeo
+        finalUrl = normalizeUrl(finalUrl);
+      }
+
       if (editingResource) {
         const { error } = await supabase
           .from("resources")
           .update({
             title: formData.title,
             description: formData.description,
-            url: formData.url,
+            url: finalUrl,
             resource_type: formData.resource_type,
           })
           .eq("id", editingResource.id);
@@ -96,7 +150,7 @@ export function ResourcesManager() {
           {
             title: formData.title,
             description: formData.description,
-            url: formData.url,
+            url: finalUrl,
             resource_type: formData.resource_type,
             display_order: resources.length,
           },
@@ -149,12 +203,17 @@ export function ResourcesManager() {
 
   const resetForm = () => {
     setEditingResource(null);
+    setSelectedFile(null);
     setFormData({
       title: "",
       description: "",
       url: "",
       resource_type: "pdf",
     });
+  };
+
+  const requiresFileUpload = () => {
+    return formData.resource_type === "pdf";
   };
 
   const getResourceIcon = (type: string) => {
@@ -221,17 +280,58 @@ export function ResourcesManager() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="url">URL / Link</Label>
-                <Input
-                  id="url"
-                  value={formData.url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, url: e.target.value })
-                  }
-                  placeholder="https://..."
-                />
-              </div>
+              
+              {requiresFileUpload() ? (
+                <div className="space-y-2">
+                  <Label htmlFor="file">Upload de Arquivo</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="file"
+                      type="file"
+                      accept=".pdf,image/*"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className="flex-1"
+                    />
+                    {selectedFile && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedFile(null)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {selectedFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Arquivo selecionado: {selectedFile.name}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="url">URL / Link</Label>
+                  <Input
+                    id="url"
+                    value={formData.url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, url: e.target.value })
+                    }
+                    placeholder={
+                      formData.resource_type === "video"
+                        ? "https://youtube.com/watch?v=..."
+                        : "https://..."
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {formData.resource_type === "video"
+                      ? "Cole o link do YouTube"
+                      : "Cole o link do recurso"}
+                  </p>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="description">Descrição (opcional)</Label>
                 <Textarea
@@ -248,7 +348,9 @@ export function ResourcesManager() {
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleSave}>Salvar</Button>
+                <Button onClick={handleSave} disabled={uploading}>
+                  {uploading ? "Enviando..." : "Salvar"}
+                </Button>
               </div>
             </div>
           </DialogContent>

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, User } from "lucide-react";
+import { Shield, User, Mail, Phone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserWithRole {
   id: string;
   full_name: string;
+  email: string | null;
   whatsapp: string;
   avatar_url: string | null;
   created_at: string;
@@ -102,11 +103,11 @@ export function UsersManager() {
       <div className="grid gap-4">
         {users.map((user) => (
           <Card key={user.id} className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Avatar>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 flex-1">
+                <Avatar className="h-16 w-16">
                   <AvatarImage src={user.avatar_url || ""} />
-                  <AvatarFallback>
+                  <AvatarFallback className="text-lg">
                     {user.full_name
                       .split(" ")
                       .map((n) => n[0])
@@ -114,10 +115,38 @@ export function UsersManager() {
                       .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-semibold">{user.full_name}</h3>
-                  <p className="text-sm text-muted-foreground">{user.whatsapp}</p>
-                  <div className="flex gap-2 mt-1">
+                <div className="flex-1 space-y-2">
+                  <h3 className="font-semibold text-lg">{user.full_name}</h3>
+                  
+                  <div className="space-y-1">
+                    {user.email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <a
+                          href={`mailto:${user.email}`}
+                          className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
+                        >
+                          <Mail className="h-4 w-4" />
+                          <span>{user.email}</span>
+                        </a>
+                      </div>
+                    )}
+                    
+                    {user.whatsapp && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <a
+                          href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
+                        >
+                          <Phone className="h-4 w-4" />
+                          <span>{user.whatsapp}</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
                     {user.roles.includes("admin") && (
                       <Badge variant="default" className="gap-1">
                         <Shield className="h-3 w-3" />
@@ -133,6 +162,7 @@ export function UsersManager() {
                   </div>
                 </div>
               </div>
+              
               <Button
                 variant={user.roles.includes("admin") ? "destructive" : "default"}
                 onClick={() => toggleAdminRole(user.id, user.roles)}

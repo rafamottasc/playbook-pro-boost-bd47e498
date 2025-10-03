@@ -43,6 +43,8 @@ const FUNNELS = [
 
 export function MessagesManager() {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
+  const [selectedFunnel, setSelectedFunnel] = useState<string>("todos");
   const [loading, setLoading] = useState(true);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -58,6 +60,14 @@ export function MessagesManager() {
   useEffect(() => {
     loadMessages();
   }, []);
+
+  useEffect(() => {
+    if (selectedFunnel === "todos") {
+      setFilteredMessages(messages);
+    } else {
+      setFilteredMessages(messages.filter(msg => msg.funnel === selectedFunnel));
+    }
+  }, [selectedFunnel, messages]);
 
   const loadMessages = async () => {
     try {
@@ -191,9 +201,23 @@ export function MessagesManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-4">
         <h2 className="text-xl font-semibold">Mensagens do Playbook</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex gap-2 items-center">
+          <Select value={selectedFunnel} onValueChange={setSelectedFunnel}>
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Filtrar por funil" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Funis</SelectItem>
+              {FUNNELS.map((funnel) => (
+                <SelectItem key={funnel.id} value={funnel.id}>
+                  {funnel.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="mr-2 h-4 w-4" />
@@ -275,10 +299,20 @@ export function MessagesManager() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {messages.map((message) => (
+      {filteredMessages.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            {selectedFunnel === "todos" 
+              ? "Nenhuma mensagem cadastrada ainda" 
+              : "Nenhuma mensagem encontrada neste funil"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {filteredMessages.map((message) => (
           <Card key={message.id} className="p-4">
             <div className="flex items-start gap-4">
               <GripVertical className="mt-1 text-muted-foreground cursor-move" />
@@ -324,8 +358,9 @@ export function MessagesManager() {
               </div>
             </div>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

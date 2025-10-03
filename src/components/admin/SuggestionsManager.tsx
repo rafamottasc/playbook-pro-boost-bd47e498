@@ -98,8 +98,33 @@ export function SuggestionsManager() {
 
   if (suggestions.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Nenhuma sugestão encontrada</p>
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Sugestões dos Corretores</h2>
+        <Card className="p-8">
+          <div className="text-center space-y-4">
+            <div className="text-4xl">💡</div>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Nenhuma sugestão ainda</h3>
+              <p className="text-muted-foreground text-sm">
+                Quando os corretores enviarem sugestões de melhoria nas mensagens, elas aparecerão aqui para você aprovar ou rejeitar.
+              </p>
+            </div>
+            <div className="bg-muted p-4 rounded-lg text-sm text-left space-y-2">
+              <p className="font-medium">Preview de como as sugestões aparecerão:</p>
+              <div className="bg-background p-3 rounded border">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="default">Pendente</Badge>
+                  <span className="text-sm text-muted-foreground">01/01/2024</span>
+                </div>
+                <p className="font-semibold text-sm mb-1">Mensagem: Saudação Inicial</p>
+                <p className="text-xs text-muted-foreground mb-2">Por: João Silva</p>
+                <p className="text-xs bg-muted p-2 rounded">
+                  Sugestão de melhoria para a mensagem...
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     );
   }
