@@ -60,7 +60,7 @@ export default function Campaigns() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   
-  // Form states
+  // Form states for campaign creation/editing
   const [construtora, setConstrutora] = useState("");
   const [empreendimento, setEmpreendimento] = useState("");
   const [linkAnuncio, setLinkAnuncio] = useState("");
