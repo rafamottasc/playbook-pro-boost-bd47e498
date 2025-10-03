@@ -129,6 +129,8 @@ export default function Campaigns() {
       return;
     }
 
+    console.log("Selected participants:", selectedParticipants);
+
     try {
       if (editingCampaign) {
         // Update campaign
@@ -142,7 +144,10 @@ export default function Campaigns() {
           })
           .eq("id", editingCampaign.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Update campaign error:", updateError);
+          throw updateError;
+        }
 
         // Delete old participants
         const { error: deleteError } = await supabase
@@ -150,7 +155,10 @@ export default function Campaigns() {
           .delete()
           .eq("campaign_id", editingCampaign.id);
 
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error("Delete participants error:", deleteError);
+          throw deleteError;
+        }
 
         // Insert new participants
         if (selectedParticipants.length > 0) {
@@ -159,11 +167,19 @@ export default function Campaigns() {
             user_id: userId,
           }));
 
-          const { error: insertError } = await supabase
-            .from("campaign_participants")
-            .insert(participants);
+          console.log("Inserting participants (update):", participants);
 
-          if (insertError) throw insertError;
+          const { data: insertData, error: insertError } = await supabase
+            .from("campaign_participants")
+            .insert(participants)
+            .select();
+
+          console.log("Insert result (update):", { insertData, insertError });
+
+          if (insertError) {
+            console.error("Insert participants error:", insertError);
+            throw insertError;
+          }
         }
 
         toast({
@@ -183,7 +199,12 @@ export default function Campaigns() {
           .select()
           .single();
 
-        if (campaignError) throw campaignError;
+        if (campaignError) {
+          console.error("Create campaign error:", campaignError);
+          throw campaignError;
+        }
+
+        console.log("New campaign created:", newCampaign);
 
         // Insert participants
         if (selectedParticipants.length > 0) {
@@ -192,11 +213,21 @@ export default function Campaigns() {
             user_id: userId,
           }));
 
-          const { error: participantsError } = await supabase
-            .from("campaign_participants")
-            .insert(participants);
+          console.log("Inserting participants (create):", participants);
 
-          if (participantsError) throw participantsError;
+          const { data: insertData, error: participantsError } = await supabase
+            .from("campaign_participants")
+            .insert(participants)
+            .select();
+
+          console.log("Insert result (create):", { insertData, participantsError });
+
+          if (participantsError) {
+            console.error("Insert participants error:", participantsError);
+            throw participantsError;
+          }
+        } else {
+          console.log("No participants selected to insert");
         }
 
         toast({
@@ -486,26 +517,28 @@ export default function Campaigns() {
                         {getStatusBadge(campaign.status)}
                         <Badge variant="outline" className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {campaign.participants?.length || 0}
+                          {campaign.participants?.filter(p => p.user_id).length || 0}
                         </Badge>
                       </div>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pt-4">
-                      {/* Participants */}
+                       {/* Participants */}
                       <div>
                         <p className="text-sm font-medium mb-2 flex items-center gap-2">
                           <Users className="h-4 w-4" />
                           Corretores Participantes:
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {campaign.participants && campaign.participants.length > 0 ? (
-                            campaign.participants.map((participant, index) => (
-                              <Badge key={index} variant="secondary">
-                                {participant.profiles.full_name}
-                              </Badge>
-                            ))
+                          {campaign.participants && campaign.participants.filter(p => p.user_id).length > 0 ? (
+                            campaign.participants
+                              .filter(p => p.user_id)
+                              .map((participant, index) => (
+                                <Badge key={index} variant="secondary">
+                                  {participant.profiles.full_name}
+                                </Badge>
+                              ))
                           ) : (
                             <p className="text-sm text-muted-foreground">
                               Nenhum corretor vinculado
