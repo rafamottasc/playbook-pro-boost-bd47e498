@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaign_participants: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          construtora: string
+          created_at: string
+          empreendimento: string
+          id: string
+          link_anuncio: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          construtora: string
+          created_at?: string
+          empreendimento: string
+          id?: string
+          link_anuncio?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          construtora?: string
+          created_at?: string
+          empreendimento?: string
+          id?: string
+          link_anuncio?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

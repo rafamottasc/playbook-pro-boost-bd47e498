@@ -1,4 +1,4 @@
-import { Moon, Sun, User, LogOut, FileText, Settings } from "lucide-react";
+import { Moon, Sun, User, LogOut, FileText, Settings, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -145,6 +145,10 @@ export function Header({ userPoints, userName }: HeaderProps) {
                 <DropdownMenuItem onClick={() => navigate("/resources")}>
                   <FileText className="mr-2 h-4 w-4" />
                   Central de Recursos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/campaigns")}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Campanhas
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem onClick={() => navigate("/admin")}>
