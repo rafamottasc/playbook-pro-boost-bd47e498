@@ -70,9 +70,12 @@ export default function Campaigns() {
   useEffect(() => {
     if (user) {
       fetchCampaigns();
-      fetchProfiles();
+      // Fetch profiles for all users (needed to show participant selection)
+      if (isAdmin) {
+        fetchProfiles();
+      }
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const fetchCampaigns = async () => {
     try {
