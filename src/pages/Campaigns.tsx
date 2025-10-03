@@ -52,7 +52,7 @@ interface Profile {
 }
 
 export default function Campaigns() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -68,12 +68,15 @@ export default function Campaigns() {
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchCampaigns();
-    fetchProfiles();
-  }, []);
+    if (user) {
+      fetchCampaigns();
+      fetchProfiles();
+    }
+  }, [user]);
 
   const fetchCampaigns = async () => {
     try {
+      console.log("Fetching campaigns...");
       const { data, error } = await supabase
         .from("campaigns")
         .select(`
@@ -87,7 +90,12 @@ export default function Campaigns() {
         `)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Campaign fetch error:", error);
+        throw error;
+      }
+      
+      console.log("Campaigns fetched:", data);
       setCampaigns(data || []);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
@@ -314,12 +322,14 @@ export default function Campaigns() {
 
   const uniqueConstrutoras = Array.from(new Set(campaigns.map((c) => c.construtora)));
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
         <Header userPoints={0} userName="Carregando..." />
         <main className="container py-6 px-4">
-          <p>Carregando campanhas...</p>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
         </main>
       </div>
     );
