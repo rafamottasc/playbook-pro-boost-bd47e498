@@ -79,7 +79,8 @@ export function Header({ userPoints, userName }: HeaderProps) {
             <img src={comarcIcon} alt="COMARC" className="w-full h-full object-contain" />
           </div>
           <div className="hidden sm:block">
-            <img src={comarcLogo} alt="COMARC Playbooks WhatsApp" className="h-8 w-auto object-contain" />
+            <h1 className="text-lg font-bold text-foreground">COMARC</h1>
+            <p className="text-xs text-muted-foreground">Playbooks WhatsApp</p>
           </div>
         </div>
 

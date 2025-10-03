@@ -134,7 +134,7 @@ export default function Auth() {
               <img 
                 src={comarcLogo} 
                 alt="COMARC" 
-                className="h-10 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             </div>
             <CardDescription>Digite seu e-mail para receber o link de recuperação</CardDescription>
@@ -178,7 +178,7 @@ export default function Auth() {
             <img 
               src={comarcLogo} 
               alt="COMARC" 
-              className="h-12 w-auto object-contain"
+              className="h-24 w-auto object-contain"
             />
           </div>
           <CardDescription>Dashboard de Playbooks de Mensagens</CardDescription>
