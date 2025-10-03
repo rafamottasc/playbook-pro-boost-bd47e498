@@ -100,9 +100,3 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
-
-/* Auth page logo container - lighter in dark mode for better contrast */
-.dark .auth-logo-container {
-  background-color: hsl(240 10% 20%);
-  border-radius: 0.75rem 0.75rem 0 0;
-}

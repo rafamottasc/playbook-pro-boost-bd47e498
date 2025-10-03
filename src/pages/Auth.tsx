@@ -185,7 +185,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-4 auth-logo-container">
+        <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <img 
               src={comarcLogo} 
