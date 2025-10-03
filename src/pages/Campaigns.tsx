@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Building, Building2, Users, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Plus, Building, Building2, Users, ExternalLink, Pencil, Trash2, User } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -503,7 +503,8 @@ export default function Campaigns() {
                             campaign.campaign_participants
                               .filter(p => p.user_id)
                               .map((participant, index) => (
-                                <Badge key={index} variant="secondary">
+                                <Badge key={index} variant="secondary" className="flex items-center gap-1.5">
+                                  <User className="h-3 w-3" />
                                   {participant.profiles.full_name}
                                 </Badge>
                               ))
