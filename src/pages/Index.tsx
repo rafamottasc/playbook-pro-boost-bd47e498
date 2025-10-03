@@ -407,7 +407,11 @@ export default function Index() {
             <TabsContent key={funnel.id} value={funnel.id}>
               {/* Kanban Board */}
               <ScrollArea className="w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
+                <div className={`grid gap-4 pb-4 ${
+                  activeFunnel === 'atendimento' 
+                    ? 'grid-cols-1 lg:grid-cols-5' 
+                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                }`}>
                   {currentStages.map((stage) => {
                     const stageMessages = messages.filter(
                       (msg) => msg.funnel === activeFunnel && msg.stage === stage
