@@ -70,54 +70,33 @@ export default function Campaigns() {
   useEffect(() => {
     if (user) {
       fetchCampaigns();
-      // Only fetch profiles if user is admin (for participant selection)
-      if (isAdmin) {
-        fetchProfiles();
-      }
+      fetchProfiles();
     }
-  }, [user, isAdmin]);
+  }, [user]);
 
   const fetchCampaigns = async () => {
     try {
       console.log("Fetching campaigns...");
-      
-      // Admins can see participant details, non-admins just see campaigns
-      if (isAdmin) {
-        const { data, error } = await supabase
-          .from("campaigns")
-          .select(`
-            *,
-            campaign_participants (
-              user_id,
-              profiles (
-                full_name
-              )
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select(`
+          *,
+          campaign_participants (
+            user_id,
+            profiles (
+              full_name
             )
-          `)
-          .order("created_at", { ascending: false });
+          )
+        `)
+        .order("created_at", { ascending: false });
 
-        if (error) {
-          console.error("Campaign fetch error:", error);
-          throw error;
-        }
-        
-        console.log("Campaigns fetched:", data);
-        setCampaigns(data || []);
-      } else {
-        // Non-admins see campaigns without participant details
-        const { data, error } = await supabase
-          .from("campaigns")
-          .select('*')
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Campaign fetch error:", error);
-          throw error;
-        }
-        
-        console.log("Campaigns fetched:", data);
-        setCampaigns(data || []);
+      if (error) {
+        console.error("Campaign fetch error:", error);
+        throw error;
       }
+      
+      console.log("Campaigns fetched:", data);
+      setCampaigns(data || []);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       toast({
