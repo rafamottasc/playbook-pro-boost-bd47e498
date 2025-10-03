@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle, Crown } from "lucide-react";
+import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
@@ -26,13 +26,13 @@ interface UserWithRole {
   created_at: string;
   blocked: boolean;
   roles: string[];
+  isFirstAdmin?: boolean;
 }
 
 export function UsersManager() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
-  const [firstAdminId, setFirstAdminId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,14 +54,11 @@ export function UsersManager() {
 
       if (rolesError) throw rolesError;
 
-      // Identificar o primeiro admin
+      // Identificar o primeiro admin (admin mais antigo)
       const adminProfiles = profiles?.filter(p => 
-        userRoles?.some(r => r.user_id === p.id && r.role === 'admin')
+        userRoles?.some(ur => ur.user_id === p.id && ur.role === 'admin')
       );
-      const firstAdmin = adminProfiles?.[0]; // Já está ordenado por created_at
-      if (firstAdmin) {
-        setFirstAdminId(firstAdmin.id);
-      }
+      const firstAdminId = adminProfiles?.[0]?.id;
 
       const usersWithRoles = profiles?.map((profile) => ({
         ...profile,
@@ -69,6 +66,7 @@ export function UsersManager() {
         roles: userRoles
           ?.filter((role) => role.user_id === profile.id)
           .map((role) => role.role) || [],
+        isFirstAdmin: profile.id === firstAdminId,
       })) || [];
 
       setUsers(usersWithRoles);
@@ -83,18 +81,17 @@ export function UsersManager() {
     }
   };
 
-  const toggleAdminRole = async (userId: string, currentRoles: string[]) => {
-    try {
-      // Verificar se é o primeiro admin
-      if (userId === firstAdminId) {
-        toast({
-          title: "Ação não permitida",
-          description: "O admin principal do sistema não pode ser removido.",
-          variant: "destructive",
-        });
-        return;
-      }
+  const toggleAdminRole = async (userId: string, currentRoles: string[], isFirstAdmin: boolean) => {
+    if (isFirstAdmin) {
+      toast({
+        title: "Ação não permitida",
+        description: "O administrador principal do sistema não pode ser removido.",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    try {
       const isAdmin = currentRoles.includes("admin");
 
       if (isAdmin) {
@@ -242,17 +239,8 @@ export function UsersManager() {
                     <div className="flex gap-2">
                       {user.roles.includes("admin") && (
                         <Badge variant="default" className="gap-1">
-                          {user.id === firstAdminId ? (
-                            <>
-                              <Crown className="h-3 w-3" />
-                              Admin Principal
-                            </>
-                          ) : (
-                            <>
-                              <Shield className="h-3 w-3" />
-                              Admin
-                            </>
-                          )}
+                          <Shield className="h-3 w-3" />
+                          {user.isFirstAdmin ? "Admin Principal" : "Admin"}
                         </Badge>
                       )}
                       {user.roles.includes("corretor") && (
@@ -268,10 +256,10 @@ export function UsersManager() {
                 <div className="flex flex-col gap-2">
                   <Button
                     variant={user.roles.includes("admin") ? "destructive" : "default"}
-                    onClick={() => toggleAdminRole(user.id, user.roles)}
+                    onClick={() => toggleAdminRole(user.id, user.roles, user.isFirstAdmin || false)}
                     size="sm"
-                    disabled={user.id === firstAdminId && user.roles.includes("admin")}
-                    title={user.id === firstAdminId && user.roles.includes("admin") ? "O admin principal não pode ser removido" : ""}
+                    disabled={user.isFirstAdmin}
+                    title={user.isFirstAdmin ? "O administrador principal não pode ser removido" : ""}
                   >
                     {user.roles.includes("admin")
                       ? "Remover Admin"
