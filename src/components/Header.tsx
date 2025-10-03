@@ -74,7 +74,7 @@ export function Header({ userPoints, userName }: HeaderProps) {
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate("/")}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-comarc-green p-1.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-comarc-green p-2">
             <img src={comarcLogo} alt="COMARC" className="w-full h-full object-contain" />
           </div>
           <div className="hidden sm:block">
