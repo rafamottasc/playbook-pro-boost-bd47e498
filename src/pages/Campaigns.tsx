@@ -38,7 +38,7 @@ interface Campaign {
   link_anuncio: string | null;
   status: string;
   created_at: string;
-  participants?: Array<{
+  campaign_participants?: Array<{
     user_id: string;
     profiles: {
       full_name: string;
@@ -66,10 +66,6 @@ export default function Campaigns() {
   const [linkAnuncio, setLinkAnuncio] = useState("");
   const [status, setStatus] = useState("ativa");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
-  
-  // Filter states
-  const [filterConstrutora, setFilterConstrutora] = useState("");
-  const [filterEmpreendimento, setFilterEmpreendimento] = useState("");
 
   useEffect(() => {
     fetchCampaigns();
@@ -82,9 +78,9 @@ export default function Campaigns() {
         .from("campaigns")
         .select(`
           *,
-          campaign_participants (
+          campaign_participants!inner (
             user_id,
-            profiles (
+            profiles!inner (
               full_name
             )
           )
@@ -92,7 +88,25 @@ export default function Campaigns() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data || []);
+      
+      // Agrupar participantes por campanha
+      const campaignsMap = new Map();
+      
+      data?.forEach((row: any) => {
+        if (!campaignsMap.has(row.id)) {
+          campaignsMap.set(row.id, {
+            ...row,
+            campaign_participants: []
+          });
+        }
+        
+        const campaign = campaignsMap.get(row.id);
+        if (row.campaign_participants && !campaign.campaign_participants.some((p: any) => p.user_id === row.campaign_participants.user_id)) {
+          campaign.campaign_participants.push(row.campaign_participants);
+        }
+      });
+      
+      setCampaigns(Array.from(campaignsMap.values()));
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       toast({
@@ -283,7 +297,7 @@ export default function Campaigns() {
     setLinkAnuncio(campaign.link_anuncio || "");
     setStatus(campaign.status);
     setSelectedParticipants(
-      campaign.participants?.map((p) => p.user_id) || []
+      campaign.campaign_participants?.map((p) => p.user_id) || []
     );
     setIsDialogOpen(true);
   };
@@ -315,14 +329,6 @@ export default function Campaigns() {
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ativa;
     return <Badge className={config.className}>{config.label}</Badge>;
   };
-
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    const matchConstrutora = !filterConstrutora || 
-      campaign.construtora.toLowerCase().includes(filterConstrutora.toLowerCase());
-    const matchEmpreendimento = !filterEmpreendimento || 
-      campaign.empreendimento.toLowerCase().includes(filterEmpreendimento.toLowerCase());
-    return matchConstrutora && matchEmpreendimento;
-  });
 
   const uniqueConstrutoras = Array.from(new Set(campaigns.map((c) => c.construtora)));
 
@@ -460,28 +466,8 @@ export default function Campaigns() {
             )}
           </div>
 
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Filtrar por Construtora</Label>
-              <Input
-                placeholder="Digite para filtrar..."
-                value={filterConstrutora}
-                onChange={(e) => setFilterConstrutora(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Filtrar por Empreendimento</Label>
-              <Input
-                placeholder="Digite para filtrar..."
-                value={filterEmpreendimento}
-                onChange={(e) => setFilterEmpreendimento(e.target.value)}
-              />
-            </div>
-          </div>
-
           {/* Campaigns List */}
-          {filteredCampaigns.length === 0 ? (
+          {campaigns.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed rounded-lg">
               <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium text-muted-foreground">
@@ -495,7 +481,7 @@ export default function Campaigns() {
             </div>
           ) : (
             <Accordion type="single" collapsible className="space-y-4">
-              {filteredCampaigns.map((campaign) => (
+              {campaigns.map((campaign) => (
                 <AccordionItem
                   key={campaign.id}
                   value={campaign.id}
@@ -517,7 +503,7 @@ export default function Campaigns() {
                         {getStatusBadge(campaign.status)}
                         <Badge variant="outline" className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {campaign.participants?.filter(p => p.user_id).length || 0}
+                          {campaign.campaign_participants?.filter(p => p.user_id).length || 0}
                         </Badge>
                       </div>
                     </div>
@@ -531,8 +517,8 @@ export default function Campaigns() {
                           Corretores Participantes:
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {campaign.participants && campaign.participants.filter(p => p.user_id).length > 0 ? (
-                            campaign.participants
+                          {campaign.campaign_participants && campaign.campaign_participants.filter(p => p.user_id).length > 0 ? (
+                            campaign.campaign_participants
                               .filter(p => p.user_id)
                               .map((participant, index) => (
                                 <Badge key={index} variant="secondary">
