@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import comarcLogo from "@/assets/icone-comarc.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,8 +74,8 @@ export function Header({ userPoints, userName }: HeaderProps) {
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate("/")}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
-            <span className="text-xl font-bold text-white">C</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-comarc-green p-1.5">
+            <img src={comarcLogo} alt="COMARC" className="w-full h-full object-contain" />
           </div>
           <div className="hidden sm:block">
             <h1 className="text-lg font-bold text-foreground">COMARC</h1>
