@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import comarcLogo from "@/assets/icone-comarc.png";
+import comarcIcon from "@/assets/icone-comarc.png";
+import comarcLogo from "@/assets/logo-comarc.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,15 +72,14 @@ export function Header({ userPoints, userName }: HeaderProps) {
       <div className="container flex h-16 items-center justify-between gap-4 px-4">
         {/* Logo */}
         <div 
-          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate("/")}
         >
-          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-comarc-green p-2.5">
-            <img src={comarcLogo} alt="COMARC" className="w-full h-full object-contain" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-comarc-green p-2.5 flex-shrink-0">
+            <img src={comarcIcon} alt="COMARC" className="w-full h-full object-contain" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold text-foreground">COMARC</h1>
-            <p className="text-xs text-muted-foreground">Playbooks WhatsApp</p>
+            <img src={comarcLogo} alt="COMARC Playbooks WhatsApp" className="h-8 w-auto object-contain" />
           </div>
         </div>
 
