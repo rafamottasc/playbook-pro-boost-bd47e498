@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Moon, Sun, User, LogOut, FileText, Settings, Building2 } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,11 +19,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-interface HeaderProps {
-  userPoints: number;
-  userName: string;
-}
-
 const BADGE_THRESHOLDS = [
   { name: "Iniciante", points: 10, icon: "🟢" },
   { name: "Consistente", points: 50, icon: "🔵" },
@@ -30,14 +26,15 @@ const BADGE_THRESHOLDS = [
   { name: "Mestre da Conversão", points: 200, icon: "🏆" },
 ];
 
-export function Header({ userPoints, userName }: HeaderProps) {
+export function Header() {
   const { theme, setTheme } = useTheme();
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null; gender: string | null }>({
-    full_name: userName,
+  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null; gender: string | null; points?: number }>({
+    full_name: "Usuário",
     avatar_url: null,
     gender: null,
+    points: 0,
   });
 
   useEffect(() => {
@@ -55,7 +52,7 @@ export function Header({ userPoints, userName }: HeaderProps) {
       .maybeSingle();
     
     if (data) {
-      setProfile(data);
+      setProfile({ ...data, points: 0 });
     }
   };
 
@@ -70,6 +67,8 @@ export function Header({ userPoints, userName }: HeaderProps) {
     return `Olá ${firstName}`;
   };
 
+  const userPoints = profile.points || 0;
+  
   const currentBadge = [...BADGE_THRESHOLDS]
     .reverse()
     .find((badge) => userPoints >= badge.points) || BADGE_THRESHOLDS[0];
@@ -108,6 +107,9 @@ export function Header({ userPoints, userName }: HeaderProps) {
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
+
+          {/* Notification Bell - NOVO */}
+          <NotificationBell />
 
           {/* User Profile with Gamification */}
           <div className="flex items-center gap-3">
