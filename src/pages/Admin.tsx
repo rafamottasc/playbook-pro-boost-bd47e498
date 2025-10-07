@@ -6,13 +6,12 @@ import { SuggestionsManager } from "@/components/admin/SuggestionsManager";
 import { MetricsView } from "@/components/admin/MetricsView";
 import { ResourcesManager } from "@/components/admin/ResourcesManager";
 import { UsersManager } from "@/components/admin/UsersManager";
+import { AcademyManager } from "@/components/admin/AcademyManager";
 
 export default function Admin() {
-  const [userPoints] = useState(127);
-
   return (
     <div className="min-h-screen bg-background">
-      <Header userPoints={userPoints} userName="Admin" />
+      <Header />
 
       <main className="container py-6 px-4">
         <h1 className="text-3xl font-bold mb-6">Painel Administrativo</h1>
@@ -23,6 +22,7 @@ export default function Admin() {
             <TabsTrigger value="suggestions">Sugestões</TabsTrigger>
             <TabsTrigger value="metrics">Métricas</TabsTrigger>
             <TabsTrigger value="resources">Recursos</TabsTrigger>
+            <TabsTrigger value="academy">Academy</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
           </TabsList>
 
@@ -40,6 +40,10 @@ export default function Admin() {
 
           <TabsContent value="resources">
             <ResourcesManager />
+          </TabsContent>
+
+          <TabsContent value="academy">
+            <AcademyManager />
           </TabsContent>
 
           <TabsContent value="users">

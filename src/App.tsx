@@ -14,6 +14,10 @@ import Resources from "./pages/Resources";
 import Profile from "./pages/Profile";
 import Campaigns from "./pages/Campaigns";
 import NotFound from "./pages/NotFound";
+import Notifications from "./pages/Notifications";
+import AcademyModules from "./pages/academy/AcademyModules";
+import ModuleLessons from "./pages/academy/ModuleLessons";
+import LessonView from "./pages/academy/LessonView";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +68,38 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Campaigns />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notificacoes"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/resources/training"
+                element={
+                  <ProtectedRoute>
+                    <AcademyModules />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/resources/training/:moduleId"
+                element={
+                  <ProtectedRoute>
+                    <ModuleLessons />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/resources/training/:moduleId/:lessonId"
+                element={
+                  <ProtectedRoute>
+                    <LessonView />
                   </ProtectedRoute>
                 }
               />

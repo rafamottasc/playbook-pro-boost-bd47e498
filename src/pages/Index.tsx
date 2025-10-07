@@ -459,7 +459,7 @@ export default function Index() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header userPoints={userPoints} userName="Carregando..." />
+        <Header />
         <main className="container py-6 px-4 flex items-center justify-center">
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -472,7 +472,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userPoints={userPoints} userName="João Silva" />
+      <Header />
 
       <main className="container py-6 px-4">
         {/* Funnels Tabs */}

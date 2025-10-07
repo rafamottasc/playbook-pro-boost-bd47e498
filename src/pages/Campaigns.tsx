@@ -396,7 +396,7 @@ export default function Campaigns() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header userPoints={0} userName="Carregando..." />
+        <Header />
         <main className="container py-6 px-4">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -408,7 +408,7 @@ export default function Campaigns() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userPoints={0} userName={user?.email || ""} />
+      <Header />
 
       <main className="container py-6 px-4">
         <div className="flex flex-col gap-6">

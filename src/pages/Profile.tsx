@@ -144,7 +144,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userPoints={127} userName={profile.full_name || "Usuário"} />
+      <Header />
 
       <main className="container py-6 px-4 max-w-2xl">
         <Card>
