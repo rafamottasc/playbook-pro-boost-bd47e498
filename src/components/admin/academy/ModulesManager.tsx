@@ -381,7 +381,7 @@ export function ModulesManager() {
           </p>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredModules.map((module) => (
             <Card key={module.id} className="p-4">
               {module.cover_url && (
@@ -393,22 +393,28 @@ export function ModulesManager() {
                   />
                 </div>
               )}
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold">{module.title}</h4>
-                    <Badge variant={module.published ? "default" : "secondary"}>
-                      {module.published ? "Publicado" : "Rascunho"}
-                    </Badge>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-semibold text-base line-clamp-2 flex-1">{module.title}</h4>
+                  <Badge variant={module.published ? "default" : "secondary"} className="ml-2">
+                    {module.published ? "Publicado" : "Rascunho"}
+                  </Badge>
                 </div>
-                <div className="flex gap-2">
+                
+                {module.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {module.description}
+                  </p>
+                )}
+                
+                <div className="flex gap-1 pt-2 border-t">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
+                          className="flex-1"
                           onClick={() => togglePublished(module)}
                         >
                           {module.published ? (
@@ -428,7 +434,8 @@ export function ModulesManager() {
                       <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
+                          className="flex-1"
                           onClick={() => handleEdit(module)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -444,7 +451,8 @@ export function ModulesManager() {
                       <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
+                          className="flex-1"
                           onClick={() => handleDelete(module.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -457,11 +465,6 @@ export function ModulesManager() {
                   </TooltipProvider>
                 </div>
               </div>
-              {module.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {module.description}
-                </p>
-              )}
             </Card>
           ))}
         </div>
