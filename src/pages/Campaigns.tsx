@@ -84,34 +84,77 @@ export default function Campaigns() {
       campaignsLoading 
     });
 
-    // Timeout de segurança: se depois de 5 segundos não carregar, mostrar erro
-    const timeout = setTimeout(() => {
-      if (authLoading || campaignsLoading) {
-        console.error('Timeout: Auth or campaigns taking too long');
-        setLoadError('Timeout ao carregar. Tente recarregar a página.');
-      }
-    }, 5000);
+    // Função para verificar sessão e carregar dados
+    const loadDataWhenReady = async () => {
+      // Timeout de segurança
+      const timeoutId = setTimeout(() => {
+        if (authLoading || campaignsLoading) {
+          console.error('Timeout: Auth or campaigns taking too long');
+          setLoadError('Timeout ao carregar. Tente recarregar a página.');
+        }
+      }, 5000);
 
-    // Carregar campanhas assim que a auth terminar (com ou sem user)
-    if (!authLoading) {
-      console.log('Auth loading complete, fetching campaigns...');
-      fetchCampaigns();
-      
-      if (user && isAdmin) {
-        console.log('User is admin, fetching profiles...');
-        fetchProfiles();
+      try {
+        // Aguardar até que authLoading seja false
+        if (!authLoading) {
+          console.log('Auth loading complete, checking session...');
+          
+          // ✅ VERIFICAR EXPLICITAMENTE A SESSÃO
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          console.log('Session check:', {
+            hasSession: !!session,
+            hasAccessToken: !!session?.access_token,
+            userId: session?.user?.id,
+            error: sessionError?.message
+          });
+          
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            setLoadError('Erro ao verificar sessão. Faça login novamente.');
+            return;
+          }
+          
+          if (!session) {
+            console.warn('No session found, redirecting to auth...');
+            return;
+          }
+          
+          // ✅ AGORA SIM, CARREGAR CAMPANHAS
+          console.log('Session verified, fetching campaigns...');
+          await fetchCampaigns();
+          
+          // Carregar profiles se for admin
+          if (user && isAdmin) {
+            console.log('User is admin, fetching profiles...');
+            await fetchProfiles();
+          }
+        }
+      } catch (error) {
+        console.error('Error in loadDataWhenReady:', error);
+        setLoadError('Erro ao carregar dados. Tente recarregar a página.');
+      } finally {
+        clearTimeout(timeoutId);
       }
-    }
+    };
 
-    return () => clearTimeout(timeout);
-  }, [authLoading]);
+    loadDataWhenReady();
+  }, [authLoading, user, isAdmin]);
 
   const fetchCampaigns = async () => {
     setCampaignsLoading(true);
     setLoadError(null);
     try {
       console.log("=== Fetching campaigns ===");
-      console.log("Current user:", user?.id, user?.email);
+      
+      // ✅ VERIFICAR SESSÃO ANTES DE FAZER QUERY
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Sessão não encontrada. Faça login novamente.');
+      }
+      
+      console.log("Session verified, user:", session.user?.email);
+      console.log("Access token present:", !!session.access_token);
       
       const { data, error } = await supabase
         .from("campaigns")
