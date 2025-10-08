@@ -159,16 +159,18 @@ export function QuestionsList({ lessonId }: QuestionsListProps) {
         <Card key={question.id} className="p-4">
           <div className="flex gap-3">
             <Avatar>
-              <AvatarImage src={question.user.avatar_url || ""} />
+              <AvatarImage src={question.user?.avatar_url || ""} />
               <AvatarFallback>
-                {question.user.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                {question.user?.full_name 
+                  ? question.user.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
+                  : "??"}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <p className="font-semibold">{question.user.full_name}</p>
+                  <p className="font-semibold">{question.user?.full_name || "Usuário Desconhecido"}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(question.created_at), {
                       addSuffix: true,
@@ -197,7 +199,7 @@ export function QuestionsList({ lessonId }: QuestionsListProps) {
                   <p className="text-sm">{question.answer}</p>
                   {question.answeredBy && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Respondido por {question.answeredBy.full_name}
+                      Respondido por {question.answeredBy.full_name || "Admin"}
                     </p>
                   )}
                 </div>
