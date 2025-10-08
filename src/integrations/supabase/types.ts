@@ -97,6 +97,50 @@ export type Database = {
         }
         Relationships: []
       }
+      application_logs: {
+        Row: {
+          action: string | null
+          created_at: string
+          id: string
+          level: string
+          message: string
+          metadata: Json | null
+          timestamp: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          level: string
+          message: string
+          metadata?: Json | null
+          timestamp?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          metadata?: Json | null
+          timestamp?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_participants: {
         Row: {
           campaign_id: string
@@ -829,6 +873,10 @@ export type Database = {
     Functions: {
       decrement_question_likes: {
         Args: { question_id: string }
+        Returns: undefined
+      }
+      delete_old_logs: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       get_public_profiles: {
