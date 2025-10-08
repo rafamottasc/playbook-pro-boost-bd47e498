@@ -3,11 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -32,12 +32,9 @@ const queryClient = new QueryClient({
 });
 
 function AppRoutes() {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-                  <Route path="/auth" element={<Auth />} />
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
                   <Route
                     path="/"
                     element={
@@ -102,33 +99,38 @@ function AppRoutes() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/resources/training"
-                    element={
-                      <ProtectedRoute>
-                        <AcademyModules />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/resources/training/:moduleId"
-                    element={
-                      <ProtectedRoute>
-                        <ModuleLessons />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/resources/training/:moduleId/:lessonId"
-                    element={
-                      <ProtectedRoute>
-                        <LessonView />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-    </AnimatePresence>
+      <Route
+        path="/resources/training"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <AcademyModules />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/training/:moduleId"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <ModuleLessons />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/training/:moduleId/:lessonId"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LessonView />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
