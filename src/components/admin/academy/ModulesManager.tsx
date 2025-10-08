@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, GraduationCap, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, GraduationCap, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { resizeImage, validateImageFile } from "@/lib/imageUtils";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,34 @@ export function ModulesManager() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: false, 
+    align: "start",
+    slidesToScroll: 1,
+  });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+  }, [emblaApi, onSelect]);
 
   useEffect(() => {
     fetchModules();
@@ -381,92 +410,115 @@ export function ModulesManager() {
           </p>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {filteredModules.map((module) => (
-            <Card key={module.id} className="p-4">
-              {module.cover_url && (
-                <div className="mb-3 rounded-lg overflow-hidden aspect-[2/3]">
-                  <img 
-                    src={module.cover_url} 
-                    alt={module.title}
-                    className="w-full h-full object-cover"
-                  />
+        <div className="relative group">
+          {canScrollPrev && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={scrollPrev}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-r from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </Button>
+          )}
+          
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-4">
+              {filteredModules.map((module) => (
+                <div 
+                  key={module.id} 
+                  className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_25%] xl:flex-[0_0_20%]"
+                >
+                  <Card className="p-4 h-full">
+                    {module.cover_url && (
+                      <div className="mb-3 rounded-lg overflow-hidden aspect-[2/3]">
+                        <img 
+                          src={module.cover_url} 
+                          alt={module.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold text-base line-clamp-2 flex-1">{module.title}</h4>
+                        <Badge variant={module.published ? "default" : "secondary"} className="ml-2">
+                          {module.published ? "Publicado" : "Rascunho"}
+                        </Badge>
+                      </div>
+                      
+                      {module.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {module.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex gap-1 pt-2 border-t">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => togglePublished(module)}
+                              >
+                                {module.published ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {module.published ? "Despublicar" : "Publicar"}
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleEdit(module)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleDelete(module.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Excluir</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              )}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-base line-clamp-2 flex-1">{module.title}</h4>
-                  <Badge variant={module.published ? "default" : "secondary"} className="ml-2">
-                    {module.published ? "Publicado" : "Rascunho"}
-                  </Badge>
-                </div>
-                
-                {module.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {module.description}
-                  </p>
-                )}
-                
-                <div className="flex gap-1 pt-2 border-t">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => togglePublished(module)}
-                        >
-                          {module.published ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{module.published ? "Despublicar" : "Publicar"}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleEdit(module)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Editar módulo</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleDelete(module.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Excluir módulo</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </Card>
-          ))}
+              ))}
+            </div>
+          </div>
+
+          {canScrollNext && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={scrollNext}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-l from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronRight className="h-8 w-8" />
+            </Button>
+          )}
         </div>
       )}
     </div>

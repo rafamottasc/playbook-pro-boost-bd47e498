@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ModuleCard } from "@/components/academy/ModuleCard";
 import { AcademyOnboarding } from "@/components/academy/AcademyOnboarding";
-import { GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface Module {
   id: string;
@@ -19,6 +21,34 @@ export default function AcademyModules() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: false, 
+    align: "start",
+    slidesToScroll: 1,
+  });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+  }, [emblaApi, onSelect]);
 
   useEffect(() => {
     // Check if user has seen onboarding
@@ -87,10 +117,41 @@ export default function AcademyModules() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {modules.map((module) => (
-              <ModuleCard key={module.id} module={module} />
-            ))}
+          <div className="relative group">
+            {canScrollPrev && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={scrollPrev}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-r from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronLeft className="h-8 w-8" />
+              </Button>
+            )}
+            
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex gap-4">
+                {modules.map((module) => (
+                  <div 
+                    key={module.id} 
+                    className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_25%] xl:flex-[0_0_20%]"
+                  >
+                    <ModuleCard module={module} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {canScrollNext && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={scrollNext}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-l from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronRight className="h-8 w-8" />
+              </Button>
+            )}
           </div>
         )}
       </main>
