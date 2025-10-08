@@ -99,32 +99,35 @@ export function LessonFeedback({ lessonId }: LessonFeedbackProps) {
   }
 
   return (
-    <Card className="p-4 border-dashed">
-      <p className="text-sm text-muted-foreground mb-3">Esta aula foi útil?</p>
-      
-      <div className="flex gap-2 mb-3">
-        <Button
-          variant={wasUseful === true ? "default" : "outline"}
-          size="sm"
-          className="flex-1"
-          onClick={() => setWasUseful(true)}
-        >
-          <ThumbsUp className="h-3 w-3 mr-1" />
-          Sim
-        </Button>
-        <Button
-          variant={wasUseful === false ? "default" : "outline"}
-          size="sm"
-          className="flex-1"
-          onClick={() => setWasUseful(false)}
-        >
-          <ThumbsDown className="h-3 w-3 mr-1" />
-          Não
-        </Button>
+    <Card className="p-3 border-dashed border-border/40">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <p className="text-sm text-muted-foreground whitespace-nowrap">
+          Esta aula foi útil?
+        </p>
+        <div className="flex gap-2">
+          <Button
+            variant={wasUseful === true ? "default" : "outline"}
+            size="sm"
+            className="h-8"
+            onClick={() => setWasUseful(true)}
+          >
+            <ThumbsUp className="h-3 w-3 mr-1" />
+            Sim
+          </Button>
+          <Button
+            variant={wasUseful === false ? "default" : "outline"}
+            size="sm"
+            className="h-8"
+            onClick={() => setWasUseful(false)}
+          >
+            <ThumbsDown className="h-3 w-3 mr-1" />
+            Não
+          </Button>
+        </div>
       </div>
 
       {wasUseful !== null && (
-        <div className="space-y-2">
+        <div className="space-y-2 mt-3">
           <Textarea
             placeholder="Deixe um comentário (opcional)"
             value={comment}

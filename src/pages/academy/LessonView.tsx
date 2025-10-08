@@ -251,6 +251,45 @@ export default function LessonView() {
               )}
             </div>
 
+            {/* Mobile Only: Materiais e Próxima Aula */}
+            <div className="lg:hidden space-y-4">
+              {attachments.length > 0 && (
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Materiais Complementares
+                  </h3>
+                  <div className="space-y-2">
+                    {attachments.map((attachment) => (
+                      <a
+                        key={attachment.id}
+                        href={attachment.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors group"
+                      >
+                        <span className="text-sm font-medium">{attachment.title}</span>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                      </a>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {nextLesson && (
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-3">Próxima Aula</h3>
+                  <Button
+                    onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
+                    className="w-full justify-between"
+                  >
+                    <span className="truncate">{nextLesson.title}</span>
+                    <ChevronRight className="h-4 w-4 ml-2 flex-shrink-0" />
+                  </Button>
+                </Card>
+              )}
+            </div>
+
             <Separator />
 
             {/* Feedback Section */}
@@ -266,8 +305,8 @@ export default function LessonView() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Desktop Only */}
+          <div className="hidden lg:block space-y-6">
             {/* Attachments */}
             {attachments.length > 0 && (
               <Card className="p-4">
