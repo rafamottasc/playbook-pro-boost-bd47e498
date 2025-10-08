@@ -9,11 +9,13 @@ import { VideoPlayer } from "@/components/academy/VideoPlayer";
 import { LessonFeedback } from "@/components/academy/LessonFeedback";
 import { QuestionForm } from "@/components/academy/QuestionForm";
 import { QuestionsList } from "@/components/academy/QuestionsList";
+import { LessonCompletionButton } from "@/components/academy/LessonCompletionButton";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PageTransition } from "@/components/PageTransition";
+import { toast } from "sonner";
 
 interface Lesson {
   id: string;
@@ -42,6 +44,7 @@ export default function LessonView() {
   const [totalLessons, setTotalLessons] = useState(0);
   const [currentLessonNumber, setCurrentLessonNumber] = useState(0);
   const [moduleProgress, setModuleProgress] = useState(0);
+  const [isLessonCompleted, setIsLessonCompleted] = useState(false);
 
   useEffect(() => {
     if (lessonId) {
@@ -68,6 +71,18 @@ export default function LessonView() {
         .eq('lesson_id', lessonId);
 
       setAttachments(attachmentsData || []);
+
+      // Check if lesson is already completed
+      if (user) {
+        const { data: progressData } = await supabase
+          .from('user_lesson_progress')
+          .select('watched')
+          .eq('user_id', user.id)
+          .eq('lesson_id', lessonId)
+          .single();
+
+        setIsLessonCompleted(progressData?.watched || false);
+      }
 
       // Fetch all lessons for progress tracking
       if (lessonData) {
@@ -116,8 +131,8 @@ export default function LessonView() {
     }
   };
 
-  const handleVideoComplete = async () => {
-    if (!user || !lessonId || !lesson) return;
+  const handleLessonComplete = async () => {
+    if (!user || !lessonId || !lesson || isLessonCompleted) return;
 
     try {
       // Mark lesson as watched
@@ -133,9 +148,26 @@ export default function LessonView() {
 
       if (progressError) throw progressError;
 
+      setIsLessonCompleted(true);
+      
+      // Recalculate module progress
+      await fetchLessonData();
+      
+      toast.success(`Parabéns! Você ganhou +${lesson.points} pontos`, {
+        description: "Aula marcada como concluída"
+      });
+
       // Points are automatically added by database trigger
     } catch (error) {
       console.error('Error updating progress:', error);
+      toast.error("Erro ao marcar aula como concluída");
+    }
+  };
+
+  const handleVideoComplete = async () => {
+    // Auto-complete when video ends (if not already completed)
+    if (!isLessonCompleted) {
+      await handleLessonComplete();
     }
   };
 
@@ -197,7 +229,14 @@ export default function LessonView() {
                       {Math.round(moduleProgress)}% do módulo concluído
                     </span>
                   </div>
-                  <Progress value={moduleProgress} className="h-1.5" />
+                  <div className="flex items-center gap-2">
+                    <Progress value={moduleProgress} className="h-1.5 flex-1" />
+                    <LessonCompletionButton
+                      isCompleted={isLessonCompleted}
+                      onComplete={handleLessonComplete}
+                      points={lesson.points}
+                    />
+                  </div>
                 </div>
               )}
 
