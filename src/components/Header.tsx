@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Moon, Sun, User, LogOut, FileText, Settings, Building2 } from "lucide-react";
+import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -160,15 +160,15 @@ export function Header() {
                   Perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/playbooks")}>
-                  <FileText className="mr-2 h-4 w-4" />
+                  <MessageSquare className="mr-2 h-4 w-4" />
                   Playbooks WhatsApp
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/resources")}>
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FolderOpen className="mr-2 h-4 w-4" />
                   Central de Recursos
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/campaigns")}>
-                  <Building2 className="mr-2 h-4 w-4" />
+                  <TrendingUp className="mr-2 h-4 w-4" />
                   Campanhas Ativas
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/campaigns/partners")}>
