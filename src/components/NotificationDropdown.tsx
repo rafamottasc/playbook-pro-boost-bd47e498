@@ -3,6 +3,12 @@ import { NotificationItem } from "./NotificationItem";
 import { Button } from "@/components/ui/button";
 import { CheckCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function NotificationDropdown() {
   const { notifications, markAllAsRead } = useNotifications();
@@ -15,15 +21,24 @@ export function NotificationDropdown() {
       <div className="flex items-center justify-between p-4 border-b">
         <h3 className="font-semibold">Notificações</h3>
         {notifications.some(n => !n.read) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={markAllAsRead}
-            className="h-8"
-          >
-            <CheckCheck className="h-4 w-4 mr-2" />
-            Marcar todas como lidas
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  className="h-8"
+                >
+                  <CheckCheck className="h-4 w-4 mr-2" />
+                  Marcar todas como lidas
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Marcar todas como lidas</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
       

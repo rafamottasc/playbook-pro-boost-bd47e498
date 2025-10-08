@@ -17,6 +17,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Module {
   id: string;
@@ -397,32 +403,58 @@ export function ModulesManager() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => togglePublished(module)}
-                    title={module.published ? "Despublicar" : "Publicar"}
-                  >
-                    {module.published ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(module)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(module.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => togglePublished(module)}
+                        >
+                          {module.published ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{module.published ? "Despublicar" : "Publicar"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(module)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Editar módulo</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(module.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir módulo</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
               {module.description && (

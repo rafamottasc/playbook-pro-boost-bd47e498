@@ -5,6 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X, CheckCircle2, Trash2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Suggestion {
   id: string;
@@ -242,36 +248,63 @@ export function SuggestionsManager() {
               <div className="flex flex-col gap-2">
                 {(suggestion.status === "pending" || suggestion.status === "approved") && (
                   <>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => handleMarkAsApplied(suggestion.id)}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Aplicada
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleMarkAsDiscarded(suggestion.id)}
-                      className="border-gray-400 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800"
-                    >
-                      <X className="mr-2 h-4 w-4" />
-                      Descartada
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleMarkAsApplied(suggestion.id)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                            Aplicada
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Marcar como aplicada</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkAsDiscarded(suggestion.id)}
+                            className="border-gray-400 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800"
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            Descartada
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Descartar sugestão</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </>
                 )}
                 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDelete(suggestion.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Excluir
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(suggestion.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Excluir
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Excluir sugestão</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </Card>

@@ -23,6 +23,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DndContext,
   closestCenter,
   KeyboardSensor,
@@ -119,13 +125,22 @@ function SortableMessageCard({
   return (
     <Card ref={setNodeRef} style={style} className="p-4">
       <div className="flex items-start gap-4">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-move touch-none"
-        >
-          <GripVertical className="mt-1 text-muted-foreground" />
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                {...attributes}
+                {...listeners}
+                className="cursor-move touch-none"
+              >
+                <GripVertical className="mt-1 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Arrastar para reordenar</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <div className="flex-1">
           <div className="flex items-start justify-between">
             <div>
@@ -135,27 +150,54 @@ function SortableMessageCard({
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onEdit(message)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onDuplicate(message)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onDelete(message.id)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(message)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Editar mensagem</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDuplicate(message)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Duplicar mensagem</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(message.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Excluir mensagem</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
           <p className="mt-2 text-sm whitespace-pre-wrap">

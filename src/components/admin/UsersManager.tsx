@@ -16,6 +16,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface UserWithRole {
   id: string;
@@ -269,44 +275,71 @@ export function UsersManager() {
                 
                 {!user.isFirstAdmin && (
                   <div className="flex flex-col gap-2">
-                    <Button
-                      variant={user.roles.includes("admin") ? "destructive" : "default"}
-                      onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
-                      size="sm"
-                    >
-                      {user.roles.includes("admin")
-                        ? "Remover Admin"
-                        : "Tornar Admin"}
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={user.roles.includes("admin") ? "destructive" : "default"}
+                            onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
+                            size="sm"
+                          >
+                            {user.roles.includes("admin")
+                              ? "Remover Admin"
+                              : "Tornar Admin"}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Gerenciar permissão de administrador</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     
-                    <Button
-                      variant={user.blocked ? "default" : "outline"}
-                      onClick={() => toggleBlockUser(user.id, user.blocked)}
-                      size="sm"
-                      className={!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}
-                    >
-                      {user.blocked ? (
-                        <>
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Desbloquear
-                        </>
-                      ) : (
-                        <>
-                          <Ban className="mr-2 h-4 w-4" />
-                          Bloquear
-                        </>
-                      )}
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={user.blocked ? "default" : "outline"}
+                            onClick={() => toggleBlockUser(user.id, user.blocked)}
+                            size="sm"
+                            className={!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}
+                          >
+                            {user.blocked ? (
+                              <>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Desbloquear
+                              </>
+                            ) : (
+                              <>
+                                <Ban className="mr-2 h-4 w-4" />
+                                Bloquear
+                              </>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{user.blocked ? "Desbloquear usuário" : "Bloquear usuário"}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     
-                    <Button
-                      variant="outline"
-                      onClick={() => setDeleteUserId(user.id)}
-                      size="sm"
-                      className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Excluir
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => setDeleteUserId(user.id)}
+                            size="sm"
+                            className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Excluir usuário</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 )}
               </div>

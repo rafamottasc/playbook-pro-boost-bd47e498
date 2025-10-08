@@ -12,6 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { convertYouTubeUrl } from "@/lib/youtube";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Module {
   id: string;
@@ -433,32 +439,58 @@ export function LessonsManager() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => togglePublished(lesson)}
-                    title={lesson.published ? "Despublicar" : "Publicar"}
-                  >
-                    {lesson.published ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(lesson)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(lesson.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => togglePublished(lesson)}
+                        >
+                          {lesson.published ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{lesson.published ? "Despublicar" : "Publicar"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(lesson)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Editar aula</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(lesson.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir aula</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </Card>
