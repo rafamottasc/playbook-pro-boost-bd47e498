@@ -35,14 +35,23 @@ interface Resource {
   description: string | null;
   url: string;
   resource_type: string;
+  category: string;
   display_order: number;
   created_at: string;
+  file_name?: string;
+  file_size?: number;
 }
 
 const RESOURCE_TYPES = [
   { id: "pdf", name: "PDF", icon: FileText },
   { id: "link", name: "Link", icon: Link },
   { id: "video", name: "Vídeo", icon: Video },
+  { id: "image", name: "Imagem", icon: FileText },
+];
+
+const CATEGORIES = [
+  { id: "administrativo", name: "Materiais Administrativos" },
+  { id: "digital", name: "Material Digital" },
 ];
 
 export function ResourcesManager() {
@@ -57,6 +66,7 @@ export function ResourcesManager() {
     description: "",
     url: "",
     resource_type: "pdf",
+    category: "administrativo" as "administrativo" | "digital",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -85,17 +95,17 @@ export function ResourcesManager() {
     }
   };
 
-  const getResourcesByType = (type: string) => {
-    return resources.filter(r => r.resource_type === type);
+  const getResourcesByCategory = (category: string) => {
+    return resources.filter(r => r.category === category);
   };
 
-  const handleFileUpload = async (): Promise<string | null> => {
+  const handleFileUpload = async (): Promise<{ url: string; fileName: string; fileSize: number } | null> => {
     if (!selectedFile) return null;
 
     setUploading(true);
     try {
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${Date.now()}-${selectedFile.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from('resources')
@@ -107,7 +117,7 @@ export function ResourcesManager() {
         .from('resources')
         .getPublicUrl(fileName);
 
-      return data.publicUrl;
+      return { url: data.publicUrl, fileName: selectedFile.name, fileSize: selectedFile.size };
     } catch (error: any) {
       toast({
         title: "Erro ao fazer upload",
@@ -131,12 +141,16 @@ export function ResourcesManager() {
   const handleSave = async () => {
     try {
       let finalUrl = formData.url;
+      let fileName: string | undefined;
+      let fileSize: number | undefined;
 
       // Se há arquivo selecionado, fazer upload
       if (selectedFile) {
-        const uploadedUrl = await handleFileUpload();
-        if (!uploadedUrl) return;
-        finalUrl = uploadedUrl;
+        const uploadResult = await handleFileUpload();
+        if (!uploadResult) return;
+        finalUrl = uploadResult.url;
+        fileName = uploadResult.fileName;
+        fileSize = uploadResult.fileSize;
       } else if (finalUrl) {
         // Normalizar URL se for link ou vídeo
         finalUrl = normalizeUrl(finalUrl);
@@ -150,6 +164,9 @@ export function ResourcesManager() {
             description: formData.description,
             url: finalUrl,
             resource_type: formData.resource_type,
+            category: formData.category,
+            file_name: fileName,
+            file_size: fileSize,
           })
           .eq("id", editingResource.id);
 
@@ -162,7 +179,10 @@ export function ResourcesManager() {
             description: formData.description,
             url: finalUrl,
             resource_type: formData.resource_type,
+            category: formData.category,
             display_order: resources.length,
+            file_name: fileName,
+            file_size: fileSize,
           },
         ]);
 
@@ -207,6 +227,7 @@ export function ResourcesManager() {
       description: resource.description || "",
       url: resource.url,
       resource_type: resource.resource_type,
+      category: resource.category as "administrativo" | "digital",
     });
     setIsDialogOpen(true);
   };
@@ -219,11 +240,12 @@ export function ResourcesManager() {
       description: "",
       url: "",
       resource_type: "pdf",
+      category: "administrativo",
     });
   };
 
   const requiresFileUpload = () => {
-    return formData.resource_type === "pdf";
+    return formData.resource_type === "pdf" || formData.resource_type === "image";
   };
 
   const getResourceIcon = (type: string) => {
@@ -271,6 +293,27 @@ export function ResourcesManager() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="category">Categoria</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value as "administrativo" | "digital" })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="resource_type">Tipo de Recurso</Label>
                 <Select
                   value={formData.resource_type}
@@ -298,7 +341,7 @@ export function ResourcesManager() {
                     <Input
                       id="file"
                       type="file"
-                      accept=".pdf,image/*"
+                      accept={formData.resource_type === "pdf" ? ".pdf" : "image/*"}
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                       className="flex-1"
                     />
@@ -375,24 +418,22 @@ export function ResourcesManager() {
         </div>
       ) : (
         <div className="space-y-6">
-          {RESOURCE_TYPES.map((type) => {
-            const typeResources = getResourcesByType(type.id);
-            if (typeResources.length === 0) return null;
-            
-            const Icon = type.icon;
+          {CATEGORIES.map((category) => {
+            const categoryResources = getResourcesByCategory(category.id);
+            if (categoryResources.length === 0) return null;
             
             return (
-              <div key={type.id} className="space-y-3">
+              <div key={category.id} className="space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b">
-                  <Icon className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">{type.name}s</h3>
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">{category.name}</h3>
                   <span className="text-sm text-muted-foreground">
-                    ({typeResources.length})
+                    ({categoryResources.length})
                   </span>
                 </div>
                 
                 <div className="grid gap-3">
-                  {typeResources.map((resource) => (
+                  {categoryResources.map((resource) => (
                     <Card key={resource.id} className="p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start gap-4">
                         <div className="text-primary">
@@ -412,19 +453,19 @@ export function ResourcesManager() {
                                   Adicionado em {new Date(resource.created_at).toLocaleDateString("pt-BR")}
                                 </span>
                                 <div className="flex gap-3">
-                                  <a
+                                   <a
                                     href={resource.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-xs text-primary hover:underline flex items-center gap-1"
                                   >
-                                    Abrir
+                                    {resource.resource_type === "link" ? "Abrir" : "Visualizar"}
                                     <ExternalLink className="h-3 w-3" />
                                   </a>
-                                  {resource.resource_type === "pdf" && (
+                                  {(resource.resource_type === "pdf" || resource.resource_type === "image") && (
                                     <a
                                       href={resource.url}
-                                      download
+                                      download={resource.file_name || true}
                                       className="text-xs text-blue-600 hover:underline flex items-center gap-1"
                                     >
                                       Baixar

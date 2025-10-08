@@ -639,9 +639,15 @@ export function LessonsManager() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => window.open(`/resources/training/${lesson.module_id}/${lesson.id}`, '_blank')}
+                          asChild
                         >
-                          <ExternalLinkIcon className="h-4 w-4" />
+                          <a 
+                            href={`/resources/training/${lesson.module_id}/${lesson.id}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLinkIcon className="h-4 w-4" />
+                          </a>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>

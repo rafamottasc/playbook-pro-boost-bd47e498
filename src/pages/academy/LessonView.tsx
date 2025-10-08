@@ -313,7 +313,7 @@ export default function LessonView() {
               )}
 
               <div className="flex items-start justify-between mb-3">
-                <h1 className="text-3xl font-bold">{lesson.title}</h1>
+                <h1 className="text-lg sm:text-xl font-bold">{lesson.title}</h1>
                 <Badge variant="secondary" className="text-sm">
                   +{lesson.points} pts
                 </Badge>
@@ -371,7 +371,7 @@ export default function LessonView() {
 
             {/* Questions Section */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">Perguntas e Respostas</h2>
+              <h2 className="text-base sm:text-lg font-bold mb-4">Perguntas e Respostas</h2>
               <QuestionForm lessonId={lesson.id} />
               <QuestionsList lessonId={lesson.id} />
             </div>

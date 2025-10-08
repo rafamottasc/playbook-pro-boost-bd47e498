@@ -72,11 +72,6 @@ export function LessonCompletionButton({
           </>
         )}
       </Button>
-      {!canComplete && !isCompleted && (
-        <p className="text-xs text-muted-foreground text-center">
-          Assista pelo menos 50% do vídeo ({videoProgress}% assistido)
-        </p>
-      )}
       {isCompleted && (
         <p className="text-xs text-muted-foreground text-center">
           Clique novamente para desmarcar

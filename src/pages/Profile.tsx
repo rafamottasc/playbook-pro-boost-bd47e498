@@ -13,12 +13,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Award } from "lucide-react";
 import { profileUpdateSchema } from "@/lib/validations";
 import { ZodError } from "zod";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { validateImageFile } from "@/lib/imageUtils";
 
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const [profile, setProfile] = useState({
     full_name: "",
     whatsapp: "",
@@ -59,53 +63,68 @@ export default function Profile() {
     }
   };
 
-  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0 || !user) return;
+  const handleSelectAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
 
     const file = e.target.files[0];
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${user.id}.${fileExt}`;
-    const filePath = `${user.id}/${fileName}`;
-
-    setUploading(true);
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
+    const validation = validateImageFile(file);
+    
+    if (!validation.valid) {
       toast({
-        title: "Erro no upload",
-        description: uploadError.message,
+        title: "Arquivo inválido",
+        description: validation.error,
         variant: "destructive",
       });
-      setUploading(false);
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(filePath);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+      setCropDialogOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
 
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ avatar_url: publicUrl })
-      .eq("id", user.id);
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user) return;
 
-    setUploading(false);
+    setUploading(true);
 
-    if (updateError) {
-      toast({
-        title: "Erro ao atualizar",
-        description: updateError.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      const fileName = `${user.id}-${Date.now()}.jpg`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, croppedBlob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
       setProfile({ ...profile, avatar_url: publicUrl });
       toast({
         title: "Foto atualizada!",
         description: "Sua foto de perfil foi atualizada com sucesso",
       });
+    } catch (error: any) {
+      toast({
+        title: "Erro no upload",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -196,7 +215,7 @@ export default function Profile() {
                   id="avatar-upload"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleUploadAvatar}
+                  onChange={handleSelectAvatar}
                   disabled={uploading}
                 />
                 <Button
@@ -209,6 +228,13 @@ export default function Profile() {
                   {uploading ? "Enviando..." : "Alterar Foto"}
                 </Button>
               </div>
+
+              <ImageCropDialog
+                open={cropDialogOpen}
+                onOpenChange={setCropDialogOpen}
+                imageSrc={selectedImage}
+                onCropComplete={handleCropComplete}
+              />
             </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4">
