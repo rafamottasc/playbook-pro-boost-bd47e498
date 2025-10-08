@@ -381,11 +381,11 @@ export function ModulesManager() {
           </p>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filteredModules.map((module) => (
             <Card key={module.id} className="p-4">
               {module.cover_url && (
-                <div className="mb-3 rounded-lg overflow-hidden aspect-video">
+                <div className="mb-3 rounded-lg overflow-hidden aspect-[2/3]">
                   <img 
                     src={module.cover_url} 
                     alt={module.title}

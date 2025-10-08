@@ -71,7 +71,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
 
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
-      <div className="relative aspect-video overflow-hidden bg-muted">
+      <div className="relative aspect-[2/3] overflow-hidden bg-muted">
         {module.cover_url ? (
           <img
             src={module.cover_url}
