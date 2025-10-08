@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
-import { ExternalLink, Trash2, Plus } from "lucide-react";
+import { ExternalLink, Trash2, Plus, BookOpen, Building2 } from "lucide-react";
 
 const partnerSchema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
@@ -100,24 +100,31 @@ export function PartnerModal({
   const onSubmit = async (data: PartnerFormData) => {
     setLoading(true);
     try {
+      console.log("Salvando construtora:", data);
+      
       if (partner) {
         const { error } = await supabase
           .from("partners")
           .update(data)
           .eq("id", partner.id);
         if (error) throw error;
-        toast.success("Construtora atualizada");
+        toast.success("Construtora atualizada com sucesso!");
       } else {
-        const { error } = await supabase
+        const { data: newPartner, error } = await supabase
           .from("partners")
-          .insert({ ...data, category_id: categoryId });
+          .insert({ ...data, category_id: categoryId })
+          .select()
+          .single();
+        
         if (error) throw error;
-        toast.success("Construtora criada");
+        console.log("Construtora criada:", newPartner);
+        toast.success("Construtora criada com sucesso! Agora você pode adicionar materiais e links.");
       }
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Erro ao salvar construtora:", error);
+      toast.error(`Erro ao salvar: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -160,10 +167,11 @@ export function PartnerModal({
         </DialogHeader>
 
         <Tabs defaultValue="dados" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="dados">Dados</TabsTrigger>
-            <TabsTrigger value="materiais" disabled={!partner}>Materiais</TabsTrigger>
-            <TabsTrigger value="links" disabled={!partner}>Links</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dados">Dados Básicos</TabsTrigger>
+            <TabsTrigger value="recursos" disabled={!partner}>
+              Materiais & Links
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dados" className="space-y-4 mt-4">
@@ -275,50 +283,71 @@ export function PartnerModal({
             </Form>
           </TabsContent>
 
-          <TabsContent value="materiais" className="mt-4">
-            {partner && (
-              <FileUpload partnerId={partner.id} onUploadComplete={loadLinks} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="links" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Input
-                placeholder="Título do link"
-                value={newLink.title}
-                onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-              />
-              <Input
-                placeholder="URL"
-                value={newLink.url}
-                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-              />
-              <Button onClick={addLink} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Link
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              {links.map((link) => (
-                <div key={link.id} className="flex items-center justify-between p-3 border rounded">
-                  <div className="flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4" />
-                    <div>
-                      <p className="font-medium">{link.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{link.url}</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteLink(link.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+          <TabsContent value="recursos" className="space-y-6 mt-4">
+            {partner ? (
+              <>
+                {/* Seção de Materiais */}
+                <div>
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Materiais
+                  </h3>
+                  <FileUpload partnerId={partner.id} onUploadComplete={loadLinks} />
                 </div>
-              ))}
-            </div>
+
+                {/* Seção de Links */}
+                <div>
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4" />
+                    Links Externos
+                  </h3>
+                  
+                  <div className="space-y-2 mb-4">
+                    <Input
+                      placeholder="Título do link"
+                      value={newLink.title}
+                      onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                    />
+                    <Input
+                      placeholder="URL"
+                      value={newLink.url}
+                      onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                    />
+                    <Button onClick={addLink} className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Link
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {links.map((link) => (
+                      <div key={link.id} className="flex items-center justify-between p-3 border rounded">
+                        <div className="flex items-center gap-2">
+                          <ExternalLink className="h-4 w-4" />
+                          <div>
+                            <p className="font-medium">{link.title}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-md">{link.url}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteLink(link.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="font-medium mb-1">Salve a construtora primeiro</p>
+                <p className="text-sm">Para adicionar materiais e links, você precisa salvar os dados básicos da construtora.</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
