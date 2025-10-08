@@ -26,6 +26,15 @@ import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
 import { ExternalLink, Trash2, Plus, BookOpen, Building2 } from "lucide-react";
 
+const normalizeUrl = (url: string): string => {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed.match(/^https?:\/\//)) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+};
+
 const partnerSchema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
   manager_name: z.string().optional(),
@@ -141,9 +150,25 @@ export function PartnerModal({
 
   const addLink = async () => {
     if (!partner || !newLink.title || !newLink.url) return;
+    
+    // Normalizar URL antes de salvar
+    const normalizedUrl = normalizeUrl(newLink.url);
+    
+    // Validar se é uma URL válida
+    try {
+      new URL(normalizedUrl);
+    } catch {
+      toast.error("URL inválida. Ex: https://exemplo.com ou apenas exemplo.com");
+      return;
+    }
+    
     const { error } = await supabase
       .from("partner_links")
-      .insert({ partner_id: partner.id, ...newLink });
+      .insert({ 
+        partner_id: partner.id, 
+        title: newLink.title,
+        url: normalizedUrl 
+      });
     if (error) {
       toast.error(error.message);
     } else {
@@ -318,7 +343,7 @@ export function PartnerModal({
                       onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
                     />
                     <Input
-                      placeholder="URL"
+                      placeholder="URL (ex: https://exemplo.com ou exemplo.com)"
                       value={newLink.url}
                       onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                     />
