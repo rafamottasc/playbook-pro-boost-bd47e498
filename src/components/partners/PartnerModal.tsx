@@ -81,6 +81,7 @@ export function PartnerModal({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [activeTab, setActiveTab] = useState("dados");
+  const [currentPartner, setCurrentPartner] = useState<any>(null);
 
   const form = useForm<PartnerFormData>({
     resolver: zodResolver(partnerSchema),
@@ -107,18 +108,19 @@ export function PartnerModal({
 
   useEffect(() => {
     if (partner) {
+      setCurrentPartner(partner);
       form.reset({
         name: partner.name,
         manager_name: partner.manager_name || "",
-        manager_phone: partner.manager_phone || "",
         manager_email: partner.manager_email || "",
-        observations: partner.observations || "",
-        active: partner.active,
+        manager_phone: partner.manager_phone || "",
         drive_link: partner.drive_link || "",
+        observations: partner.observations || "",
       });
       loadLinks();
       loadFiles();
     } else {
+      setCurrentPartner(null);
       form.reset();
       setLinks([]);
       setFiles([]);
@@ -135,20 +137,20 @@ export function PartnerModal({
   };
 
   const loadLinks = async () => {
-    if (!partner) return;
+    if (!currentPartner) return;
     const { data } = await supabase
       .from("partner_links")
       .select("*")
-      .eq("partner_id", partner.id);
+      .eq("partner_id", currentPartner.id);
     setLinks(data || []);
   };
 
   const loadFiles = async () => {
-    if (!partner) return;
+    if (!currentPartner) return;
     const { data } = await supabase
       .from("partner_files")
       .select("*")
-      .eq("partner_id", partner.id)
+      .eq("partner_id", currentPartner.id)
       .order("created_at", { ascending: false });
     setFiles(data || []);
   };
@@ -184,13 +186,16 @@ export function PartnerModal({
         if (error) throw error;
         console.log("Construtora criada:", newPartner);
         toast.success("✅ Construtora criada! Agora adicione materiais na aba ao lado →");
-        
+
+        // Atualizar estado local com a nova construtora
+        setCurrentPartner(newPartner);
+
         // Atualizar form com os dados do novo partner
         form.reset(newPartner);
-        
+
         // Mudar automaticamente para aba Materiais
         setActiveTab("recursos");
-        
+
         onSuccess();
         // NÃO fecha o modal para nova construtora
       }
@@ -228,7 +233,7 @@ export function PartnerModal({
   };
 
   const addLink = async () => {
-    if (!partner || !newLink.title || !newLink.url) return;
+    if (!currentPartner || !newLink.title || !newLink.url) return;
     
     // Normalizar URL antes de salvar
     const normalizedUrl = normalizeUrl(newLink.url);
@@ -244,7 +249,7 @@ export function PartnerModal({
     const { error } = await supabase
       .from("partner_links")
       .insert({ 
-        partner_id: partner.id, 
+        partner_id: currentPartner.id, 
         title: newLink.title,
         url: normalizedUrl 
       });
@@ -498,8 +503,8 @@ export function PartnerModal({
             </Form>
           </TabsContent>
 
-          <TabsContent value="recursos" className="space-y-6 mt-4">
-            {partner ? (
+        <TabsContent value="recursos" className="space-y-6 mt-4">
+          {currentPartner ? (
               <>
                 {/* Seção de Materiais */}
                 <div>
@@ -508,7 +513,7 @@ export function PartnerModal({
                     Materiais
                   </h3>
                   <FileUpload 
-                    partnerId={partner.id} 
+                    partnerId={currentPartner.id} 
                     onUploadComplete={() => {
                       loadLinks();
                       loadFiles();
