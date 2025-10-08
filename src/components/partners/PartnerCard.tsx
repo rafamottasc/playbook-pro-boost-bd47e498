@@ -68,30 +68,36 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
         <CollapsibleContent>
           <CardContent className="space-y-4 pt-0">
             {partner.manager_name && (
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>{partner.manager_name}</span>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Gerente</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span>{partner.manager_name}</span>
+                </div>
               </div>
             )}
 
-        {(partner.manager_phone || partner.manager_email) && (
-          <div className="space-y-2">
-            {partner.manager_phone && (
-              <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <a href={`tel:${partner.manager_phone}`} className="hover:underline">
-                  {partner.manager_phone}
-                </a>
-              </div>
-            )}
-            {partner.manager_email && (
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <a href={`mailto:${partner.manager_email}`} className="hover:underline">
-                  {partner.manager_email}
-                </a>
-              </div>
-            )}
+        {partner.manager_phone && (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Telefone</p>
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <a href={`tel:${partner.manager_phone}`} className="hover:underline">
+                {partner.manager_phone}
+              </a>
+            </div>
+          </div>
+        )}
+
+        {partner.manager_email && (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Email</p>
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <a href={`mailto:${partner.manager_email}`} className="hover:underline">
+                {partner.manager_email}
+              </a>
+            </div>
           </div>
         )}
 
@@ -120,16 +126,35 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
                   </a>
                 )}
                 {files.map((file) => (
-                  <a
-                    key={file.id}
-                    href={file.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-primary hover:underline"
-                  >
-                    <FileText className="h-3 w-3" />
-                    {file.file_name}
-                  </a>
+                  <div key={file.id} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <FileText className="h-3 w-3 flex-shrink-0" />
+                      <span className="text-sm truncate">{file.file_name}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 px-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(file.file_url, '_blank');
+                        }}
+                      >
+                        👁️ Ver
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="h-7 px-2"
+                        asChild
+                      >
+                        <a href={file.file_url} download={file.file_name}>
+                          ⬇️ Download
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
                 ))}
                 {links.map((link) => (
                   <a

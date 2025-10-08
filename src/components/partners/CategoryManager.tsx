@@ -19,7 +19,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +40,6 @@ export function CategoryManager() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     active: true,
   });
 
@@ -62,12 +60,11 @@ export function CategoryManager() {
       setSelectedCategory(category);
       setFormData({
         name: category.name,
-        description: category.description || "",
         active: category.active,
       });
     } else {
       setSelectedCategory(null);
-      setFormData({ name: "", description: "", active: true });
+      setFormData({ name: "", active: true });
     }
     setModalOpen(true);
   };
@@ -129,11 +126,6 @@ export function CategoryManager() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-semibold">{category.name}</h3>
-                    {category.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {category.description}
-                      </p>
-                    )}
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -177,14 +169,6 @@ export function CategoryManager() {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
               />
             </div>
             <div className="flex items-center justify-between">

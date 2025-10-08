@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
-import { ExternalLink, Trash2, Plus, BookOpen, Building2, FileIcon, Pencil } from "lucide-react";
+import { ExternalLink, Trash2, Plus, BookOpen, Building2, FileIcon, Pencil, AlertCircle } from "lucide-react";
 
 const normalizeUrl = (url: string): string => {
   if (!url) return "";
@@ -79,6 +79,8 @@ export function PartnerModal({
   const [editingLink, setEditingLink] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [activeTab, setActiveTab] = useState("dados");
 
   const form = useForm<PartnerFormData>({
     resolver: zodResolver(partnerSchema),
@@ -170,6 +172,8 @@ export function PartnerModal({
           .eq("id", partner.id);
         if (error) throw error;
         toast.success("Construtora atualizada com sucesso!");
+        onSuccess();
+        onOpenChange(false);
       } else {
         const { data: newPartner, error } = await supabase
           .from("partners")
@@ -179,15 +183,47 @@ export function PartnerModal({
         
         if (error) throw error;
         console.log("Construtora criada:", newPartner);
-        toast.success("Construtora criada com sucesso! Agora você pode adicionar materiais e links.");
+        toast.success("✅ Construtora criada! Agora adicione materiais na aba ao lado →");
+        
+        // Atualizar form com os dados do novo partner
+        form.reset(newPartner);
+        
+        // Mudar automaticamente para aba Materiais
+        setActiveTab("recursos");
+        
+        onSuccess();
+        // NÃO fecha o modal para nova construtora
       }
-      onSuccess();
-      onOpenChange(false);
     } catch (error: any) {
       console.error("Erro ao salvar construtora:", error);
       toast.error(`Erro ao salvar: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateInlineCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("partners_categories")
+        .insert({ 
+          name: newCategoryName, 
+          active: true,
+          display_order: 0 
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      toast.success("Categoria criada!");
+      setSelectedCategoryId(data.id);
+      loadCategories();
+      setNewCategoryName("");
+    } catch (error: any) {
+      toast.error(`Erro ao criar categoria: ${error.message}`);
     }
   };
 
@@ -297,10 +333,10 @@ export function PartnerModal({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="dados" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="dados">Dados Básicos</TabsTrigger>
-            <TabsTrigger value="recursos" disabled={!partner}>
+            <TabsTrigger value="recursos">
               Materiais & Links
             </TabsTrigger>
           </TabsList>
@@ -311,21 +347,48 @@ export function PartnerModal({
                 {!partner && !categoryId && (
                   <div className="space-y-2">
                     <FormLabel>Categoria *</FormLabel>
-                    <Select 
-                      value={selectedCategoryId} 
-                      onValueChange={setSelectedCategoryId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    
+                    {categories.length === 0 ? (
+                      <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-amber-500" />
+                          <p className="font-medium">Primeira categoria necessária</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Crie a primeira categoria para organizar suas construtoras:
+                        </p>
+                        <Input 
+                          placeholder="Nome da categoria (ex: Alto Padrão, Econômico...)"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                        />
+                        <Button 
+                          size="sm" 
+                          onClick={handleCreateInlineCategory}
+                          disabled={!newCategoryName.trim()}
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Criar Categoria e Continuar
+                        </Button>
+                      </div>
+                    ) : (
+                      <Select 
+                        value={selectedCategoryId} 
+                        onValueChange={setSelectedCategoryId}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 )}
 
@@ -466,11 +529,20 @@ export function PartnerModal({
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => window.open(file.file_url, '_blank')}
                           >
-                            <ExternalLink className="h-4 w-4" />
+                            👁️ Ver
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                          >
+                            <a href={file.file_url} download={file.file_name}>
+                              ⬇️ Download
+                            </a>
                           </Button>
                           <Button
                             variant="ghost"
@@ -562,6 +634,13 @@ export function PartnerModal({
                     ))}
                   </div>
                 </div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  className="w-full mt-4"
+                >
+                  Concluir e Fechar
+                </Button>
               </>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
