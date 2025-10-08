@@ -308,7 +308,7 @@ export function UsersManager() {
                 </div>
                 
                 {!user.isFirstAdmin && (
-                  <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {!user.approved && (
                       <TooltipProvider>
                         <Tooltip>
@@ -317,10 +317,10 @@ export function UsersManager() {
                               variant="default"
                               onClick={() => toggleApproval(user.id, user.approved)}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-green-600 hover:bg-green-700 w-full"
                             >
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Aprovar Cadastro
+                              Aprovar
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -337,6 +337,7 @@ export function UsersManager() {
                             variant={user.roles.includes("admin") ? "destructive" : "default"}
                             onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
                             size="sm"
+                            className="w-full"
                           >
                             {user.roles.includes("admin")
                               ? "Remover Admin"
@@ -356,7 +357,7 @@ export function UsersManager() {
                             variant={user.blocked ? "default" : "outline"}
                             onClick={() => toggleBlockUser(user.id, user.blocked)}
                             size="sm"
-                            className={!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}
+                            className={`w-full ${!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}`}
                           >
                             {user.blocked ? (
                               <>
@@ -384,7 +385,7 @@ export function UsersManager() {
                             variant="outline"
                             onClick={() => setDeleteUserId(user.id)}
                             size="sm"
-                            className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white"
+                            className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Excluir
