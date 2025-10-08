@@ -4,8 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Play } from "lucide-react";
+import { Plus, Pencil, Trash2, Play, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -14,6 +16,7 @@ import { convertYouTubeUrl } from "@/lib/youtube";
 interface Module {
   id: string;
   title: string;
+  published: boolean;
 }
 
 interface Lesson {
@@ -25,6 +28,7 @@ interface Lesson {
   duration_minutes: number | null;
   points: number;
   display_order: number;
+  published: boolean;
 }
 
 export function LessonsManager() {
@@ -42,8 +46,10 @@ export function LessonsManager() {
     video_url: "",
     duration_minutes: 0,
     points: 10,
-    display_order: 0
+    display_order: 0,
+    published: false
   });
+  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
 
   useEffect(() => {
     fetchModules();
@@ -59,7 +65,7 @@ export function LessonsManager() {
     try {
       const { data, error } = await supabase
         .from('academy_modules')
-        .select('id, title')
+        .select('id, title, published')
         .order('display_order', { ascending: true });
 
       if (error) throw error;
@@ -131,7 +137,8 @@ export function LessonsManager() {
         video_url: "",
         duration_minutes: 0,
         points: 10,
-        display_order: 0
+        display_order: 0,
+        published: false
       });
       fetchLessons();
     } catch (error: any) {
@@ -152,9 +159,36 @@ export function LessonsManager() {
       video_url: lesson.video_url,
       duration_minutes: lesson.duration_minutes || 0,
       points: lesson.points,
-      display_order: lesson.display_order
+      display_order: lesson.display_order,
+      published: lesson.published
     });
     setDialogOpen(true);
+  };
+
+  const togglePublished = async (lesson: Lesson) => {
+    try {
+      const { error } = await supabase
+        .from('academy_lessons')
+        .update({ published: !lesson.published })
+        .eq('id', lesson.id);
+
+      if (error) throw error;
+      
+      toast({ 
+        title: lesson.published ? "Aula despublicada" : "Aula publicada!",
+        description: lesson.published 
+          ? "Os usuários não verão mais esta aula" 
+          : "Os usuários agora podem ver esta aula"
+      });
+      
+      fetchLessons();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -178,11 +212,28 @@ export function LessonsManager() {
     }
   };
 
+  const selectedModuleData = modules.find(m => m.id === selectedModule);
+  const filteredLessons = lessons.filter(l => {
+    if (filterStatus === 'published') return l.published;
+    if (filterStatus === 'draft') return !l.published;
+    return true;
+  });
+
+  const publishedCount = lessons.filter(l => l.published).length;
+  const draftCount = lessons.filter(l => !l.published).length;
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
-          <h3 className="text-xl font-semibold">Aulas</h3>
+          <div>
+            <h3 className="text-xl font-semibold">Aulas</h3>
+            {selectedModule && (
+              <p className="text-sm text-muted-foreground">
+                {lessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
+              </p>
+            )}
+          </div>
           {modules.length > 0 && (
             <Select value={selectedModule} onValueChange={setSelectedModule}>
               <SelectTrigger className="w-[250px]">
@@ -192,6 +243,9 @@ export function LessonsManager() {
                 {modules.map((module) => (
                   <SelectItem key={module.id} value={module.id}>
                     {module.title}
+                    {!module.published && (
+                      <Badge variant="secondary" className="ml-2">Não publicado</Badge>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -211,7 +265,8 @@ export function LessonsManager() {
                   video_url: "",
                   duration_minutes: 0,
                   points: 10,
-                  display_order: lessons.length
+                  display_order: lessons.length,
+                  published: false
                 });
               }}
               disabled={!selectedModule}
@@ -287,6 +342,14 @@ export function LessonsManager() {
                   />
                 </div>
               </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="published">Publicado</Label>
+                <Switch
+                  id="published"
+                  checked={formData.published}
+                  onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
+                />
+              </div>
               <Button type="submit" className="w-full">
                 {editingLesson ? "Atualizar" : "Criar"}
               </Button>
@@ -295,20 +358,56 @@ export function LessonsManager() {
         </Dialog>
       </div>
 
+      {selectedModuleData && !selectedModuleData.published && (
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4">
+          <p className="text-sm text-yellow-700 dark:text-yellow-400">
+            ⚠️ Este módulo não está publicado. As aulas não estarão visíveis para os usuários.
+          </p>
+        </div>
+      )}
+
+      {selectedModule && lessons.length > 0 && (
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={filterStatus === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilterStatus('all')}
+          >
+            Todas ({lessons.length})
+          </Button>
+          <Button
+            variant={filterStatus === 'published' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilterStatus('published')}
+          >
+            Publicadas ({publishedCount})
+          </Button>
+          <Button
+            variant={filterStatus === 'draft' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilterStatus('draft')}
+          >
+            Rascunhos ({draftCount})
+          </Button>
+        </div>
+      )}
+
       {!selectedModule ? (
         <Card className="p-12 text-center">
           <p className="text-muted-foreground">Crie um módulo primeiro</p>
         </Card>
       ) : loading ? (
         <p>Carregando...</p>
-      ) : lessons.length === 0 ? (
+      ) : filteredLessons.length === 0 ? (
         <Card className="p-12 text-center">
           <Play className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Nenhuma aula cadastrada neste módulo</p>
+          <p className="text-muted-foreground">
+            {filterStatus === 'all' ? 'Nenhuma aula cadastrada neste módulo' : `Nenhuma aula ${filterStatus === 'published' ? 'publicada' : 'rascunho'}`}
+          </p>
         </Card>
       ) : (
         <div className="space-y-3">
-          {lessons.map((lesson, index) => (
+          {filteredLessons.map((lesson, index) => (
             <Card key={lesson.id} className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -317,6 +416,9 @@ export function LessonsManager() {
                       Aula {index + 1}
                     </span>
                     <h4 className="font-semibold">{lesson.title}</h4>
+                    <Badge variant={lesson.published ? "default" : "secondary"}>
+                      {lesson.published ? "Publicada" : "Rascunho"}
+                    </Badge>
                   </div>
                   {lesson.description && (
                     <p className="text-sm text-muted-foreground mb-2">
@@ -331,6 +433,18 @@ export function LessonsManager() {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => togglePublished(lesson)}
+                    title={lesson.published ? "Despublicar" : "Publicar"}
+                  >
+                    {lesson.published ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

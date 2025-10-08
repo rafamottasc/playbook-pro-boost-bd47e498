@@ -23,6 +23,7 @@ export type Database = {
           id: string
           module_id: string
           points: number | null
+          published: boolean | null
           title: string
           updated_at: string | null
           video_url: string
@@ -35,6 +36,7 @@ export type Database = {
           id?: string
           module_id: string
           points?: number | null
+          published?: boolean | null
           title: string
           updated_at?: string | null
           video_url: string
@@ -47,6 +49,7 @@ export type Database = {
           id?: string
           module_id?: string
           points?: number | null
+          published?: boolean | null
           title?: string
           updated_at?: string | null
           video_url?: string
@@ -68,6 +71,7 @@ export type Database = {
           description: string | null
           display_order: number | null
           id: string
+          published: boolean | null
           title: string
           updated_at: string | null
         }
@@ -77,6 +81,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           id?: string
+          published?: boolean | null
           title: string
           updated_at?: string | null
         }
@@ -86,6 +91,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           id?: string
+          published?: boolean | null
           title?: string
           updated_at?: string | null
         }

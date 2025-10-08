@@ -66,8 +66,8 @@ export function QuestionsList({ lessonId }: QuestionsListProps) {
         .from('lesson_questions')
         .select(`
           *,
-          profiles!lesson_questions_user_id_fkey(full_name, avatar_url),
-          profiles!lesson_questions_answered_by_fkey(full_name)
+          user:profiles!user_id(full_name, avatar_url),
+          answered_by_profile:profiles!answered_by(full_name)
         `)
         .eq('lesson_id', lessonId)
         .order('likes', { ascending: false })
@@ -98,8 +98,8 @@ export function QuestionsList({ lessonId }: QuestionsListProps) {
         likes: q.likes,
         created_at: q.created_at,
         answered_at: q.answered_at,
-        user: q.profiles,
-        answeredBy: q.answered_by ? { full_name: q.profiles.full_name } : null,
+        user: q.user,
+        answeredBy: q.answered_by_profile,
         userHasLiked: userLikes.includes(q.id)
       }));
 

@@ -46,16 +46,17 @@ export default function ModuleLessons() {
         .from('academy_modules')
         .select('*')
         .eq('id', moduleId)
-        .single();
+        .maybeSingle();
 
       if (moduleError) throw moduleError;
       setModule(moduleData);
 
-      // Fetch lessons
+      // Fetch lessons for the module (only published)
       const { data: lessonsData, error: lessonsError } = await supabase
         .from('academy_lessons')
         .select('*')
         .eq('module_id', moduleId)
+        .eq('published', true)
         .order('display_order', { ascending: true });
 
       if (lessonsError) throw lessonsError;

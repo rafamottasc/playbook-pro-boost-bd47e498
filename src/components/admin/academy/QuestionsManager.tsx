@@ -16,6 +16,9 @@ interface Question {
   question: string;
   answer: string | null;
   created_at: string;
+  user_id: string;
+  lesson_id: string;
+  module_id: string;
   lesson: {
     title: string;
     module: {
@@ -68,8 +71,13 @@ export function QuestionsManager() {
         .select(`
           *,
           academy_lessons!inner(
+            id,
             title,
-            academy_modules!inner(title)
+            module_id,
+            academy_modules!inner(
+              id,
+              title
+            )
           ),
           profiles!lesson_questions_user_id_fkey(full_name, avatar_url)
         `);
@@ -89,6 +97,9 @@ export function QuestionsManager() {
         question: q.question,
         answer: q.answer,
         created_at: q.created_at,
+        user_id: q.user_id,
+        lesson_id: q.lesson_id,
+        module_id: q.academy_lessons.module_id,
         lesson: {
           title: q.academy_lessons.title,
           module: {
@@ -110,7 +121,7 @@ export function QuestionsManager() {
     }
   };
 
-  const handleAnswer = async (questionId: string, userId: string) => {
+  const handleAnswer = async (questionId: string, question: Question) => {
     if (!user || !answerText.trim()) return;
 
     try {
@@ -125,14 +136,14 @@ export function QuestionsManager() {
 
       if (updateError) throw updateError;
 
-      // Create notification for the user who asked
+      // Create notification for the user who asked with correct link
       await supabase
         .from('notifications')
         .insert({
-          user_id: userId,
+          user_id: question.user_id,
           title: "Sua pergunta foi respondida!",
           message: answerText.substring(0, 100) + (answerText.length > 100 ? '...' : ''),
-          link: `/resources/training`, // Could be more specific with moduleId/lessonId
+          link: `/resources/training/${question.module_id}/${question.lesson_id}`,
           type: "academy"
         });
 
@@ -242,7 +253,7 @@ export function QuestionsManager() {
                       />
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => handleAnswer(question.id, question.user.full_name)}
+                          onClick={() => handleAnswer(question.id, question)}
                           size="sm"
                         >
                           <Send className="h-4 w-4 mr-2" />

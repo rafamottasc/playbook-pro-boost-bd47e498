@@ -32,9 +32,11 @@ export default function AcademyModules() {
 
   const fetchModules = async () => {
     try {
+      // Usuários comuns só veem módulos publicados
       const { data, error } = await supabase
         .from('academy_modules')
         .select('*')
+        .eq('published', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;

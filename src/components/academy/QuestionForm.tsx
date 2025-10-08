@@ -32,19 +32,26 @@ export function QuestionForm({ lessonId }: QuestionFormProps) {
 
       if (questionError) throw questionError;
 
+      // Buscar module_id da aula para gerar link correto
+      const { data: lessonData } = await supabase
+        .from('academy_lessons')
+        .select('module_id')
+        .eq('id', lessonId)
+        .single();
+
       // Get all admins to notify
       const { data: adminRoles } = await supabase
         .from('user_roles')
         .select('user_id')
         .eq('role', 'admin');
 
-      if (adminRoles) {
-        // Create notifications for all admins
+      if (adminRoles && lessonData) {
+        // Create notifications for all admins with correct link
         const notifications = adminRoles.map(admin => ({
           user_id: admin.user_id,
           title: "Nova pergunta na Academy",
           message: `${question.substring(0, 50)}...`,
-          link: `/resources/training/${lessonId}`,
+          link: `/resources/training/${lessonData.module_id}/${lessonId}`,
           type: "academy"
         }));
 
