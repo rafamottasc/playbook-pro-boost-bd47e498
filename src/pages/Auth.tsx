@@ -69,6 +69,37 @@ export default function Auth() {
       const validated = signUpSchema.parse({ email, password, fullName, whatsapp });
       
       setLoading(true);
+      
+      // Verificar se email ou whatsapp já existem
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('email, whatsapp')
+        .or(`email.eq.${validated.email},whatsapp.eq.${validated.whatsapp}`)
+        .maybeSingle();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        setLoading(false);
+        toast({
+          title: "Erro ao verificar dados",
+          description: "Tente novamente mais tarde",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (existingProfile) {
+        setLoading(false);
+        const isDuplicateEmail = existingProfile.email === validated.email;
+        toast({
+          title: "Usuário já cadastrado",
+          description: isDuplicateEmail 
+            ? "Este e-mail já está em uso" 
+            : "Este WhatsApp já está cadastrado",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const { error } = await signUp(
         validated.email, 
         validated.password, 
@@ -356,7 +387,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha (mínimo 6 caracteres)</Label>
+                  <Label htmlFor="signup-password">Senha</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
@@ -375,6 +406,9 @@ export default function Auth() {
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Mínimo 8 caracteres com letra maiúscula, minúscula e número
+                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Cadastrando..." : "Cadastrar"}
