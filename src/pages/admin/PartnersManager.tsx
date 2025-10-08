@@ -129,7 +129,7 @@ export default function PartnersManager() {
       if (error) throw error;
       toast.success("Construtora excluída");
       setDeleteDialogOpen(false);
-      loadData();
+      // Realtime vai atualizar automaticamente
     } catch (error: any) {
       toast.error(error.message);
     }

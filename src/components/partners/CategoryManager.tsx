@@ -45,6 +45,23 @@ export function CategoryManager() {
 
   useEffect(() => {
     loadCategories();
+    
+    // Setup realtime para atualizar automaticamente
+    const channel = supabase
+      .channel("category-manager-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "partners_categories" },
+        () => {
+          console.log("Categoria alterada - atualizando lista");
+          loadCategories();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadCategories = async () => {
@@ -86,7 +103,7 @@ export function CategoryManager() {
         toast.success("Categoria criada");
       }
       setModalOpen(false);
-      loadCategories();
+      // Realtime vai atualizar automaticamente
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -102,7 +119,7 @@ export function CategoryManager() {
       if (error) throw error;
       toast.success("Categoria excluída");
       setDeleteDialogOpen(false);
-      loadCategories();
+      // Realtime vai atualizar automaticamente
     } catch (error: any) {
       toast.error(error.message);
     }

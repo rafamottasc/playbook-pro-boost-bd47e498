@@ -98,6 +98,23 @@ export function PartnerModal({
 
   useEffect(() => {
     loadCategories();
+    
+    // Setup realtime para categorias
+    const channel = supabase
+      .channel("partner-modal-categories")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "partners_categories" },
+        () => {
+          console.log("Categoria mudou - atualizando select");
+          loadCategories();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
