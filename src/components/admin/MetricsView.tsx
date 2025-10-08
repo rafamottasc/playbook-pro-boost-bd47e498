@@ -18,8 +18,8 @@ interface Metrics {
   totalLikes: number;
   totalDislikes: number;
   totalCopies: number;
-  mostLikedMessage?: MessageDetail;
-  mostDislikedMessage?: MessageDetail;
+  topLikedMessages: MessageDetail[];
+  topDislikedMessages: MessageDetail[];
 }
 
 export function MetricsView() {
@@ -28,6 +28,8 @@ export function MetricsView() {
     totalLikes: 0,
     totalDislikes: 0,
     totalCopies: 0,
+    topLikedMessages: [],
+    topDislikedMessages: [],
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -47,35 +49,41 @@ export function MetricsView() {
       const totalLikes = messages?.reduce((sum, msg) => sum + (msg.likes || 0), 0) || 0;
       const totalDislikes = messages?.reduce((sum, msg) => sum + (msg.dislikes || 0), 0) || 0;
 
-      const mostLiked = messages?.reduce((max, msg) => 
-        (msg.likes || 0) > (max.likes || 0) ? msg : max
-      , messages[0]);
+      // Top 3 mensagens mais curtidas
+      const topLiked = messages
+        ?.filter(msg => (msg.likes || 0) > 0)
+        .sort((a, b) => (b.likes || 0) - (a.likes || 0))
+        .slice(0, 3)
+        .map(msg => ({
+          title: msg.title,
+          content: msg.content,
+          funnel: msg.funnel,
+          stage: msg.stage,
+          likes: msg.likes || 0,
+          dislikes: msg.dislikes || 0
+        })) || [];
 
-      const mostDisliked = messages?.reduce((max, msg) => 
-        (msg.dislikes || 0) > (max.dislikes || 0) ? msg : max
-      , messages[0]);
+      // Top 3 mensagens mais descurtidas
+      const topDisliked = messages
+        ?.filter(msg => (msg.dislikes || 0) > 0)
+        .sort((a, b) => (b.dislikes || 0) - (a.dislikes || 0))
+        .slice(0, 3)
+        .map(msg => ({
+          title: msg.title,
+          content: msg.content,
+          funnel: msg.funnel,
+          stage: msg.stage,
+          likes: msg.likes || 0,
+          dislikes: msg.dislikes || 0
+        })) || [];
 
       setMetrics({
         totalMessages: messages?.length || 0,
         totalLikes,
         totalDislikes,
         totalCopies: 0,
-        mostLikedMessage: mostLiked ? {
-          title: mostLiked.title,
-          content: mostLiked.content,
-          funnel: mostLiked.funnel,
-          stage: mostLiked.stage,
-          likes: mostLiked.likes || 0,
-          dislikes: mostLiked.dislikes || 0
-        } : undefined,
-        mostDislikedMessage: (mostDisliked && mostDisliked.dislikes > 0) ? {
-          title: mostDisliked.title,
-          content: mostDisliked.content,
-          funnel: mostDisliked.funnel,
-          stage: mostDisliked.stage,
-          likes: mostDisliked.likes || 0,
-          dislikes: mostDisliked.dislikes || 0
-        } : undefined,
+        topLikedMessages: topLiked,
+        topDislikedMessages: topDisliked,
       });
     } catch (error: any) {
       toast({
@@ -165,70 +173,114 @@ export function MetricsView() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {metrics.mostLikedMessage && (
-          <Card className="border-2 border-green-200 dark:border-green-900">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ThumbsUp className="h-5 w-5 text-green-500" />
-                Mensagem Mais Curtida
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="font-semibold text-lg">{metrics.mostLikedMessage.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {metrics.mostLikedMessage.funnel} - {metrics.mostLikedMessage.stage}
-                </p>
-              </div>
-              <p className="text-sm bg-muted p-3 rounded-md whitespace-pre-wrap">
-                {metrics.mostLikedMessage.content}
-              </p>
-              <div className="flex gap-4 text-sm">
-                <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                  <ThumbsUp className="h-4 w-4" />
-                  {metrics.mostLikedMessage.likes} likes
-                </span>
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <ThumbsDown className="h-4 w-4" />
-                  {metrics.mostLikedMessage.dislikes} dislikes
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Top 3 Mais Curtidas */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <ThumbsUp className="h-5 w-5 text-green-500" />
+            Top 3 Mensagens Mais Curtidas
+          </h3>
+          {metrics.topLikedMessages.length > 0 ? (
+            metrics.topLikedMessages.map((message, index) => (
+              <Card 
+                key={index} 
+                className="border-2 border-green-200 dark:border-green-900 bg-gradient-to-br from-green-50 to-background dark:from-green-950/20"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <span className="text-2xl">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {index + 1}º Lugar
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="font-semibold">{message.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {message.funnel} - {message.stage}
+                    </p>
+                  </div>
+                  <p className="text-sm bg-muted/50 p-2 rounded-md whitespace-pre-wrap line-clamp-3">
+                    {message.content}
+                  </p>
+                  <div className="flex gap-4 text-sm">
+                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
+                      <ThumbsUp className="h-4 w-4" />
+                      {message.likes}
+                    </span>
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <ThumbsDown className="h-4 w-4" />
+                      {message.dislikes}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Nenhuma mensagem curtida ainda
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-        {metrics.mostDislikedMessage && (
-          <Card className="border-2 border-red-200 dark:border-red-900">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ThumbsDown className="h-5 w-5 text-red-500" />
-                Mensagem Mais Descurtida
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="font-semibold text-lg">{metrics.mostDislikedMessage.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {metrics.mostDislikedMessage.funnel} - {metrics.mostDislikedMessage.stage}
-                </p>
-              </div>
-              <p className="text-sm bg-muted p-3 rounded-md whitespace-pre-wrap">
-                {metrics.mostDislikedMessage.content}
-              </p>
-              <div className="flex gap-4 text-sm">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <ThumbsUp className="h-4 w-4" />
-                  {metrics.mostDislikedMessage.likes} likes
-                </span>
-                <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                  <ThumbsDown className="h-4 w-4" />
-                  {metrics.mostDislikedMessage.dislikes} dislikes
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Top 3 Mais Descurtidas */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <ThumbsDown className="h-5 w-5 text-red-500" />
+            Top 3 Mensagens Mais Descurtidas
+          </h3>
+          {metrics.topDislikedMessages.length > 0 ? (
+            metrics.topDislikedMessages.map((message, index) => (
+              <Card 
+                key={index} 
+                className="border-2 border-red-200 dark:border-red-900 bg-gradient-to-br from-red-50 to-background dark:from-red-950/20"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <span className="text-2xl">
+                      {index === 0 ? '⚠️' : index === 1 ? '🔔' : '📌'}
+                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {index + 1}º Lugar
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="font-semibold">{message.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {message.funnel} - {message.stage}
+                    </p>
+                  </div>
+                  <p className="text-sm bg-muted/50 p-2 rounded-md whitespace-pre-wrap line-clamp-3">
+                    {message.content}
+                  </p>
+                  <div className="flex gap-4 text-sm">
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <ThumbsUp className="h-4 w-4" />
+                      {message.likes}
+                    </span>
+                    <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold">
+                      <ThumbsDown className="h-4 w-4" />
+                      {message.dislikes}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Nenhuma mensagem descurtida ainda
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
