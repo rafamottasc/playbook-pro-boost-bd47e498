@@ -73,14 +73,31 @@ export default function Campaigns() {
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
 
   useEffect(() => {
-    if (user) {
-      fetchCampaigns();
-      // Fetch profiles for all users (needed to show participant selection)
-      if (isAdmin) {
-        fetchProfiles();
+    console.log('Campaigns Effect - Auth States:', { 
+      hasUser: !!user, 
+      userId: user?.id,
+      isAdmin, 
+      authLoading, 
+      loading 
+    });
+
+    // Só tenta carregar quando a auth terminou de verificar
+    if (!authLoading) {
+      if (user) {
+        console.log('User authenticated, fetching campaigns...');
+        fetchCampaigns();
+        // Fetch profiles for all users (needed to show participant selection)
+        if (isAdmin) {
+          console.log('User is admin, fetching profiles...');
+          fetchProfiles();
+        }
+      } else {
+        // Se não tem user após auth carregar, mostrar página vazia
+        console.log('No user after auth loaded, setting loading to false');
+        setLoading(false);
       }
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, authLoading]);
 
   const fetchCampaigns = async () => {
     try {
