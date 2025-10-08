@@ -19,6 +19,7 @@ interface MessageCardProps {
   content: string;
   likes: number;
   dislikes: number;
+  userFeedback?: 'like' | 'dislike' | null;
   onCopy: () => void;
   onLike: () => void;
   onDislike: () => void;
@@ -30,6 +31,7 @@ export function MessageCard({
   content,
   likes,
   dislikes,
+  userFeedback = null,
   onCopy,
   onLike,
   onDislike,
@@ -38,7 +40,6 @@ export function MessageCard({
   const [copied, setCopied] = useState(false);
   const [suggestion, setSuggestion] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [userFeedback, setUserFeedback] = useState<"like" | "dislike" | null>(null);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -51,19 +52,11 @@ export function MessageCard({
   };
 
   const handleLike = () => {
-    if (userFeedback !== "like") {
-      setUserFeedback("like");
-      onLike();
-      toast.success("Obrigado pelo feedback! 👍");
-    }
+    onLike();
   };
 
   const handleDislike = () => {
-    if (userFeedback !== "dislike") {
-      setUserFeedback("dislike");
-      onDislike();
-      toast.info("Feedback registrado. Considere enviar uma sugestão! 👎");
-    }
+    onDislike();
   };
 
   const handleSuggestion = () => {

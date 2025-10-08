@@ -360,10 +360,12 @@ export default function Index() {
   const [userPoints, setUserPoints] = useState(127);
   const [activeFunnel, setActiveFunnel] = useState("lead-novo");
   const [loading, setLoading] = useState(true);
+  const [userFeedbacks, setUserFeedbacks] = useState<Record<string, 'like' | 'dislike'>>({});
   const { toast } = useToast();
 
   useEffect(() => {
     loadMessages();
+    loadUserFeedbacks();
   }, []);
 
   const loadMessages = async () => {
@@ -388,25 +390,151 @@ export default function Index() {
     }
   };
 
+  const loadUserFeedbacks = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_message_feedback')
+        .select('message_id, feedback_type')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const feedbackMap: Record<string, 'like' | 'dislike'> = {};
+      data?.forEach(fb => {
+        feedbackMap[fb.message_id] = fb.feedback_type as 'like' | 'dislike';
+      });
+      setUserFeedbacks(feedbackMap);
+    } catch (error: any) {
+      console.error("Erro ao carregar feedbacks:", error);
+    }
+  };
+
   const handleMessageCopy = (messageId: string) => {
     setUserPoints((prev) => prev + 1);
   };
 
-  const handleMessageLike = (messageId: string) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, likes: msg.likes + 1 } : msg
-      )
-    );
-    setUserPoints((prev) => prev + 0.5);
+  const handleMessageLike = async (messageId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (userFeedbacks[messageId]) {
+      toast({
+        title: "Atenção",
+        description: "Você já avaliou esta mensagem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const currentMessage = messages.find(m => m.id === messageId);
+      if (!currentMessage) return;
+
+      const { error: updateError } = await supabase
+        .from('messages')
+        .update({ likes: currentMessage.likes + 1 })
+        .eq('id', messageId);
+
+      if (updateError) throw updateError;
+
+      const { error: insertError } = await supabase
+        .from('user_message_feedback')
+        .insert({
+          user_id: user.id,
+          message_id: messageId,
+          feedback_type: 'like'
+        });
+
+      if (insertError) throw insertError;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, likes: msg.likes + 1 } : msg
+        )
+      );
+      setUserFeedbacks(prev => ({ ...prev, [messageId]: 'like' }));
+      setUserPoints((prev) => prev + 0.5);
+      toast({
+        title: "Obrigado pelo feedback! 👍",
+      });
+    } catch (error: any) {
+      console.error("Erro ao registrar like:", error);
+      toast({
+        title: "Erro ao registrar feedback",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleMessageDislike = (messageId: string) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, dislikes: msg.dislikes + 1 } : msg
-      )
-    );
+  const handleMessageDislike = async (messageId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (userFeedbacks[messageId]) {
+      toast({
+        title: "Atenção",
+        description: "Você já avaliou esta mensagem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const currentMessage = messages.find(m => m.id === messageId);
+      if (!currentMessage) return;
+
+      const { error: updateError } = await supabase
+        .from('messages')
+        .update({ dislikes: currentMessage.dislikes + 1 })
+        .eq('id', messageId);
+
+      if (updateError) throw updateError;
+
+      const { error: insertError } = await supabase
+        .from('user_message_feedback')
+        .insert({
+          user_id: user.id,
+          message_id: messageId,
+          feedback_type: 'dislike'
+        });
+
+      if (insertError) throw insertError;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, dislikes: msg.dislikes + 1 } : msg
+        )
+      );
+      setUserFeedbacks(prev => ({ ...prev, [messageId]: 'dislike' }));
+      toast({
+        title: "Feedback registrado. Considere enviar uma sugestão! 👎",
+      });
+    } catch (error: any) {
+      console.error("Erro ao registrar dislike:", error);
+      toast({
+        title: "Erro ao registrar feedback",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleMessageSuggest = async (messageId: string, suggestion: string) => {
@@ -506,6 +634,7 @@ export default function Index() {
                         key={stage}
                         stage={stage}
                         messages={stageMessages}
+                        userFeedbacks={userFeedbacks}
                         onMessageCopy={handleMessageCopy}
                         onMessageLike={handleMessageLike}
                         onMessageDislike={handleMessageDislike}

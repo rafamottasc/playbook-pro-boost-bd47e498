@@ -12,6 +12,7 @@ interface Message {
 interface KanbanColumnProps {
   stage: string;
   messages: Message[];
+  userFeedbacks: Record<string, 'like' | 'dislike'>;
   onMessageCopy: (messageId: string) => void;
   onMessageLike: (messageId: string) => void;
   onMessageDislike: (messageId: string) => void;
@@ -21,6 +22,7 @@ interface KanbanColumnProps {
 export function KanbanColumn({
   stage,
   messages,
+  userFeedbacks,
   onMessageCopy,
   onMessageLike,
   onMessageDislike,
@@ -48,6 +50,7 @@ export function KanbanColumn({
             content={message.content}
             likes={message.likes}
             dislikes={message.dislikes}
+            userFeedback={userFeedbacks[message.id] || null}
             onCopy={() => onMessageCopy(message.id)}
             onLike={() => onMessageLike(message.id)}
             onDislike={() => onMessageDislike(message.id)}
