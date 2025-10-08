@@ -75,65 +75,73 @@ export default function Campaigns() {
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
-    // Prevenir múltiplas execuções simultâneas
-    if (isLoadingRef.current || authLoading) {
-      console.log('Skipping load: already loading or auth loading', { 
-        isLoadingRef: isLoadingRef.current, 
-        authLoading 
-      });
+    // Guard melhorado: prevenir execuções quando não deveria
+    if (authLoading) {
+      console.log('Auth still loading, waiting...');
+      return;
+    }
+    
+    if (!user) {
+      console.log('No user yet, waiting...');
+      return;
+    }
+    
+    if (isLoadingRef.current) {
+      console.log('Already loading, skipping...');
       return;
     }
 
-    console.log('=== Campaigns Mount Debug ===');
-    console.log('Auth States:', { 
-      hasUser: !!user, 
-      userId: user?.id,
-      email: user?.email,
-      isAdmin, 
-      authLoading, 
-      campaignsLoading 
-    });
+    console.log('=== Campaigns Mount - Starting Load ===');
+    console.log('User:', user.email, 'isAdmin:', isAdmin);
 
     const loadData = async () => {
       isLoadingRef.current = true;
+      setCampaignsLoading(true);
       
-      // Timeout de segurança
       const timeoutId = setTimeout(() => {
-        console.error('Timeout: Campaigns taking too long');
-        setLoadError('Timeout ao carregar. Tente recarregar a página.');
+        console.error('Timeout: Taking too long');
+        setLoadError('Timeout. Recarregue a página.');
         setCampaignsLoading(false);
         isLoadingRef.current = false;
-      }, 8000);
+      }, 10000);
 
       try {
-        console.log('Loading campaigns...');
+        // Verificar sessão explicitamente
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          console.warn('No session found, waiting...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const { data: { session: retrySession } } = await supabase.auth.getSession();
+          if (!retrySession?.access_token) {
+            throw new Error('Sessão não encontrada após retry');
+          }
+        }
+        
+        console.log('Session verified, loading campaigns...');
         await fetchCampaigns();
         
-        // Carregar profiles se for admin
         if (isAdmin) {
-          console.log('User is admin, fetching profiles...');
+          console.log('Loading profiles for admin...');
           await fetchProfiles();
         }
-      } catch (error) {
+        
+        console.log('Load completed successfully');
+      } catch (error: any) {
         console.error('Error in loadData:', error);
-        setLoadError('Erro ao carregar dados. Tente recarregar a página.');
+        setLoadError(error.message || 'Erro ao carregar dados');
       } finally {
         clearTimeout(timeoutId);
+        setCampaignsLoading(false);
         isLoadingRef.current = false;
       }
     };
 
     loadData();
-  }, [authLoading]);
+  }, [authLoading, user, isAdmin]);
 
   const fetchCampaigns = async () => {
-    // Não setar loading aqui se já estiver loading
-    if (campaignsLoading) {
-      console.log('Already loading campaigns, skipping...');
-      return;
-    }
-    
-    setCampaignsLoading(true);
     setLoadError(null);
     
     try {
