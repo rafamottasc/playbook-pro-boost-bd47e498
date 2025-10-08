@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,8 +72,18 @@ export default function Campaigns() {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
+    // Prevenir múltiplas execuções simultâneas
+    if (isLoadingRef.current || authLoading) {
+      console.log('Skipping load: already loading or auth loading', { 
+        isLoadingRef: isLoadingRef.current, 
+        authLoading 
+      });
+      return;
+    }
+
     console.log('=== Campaigns Mount Debug ===');
     console.log('Auth States:', { 
       hasUser: !!user, 
@@ -84,77 +94,51 @@ export default function Campaigns() {
       campaignsLoading 
     });
 
-    // Função para verificar sessão e carregar dados
-    const loadDataWhenReady = async () => {
+    const loadData = async () => {
+      isLoadingRef.current = true;
+      
       // Timeout de segurança
       const timeoutId = setTimeout(() => {
-        if (authLoading || campaignsLoading) {
-          console.error('Timeout: Auth or campaigns taking too long');
-          setLoadError('Timeout ao carregar. Tente recarregar a página.');
-        }
-      }, 5000);
+        console.error('Timeout: Campaigns taking too long');
+        setLoadError('Timeout ao carregar. Tente recarregar a página.');
+        setCampaignsLoading(false);
+        isLoadingRef.current = false;
+      }, 8000);
 
       try {
-        // Aguardar até que authLoading seja false
-        if (!authLoading) {
-          console.log('Auth loading complete, checking session...');
-          
-          // ✅ VERIFICAR EXPLICITAMENTE A SESSÃO
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          
-          console.log('Session check:', {
-            hasSession: !!session,
-            hasAccessToken: !!session?.access_token,
-            userId: session?.user?.id,
-            error: sessionError?.message
-          });
-          
-          if (sessionError) {
-            console.error('Session error:', sessionError);
-            setLoadError('Erro ao verificar sessão. Faça login novamente.');
-            return;
-          }
-          
-          if (!session) {
-            console.warn('No session found, redirecting to auth...');
-            return;
-          }
-          
-          // ✅ AGORA SIM, CARREGAR CAMPANHAS
-          console.log('Session verified, fetching campaigns...');
-          await fetchCampaigns();
-          
-          // Carregar profiles se for admin
-          if (user && isAdmin) {
-            console.log('User is admin, fetching profiles...');
-            await fetchProfiles();
-          }
+        console.log('Loading campaigns...');
+        await fetchCampaigns();
+        
+        // Carregar profiles se for admin
+        if (isAdmin) {
+          console.log('User is admin, fetching profiles...');
+          await fetchProfiles();
         }
       } catch (error) {
-        console.error('Error in loadDataWhenReady:', error);
+        console.error('Error in loadData:', error);
         setLoadError('Erro ao carregar dados. Tente recarregar a página.');
       } finally {
         clearTimeout(timeoutId);
+        isLoadingRef.current = false;
       }
     };
 
-    loadDataWhenReady();
-  }, [authLoading, user, isAdmin]);
+    loadData();
+  }, [authLoading]);
 
   const fetchCampaigns = async () => {
+    // Não setar loading aqui se já estiver loading
+    if (campaignsLoading) {
+      console.log('Already loading campaigns, skipping...');
+      return;
+    }
+    
     setCampaignsLoading(true);
     setLoadError(null);
+    
     try {
       console.log("=== Fetching campaigns ===");
-      
-      // ✅ VERIFICAR SESSÃO ANTES DE FAZER QUERY
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Sessão não encontrada. Faça login novamente.');
-      }
-      
-      console.log("Session verified, user:", session.user?.email);
-      console.log("Access token present:", !!session.access_token);
+      console.log("Current user:", user?.id, user?.email);
       
       const { data, error } = await supabase
         .from("campaigns")
