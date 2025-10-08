@@ -71,32 +71,48 @@ export default function Campaigns() {
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Campaigns Effect - Auth States:', { 
+    console.log('=== Campaigns Mount Debug ===');
+    console.log('Auth States:', { 
       hasUser: !!user, 
       userId: user?.id,
+      email: user?.email,
       isAdmin, 
       authLoading, 
       campaignsLoading 
     });
 
-    // Só tenta carregar quando a auth terminou de verificar
-    if (!authLoading && user) {
-      console.log('User authenticated, fetching campaigns...');
+    // Timeout de segurança: se depois de 5 segundos não carregar, mostrar erro
+    const timeout = setTimeout(() => {
+      if (authLoading || campaignsLoading) {
+        console.error('Timeout: Auth or campaigns taking too long');
+        setLoadError('Timeout ao carregar. Tente recarregar a página.');
+      }
+    }, 5000);
+
+    // Carregar campanhas assim que a auth terminar (com ou sem user)
+    if (!authLoading) {
+      console.log('Auth loading complete, fetching campaigns...');
       fetchCampaigns();
-      // Fetch profiles for all users (needed to show participant selection)
-      if (isAdmin) {
+      
+      if (user && isAdmin) {
         console.log('User is admin, fetching profiles...');
         fetchProfiles();
       }
     }
-  }, [user, isAdmin, authLoading]);
+
+    return () => clearTimeout(timeout);
+  }, [authLoading]);
 
   const fetchCampaigns = async () => {
     setCampaignsLoading(true);
+    setLoadError(null);
     try {
-      console.log("Fetching campaigns...");
+      console.log("=== Fetching campaigns ===");
+      console.log("Current user:", user?.id, user?.email);
+      
       const { data, error } = await supabase
         .from("campaigns")
         .select(`
@@ -110,12 +126,17 @@ export default function Campaigns() {
         `)
         .order("created_at", { ascending: false });
 
+      console.log("Campaigns response:", { 
+        hasData: !!data, 
+        dataLength: data?.length,
+        error: error?.message 
+      });
+
       if (error) {
         console.error("Campaign fetch error:", error);
+        setLoadError(`Erro ao carregar: ${error.message}`);
         throw error;
       }
-      
-      console.log("Campaigns fetched:", data);
       
       // Sort campaigns by status: ativa -> pausada -> encerrada
       const sortedData = (data || []).sort((a, b) => {
@@ -123,12 +144,14 @@ export default function Campaigns() {
         return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
       });
       
+      console.log("Campaigns loaded successfully:", sortedData.length);
       setCampaigns(sortedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching campaigns:", error);
+      setLoadError(error.message || "Erro desconhecido");
       toast({
         title: "Erro ao carregar campanhas",
-        description: "Não foi possível carregar as campanhas.",
+        description: error.message || "Não foi possível carregar as campanhas.",
         variant: "destructive",
       });
     } finally {
@@ -407,8 +430,25 @@ export default function Campaigns() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container py-6 px-4">
-          <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">
+              {authLoading ? 'Verificando autenticação...' : 'Carregando campanhas...'}
+            </p>
+            {loadError && (
+              <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg max-w-md">
+                <p className="font-semibold">Erro:</p>
+                <p className="text-sm">{loadError}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => window.location.reload()}
+                >
+                  Recarregar página
+                </Button>
+              </div>
+            )}
           </div>
         </main>
       </div>
