@@ -33,7 +33,16 @@ const partnerSchema = z.object({
   manager_email: z.string().email("Email inválido").optional().or(z.literal("")),
   observations: z.string().optional(),
   active: z.boolean(),
-  drive_link: z.string().url("URL inválida").optional().or(z.literal("")),
+  drive_link: z.string()
+    .transform((val) => {
+      if (!val) return "";
+      // Se não começar com http:// ou https://, adiciona https://
+      if (val && !val.match(/^https?:\/\//)) {
+        return `https://${val}`;
+      }
+      return val;
+    })
+    .pipe(z.string().url("Link do Google Drive inválido").or(z.literal(""))),
 });
 
 type PartnerFormData = z.infer<typeof partnerSchema>;

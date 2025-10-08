@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Header } from "@/components/Header";
-import { PageTransition } from "@/components/PageTransition";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { CategorySection } from "@/components/partners/CategorySection";
@@ -137,18 +135,15 @@ export default function PartnersManager() {
   };
 
   return (
-    <PageTransition>
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Gestão de Construtoras</h1>
-            <p className="text-muted-foreground">
-              Gerencie construtoras parceiras, categorias e materiais
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Gestão de Construtoras</h1>
+        <p className="text-muted-foreground">
+          Gerencie construtoras parceiras, categorias e materiais
+        </p>
+      </div>
 
-          <Tabs defaultValue="partners" className="w-full">
+      <Tabs defaultValue="partners" className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="partners">Construtoras</TabsTrigger>
               <TabsTrigger value="categories">Categorias</TabsTrigger>
@@ -239,9 +234,7 @@ export default function PartnersManager() {
                 <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
-          </AlertDialog>
-        </main>
-      </div>
-    </PageTransition>
+      </AlertDialog>
+    </div>
   );
 }
