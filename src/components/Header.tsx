@@ -97,7 +97,7 @@ export function Header() {
           </div>
           <div className="hidden sm:block">
             <h1 className="text-lg font-bold text-foreground">COMARC</h1>
-            <p className="text-xs text-muted-foreground">Playbooks WhatsApp</p>
+            <p className="text-xs text-muted-foreground">Central de Atendimento</p>
           </div>
         </div>
 
@@ -158,6 +158,10 @@ export function Header() {
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                   <User className="mr-2 h-4 w-4" />
                   Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/playbooks")}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Playbooks WhatsApp
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/resources")}>
                   <FileText className="mr-2 h-4 w-4" />

@@ -8,7 +8,8 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
+import Home from "./pages/Home";
+import Playbooks from "./pages/Playbooks";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Resources from "./pages/Resources";
@@ -41,7 +42,15 @@ function AppRoutes() {
                     path="/"
                     element={
                       <ProtectedRoute>
-                        <Index />
+                        <Home />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/playbooks"
+                    element={
+                      <ProtectedRoute>
+                        <Playbooks />
                       </ProtectedRoute>
                     }
                   />
