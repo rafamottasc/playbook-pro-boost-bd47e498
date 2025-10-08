@@ -75,14 +75,9 @@ export default function Campaigns() {
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
-    // Guard melhorado: prevenir execuções quando não deveria
+    // Guard simplificado: prevenir execuções desnecessárias
     if (authLoading) {
       console.log('Auth still loading, waiting...');
-      return;
-    }
-    
-    if (!user) {
-      console.log('No user yet, waiting...');
       return;
     }
     
@@ -92,7 +87,6 @@ export default function Campaigns() {
     }
 
     console.log('=== Campaigns Mount - Starting Load ===');
-    console.log('User:', user.email, 'isAdmin:', isAdmin);
 
     const loadData = async () => {
       isLoadingRef.current = true;
@@ -106,6 +100,14 @@ export default function Campaigns() {
       }, 10000);
 
       try {
+        // Verificar se user está disponível
+        if (!user) {
+          console.error('User not available in loadData');
+          throw new Error('Usuário não autenticado');
+        }
+
+        console.log('User:', user.email, 'isAdmin:', isAdmin);
+
         // Verificar sessão explicitamente
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -139,7 +141,7 @@ export default function Campaigns() {
     };
 
     loadData();
-  }, [authLoading, user, isAdmin]);
+  }, [authLoading]);
 
   const fetchCampaigns = async () => {
     setLoadError(null);
