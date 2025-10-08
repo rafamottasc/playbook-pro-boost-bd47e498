@@ -38,18 +38,19 @@ export function FileUpload({ partnerId, onUploadComplete }: FileUploadProps) {
 
     try {
       // Upload to storage
+      setUploadingFiles(prev =>
+        prev.map(f => f.name === file.name ? { ...f, progress: 50 } : f)
+      );
+
       const { error: uploadError, data } = await supabase.storage
         .from('partner-files')
-        .upload(fileName, file, {
-          onUploadProgress: (progress) => {
-            const percentage = (progress.loaded / progress.total) * 100;
-            setUploadingFiles(prev =>
-              prev.map(f => f.name === file.name ? { ...f, progress: percentage } : f)
-            );
-          },
-        });
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
+
+      setUploadingFiles(prev =>
+        prev.map(f => f.name === file.name ? { ...f, progress: 100 } : f)
+      );
 
       // Get public URL
       const { data: urlData } = supabase.storage
