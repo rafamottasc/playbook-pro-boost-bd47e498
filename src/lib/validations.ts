@@ -110,6 +110,41 @@ export const suggestionSchema = z.object({
 });
 
 // Type exports for TypeScript
+// Função para traduzir erros do Supabase Auth para português
+export function translateAuthError(errorMessage: string): string {
+  const translations: Record<string, string> = {
+    "User already registered": "Usuário já cadastrado",
+    "Invalid login credentials": "Credenciais inválidas",
+    "Email not confirmed": "Email não confirmado",
+    "Invalid email or password": "Email ou senha inválidos",
+    "Email link is invalid or has expired": "Link de email inválido ou expirado",
+    "Password should be at least 6 characters": "Senha deve ter pelo menos 6 caracteres",
+    "Unable to validate email address: invalid format": "Email em formato inválido",
+    "Signup requires a valid password": "Cadastro requer uma senha válida",
+    "User not found": "Usuário não encontrado",
+    "Email rate limit exceeded": "Limite de emails excedido, tente novamente mais tarde",
+    "For security purposes, you can only request this after": "Por segurança, você só pode solicitar isso após",
+    "Token has expired or is invalid": "Token expirado ou inválido",
+    "New password should be different from the old password": "Nova senha deve ser diferente da senha antiga",
+  };
+
+  // Procura por correspondência exata
+  if (translations[errorMessage]) {
+    return translations[errorMessage];
+  }
+
+  // Procura por correspondência parcial
+  for (const [key, value] of Object.entries(translations)) {
+    if (errorMessage.includes(key)) {
+      return value;
+    }
+  }
+
+  // Se não encontrar tradução, retorna a mensagem original
+  return errorMessage;
+}
+
+// Type exports for TypeScript
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

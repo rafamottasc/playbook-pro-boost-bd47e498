@@ -198,12 +198,16 @@ export function UsersManager() {
 
   const deleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", userId);
+      // Chamar Edge Function para deletar usuário completamente
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
 
       if (error) throw error;
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
       
       toast({ 
         title: "Usuário excluído com sucesso!",

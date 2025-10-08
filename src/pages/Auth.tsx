@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
-import { signInSchema, signUpSchema, resetPasswordSchema } from "@/lib/validations";
+import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
 import { ZodError } from "zod";
 
 export default function Auth() {
@@ -47,7 +47,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Erro no login",
-          description: error.message,
+          description: translateAuthError(error.message),
           variant: "destructive",
         });
       }
@@ -111,7 +111,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Erro no cadastro",
-          description: error.message,
+          description: translateAuthError(error.message),
           variant: "destructive",
         });
       } else {
@@ -140,7 +140,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Erro no login com Google",
-          description: error.message,
+          description: translateAuthError(error.message),
           variant: "destructive",
         });
       }
@@ -169,7 +169,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Erro",
-          description: error.message,
+          description: translateAuthError(error.message),
           variant: "destructive",
         });
       } else {
