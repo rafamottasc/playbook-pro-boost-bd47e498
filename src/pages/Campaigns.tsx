@@ -59,7 +59,7 @@ export default function Campaigns() {
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   
@@ -78,28 +78,23 @@ export default function Campaigns() {
       userId: user?.id,
       isAdmin, 
       authLoading, 
-      loading 
+      campaignsLoading 
     });
 
     // Só tenta carregar quando a auth terminou de verificar
-    if (!authLoading) {
-      if (user) {
-        console.log('User authenticated, fetching campaigns...');
-        fetchCampaigns();
-        // Fetch profiles for all users (needed to show participant selection)
-        if (isAdmin) {
-          console.log('User is admin, fetching profiles...');
-          fetchProfiles();
-        }
-      } else {
-        // Se não tem user após auth carregar, mostrar página vazia
-        console.log('No user after auth loaded, setting loading to false');
-        setLoading(false);
+    if (!authLoading && user) {
+      console.log('User authenticated, fetching campaigns...');
+      fetchCampaigns();
+      // Fetch profiles for all users (needed to show participant selection)
+      if (isAdmin) {
+        console.log('User is admin, fetching profiles...');
+        fetchProfiles();
       }
     }
   }, [user, isAdmin, authLoading]);
 
   const fetchCampaigns = async () => {
+    setCampaignsLoading(true);
     try {
       console.log("Fetching campaigns...");
       const { data, error } = await supabase
@@ -137,7 +132,7 @@ export default function Campaigns() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setCampaignsLoading(false);
     }
   };
 
@@ -407,7 +402,7 @@ export default function Campaigns() {
 
   const uniqueConstrutoras = Array.from(new Set(campaigns.map((c) => c.construtora)));
 
-  if (authLoading || loading) {
+  if (authLoading || campaignsLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
