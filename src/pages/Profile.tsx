@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload } from "lucide-react";
+import { Upload, Award } from "lucide-react";
 import { profileUpdateSchema } from "@/lib/validations";
 import { ZodError } from "zod";
 
@@ -23,6 +24,7 @@ export default function Profile() {
     whatsapp: "",
     avatar_url: "",
     gender: "",
+    points: 0,
   });
 
   useEffect(() => {
@@ -42,6 +44,18 @@ export default function Profile() {
 
     if (!error && data) {
       setProfile(data);
+    }
+  };
+
+  const getRankingBadge = (points: number) => {
+    if (points >= 1000) {
+      return { label: "💎 Expert", variant: "default" as const, color: "text-purple-600" };
+    } else if (points >= 501) {
+      return { label: "🥇 Avançado", variant: "default" as const, color: "text-yellow-600" };
+    } else if (points >= 101) {
+      return { label: "🥈 Consistente", variant: "secondary" as const, color: "text-gray-600" };
+    } else {
+      return { label: "🥉 Iniciante", variant: "outline" as const, color: "text-orange-600" };
     }
   };
 
@@ -142,6 +156,8 @@ export default function Profile() {
     }
   };
 
+  const rankingBadge = getRankingBadge(profile.points);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -162,6 +178,18 @@ export default function Profile() {
                   {profile.full_name?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
+              
+              {/* Points and Ranking Display */}
+              <div className="flex flex-col items-center gap-2">
+                <Badge variant={rankingBadge.variant} className={`text-sm ${rankingBadge.color}`}>
+                  {rankingBadge.label}
+                </Badge>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Award className="h-4 w-4" />
+                  <span className="text-sm font-medium">{profile.points} pontos</span>
+                </div>
+              </div>
+
               <div>
                 <input
                   type="file"

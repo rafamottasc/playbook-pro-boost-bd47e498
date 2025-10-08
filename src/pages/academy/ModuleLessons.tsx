@@ -7,6 +7,7 @@ import { LessonCard } from "@/components/academy/LessonCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, GraduationCap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { PageTransition } from "@/components/PageTransition";
 
 interface Module {
   id: string;
@@ -108,7 +109,8 @@ export default function ModuleLessons() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <PageTransition>
+        <main className="container mx-auto px-4 py-8">
         <Button
           variant="ghost"
           onClick={() => navigate('/resources/training')}
@@ -165,6 +167,7 @@ export default function ModuleLessons() {
           </div>
         )}
       </main>
+      </PageTransition>
     </div>
   );
 }

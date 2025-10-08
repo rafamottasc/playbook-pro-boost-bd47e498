@@ -12,6 +12,8 @@ import { QuestionsList } from "@/components/academy/QuestionsList";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { PageTransition } from "@/components/PageTransition";
 
 interface Lesson {
   id: string;
@@ -37,6 +39,9 @@ export default function LessonView() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [currentLessonNumber, setCurrentLessonNumber] = useState(0);
+  const [moduleProgress, setModuleProgress] = useState(0);
 
   useEffect(() => {
     if (lessonId) {
@@ -64,8 +69,35 @@ export default function LessonView() {
 
       setAttachments(attachmentsData || []);
 
-      // Fetch next lesson
+      // Fetch all lessons for progress tracking
       if (lessonData) {
+        const { data: allLessons } = await supabase
+          .from('academy_lessons')
+          .select('id, display_order')
+          .eq('module_id', lessonData.module_id)
+          .eq('published', true)
+          .order('display_order', { ascending: true });
+
+        if (allLessons) {
+          setTotalLessons(allLessons.length);
+          const currentIndex = allLessons.findIndex(l => l.id === lessonId);
+          setCurrentLessonNumber(currentIndex + 1);
+          
+          // Calculate module progress
+          if (user) {
+            const lessonIds = allLessons.map(l => l.id);
+            const { count } = await supabase
+              .from('user_lesson_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .in('lesson_id', lessonIds)
+              .eq('watched', true);
+            
+            setModuleProgress((count || 0) / allLessons.length * 100);
+          }
+        }
+
+        // Fetch next lesson
         const { data: nextLessonData } = await supabase
           .from('academy_lessons')
           .select('id, title')
@@ -101,18 +133,7 @@ export default function LessonView() {
 
       if (progressError) throw progressError;
 
-      // Update user points
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (profileData) {
-        // Note: Points system would need a points column in profiles table
-        // For now, just mark as complete
-        console.log(`User earned ${lesson.points} points!`);
-      }
+      // Points are automatically added by database trigger
     } catch (error) {
       console.error('Error updating progress:', error);
     }
@@ -143,7 +164,8 @@ export default function LessonView() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <PageTransition>
+        <main className="container mx-auto px-4 py-8 max-w-6xl">
         <Button
           variant="ghost"
           onClick={() => navigate(`/resources/training/${moduleId}`)}
@@ -164,6 +186,21 @@ export default function LessonView() {
 
             {/* Lesson Info */}
             <div>
+              {/* Progress Indicator */}
+              {user && totalLessons > 0 && (
+                <div className="mb-4 p-3 bg-accent rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">
+                      Aula {currentLessonNumber} de {totalLessons}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {Math.round(moduleProgress)}% do módulo concluído
+                    </span>
+                  </div>
+                  <Progress value={moduleProgress} className="h-2" />
+                </div>
+              )}
+
               <div className="flex items-start justify-between mb-3">
                 <h1 className="text-3xl font-bold">{lesson.title}</h1>
                 <Badge variant="secondary" className="text-sm">
@@ -232,6 +269,7 @@ export default function LessonView() {
           </div>
         </div>
       </main>
+      </PageTransition>
     </div>
   );
 }

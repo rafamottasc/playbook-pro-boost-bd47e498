@@ -7,6 +7,7 @@ import { AcademyOnboarding } from "@/components/academy/AcademyOnboarding";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
+import { PageTransition } from "@/components/PageTransition";
 
 interface Module {
   id: string;
@@ -97,7 +98,8 @@ export default function AcademyModules() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <PageTransition>
+        <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <GraduationCap className="h-8 w-8 text-primary" />
@@ -155,6 +157,7 @@ export default function AcademyModules() {
           </div>
         )}
       </main>
+      </PageTransition>
 
       {showOnboarding && <AcademyOnboarding onClose={handleCloseOnboarding} />}
     </div>
