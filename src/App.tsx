@@ -19,7 +19,14 @@ import AcademyModules from "./pages/academy/AcademyModules";
 import ModuleLessons from "./pages/academy/ModuleLessons";
 import LessonView from "./pages/academy/LessonView";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
