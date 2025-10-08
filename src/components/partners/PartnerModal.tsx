@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
-import { ExternalLink, Trash2, Plus, BookOpen, Building2 } from "lucide-react";
+import { ExternalLink, Trash2, Plus, BookOpen, Building2, FileIcon, Pencil } from "lucide-react";
 
 const normalizeUrl = (url: string): string => {
   if (!url) return "";
@@ -74,6 +74,8 @@ export function PartnerModal({
   const [loading, setLoading] = useState(false);
   const [links, setLinks] = useState<any[]>([]);
   const [newLink, setNewLink] = useState({ title: "", url: "" });
+  const [files, setFiles] = useState<any[]>([]);
+  const [editingLink, setEditingLink] = useState<any>(null);
 
   const form = useForm<PartnerFormData>({
     resolver: zodResolver(partnerSchema),
@@ -100,9 +102,11 @@ export function PartnerModal({
         drive_link: partner.drive_link || "",
       });
       loadLinks();
+      loadFiles();
     } else {
       form.reset();
       setLinks([]);
+      setFiles([]);
     }
   }, [partner]);
 
@@ -113,6 +117,16 @@ export function PartnerModal({
       .select("*")
       .eq("partner_id", partner.id);
     setLinks(data || []);
+  };
+
+  const loadFiles = async () => {
+    if (!partner) return;
+    const { data } = await supabase
+      .from("partner_files")
+      .select("*")
+      .eq("partner_id", partner.id)
+      .order("created_at", { ascending: false });
+    setFiles(data || []);
   };
 
   const onSubmit = async (data: PartnerFormData) => {
@@ -188,6 +202,60 @@ export function PartnerModal({
     } else {
       toast.success("Link removido");
       loadLinks();
+    }
+  };
+
+  const updateLink = async () => {
+    if (!editingLink || !editingLink.title || !editingLink.url) return;
+    
+    const normalizedUrl = normalizeUrl(editingLink.url);
+    
+    try {
+      new URL(normalizedUrl);
+    } catch {
+      toast.error("URL inválida");
+      return;
+    }
+    
+    const { error } = await supabase
+      .from("partner_links")
+      .update({ 
+        title: editingLink.title,
+        url: normalizedUrl 
+      })
+      .eq("id", editingLink.id);
+      
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Link atualizado");
+      setEditingLink(null);
+      loadLinks();
+    }
+  };
+
+  const deleteFile = async (file: any) => {
+    try {
+      const filePath = file.file_url.split('/partner-files/')[1];
+      
+      const { error: storageError } = await supabase.storage
+        .from('partner-files')
+        .remove([filePath]);
+      
+      if (storageError) throw storageError;
+      
+      const { error: dbError } = await supabase
+        .from('partner_files')
+        .delete()
+        .eq('id', file.id);
+      
+      if (dbError) throw dbError;
+      
+      toast.success("Material removido");
+      loadFiles();
+    } catch (error: any) {
+      console.error("Erro ao deletar arquivo:", error);
+      toast.error(`Erro ao remover: ${error.message}`);
     }
   };
 
@@ -326,7 +394,45 @@ export function PartnerModal({
                     <BookOpen className="h-4 w-4" />
                     Materiais
                   </h3>
-                  <FileUpload partnerId={partner.id} onUploadComplete={loadLinks} />
+                  <FileUpload 
+                    partnerId={partner.id} 
+                    onUploadComplete={() => {
+                      loadLinks();
+                      loadFiles();
+                    }} 
+                  />
+                  
+                  <div className="space-y-2 mt-4">
+                    {files.map((file) => (
+                      <div key={file.id} className="flex items-center justify-between p-3 border rounded">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <FileIcon className="h-4 w-4 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{file.file_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(file.file_size / 1024).toFixed(1)} KB • {file.file_type}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(file.file_url, '_blank')}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteFile(file)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Seção de Links */}
@@ -356,20 +462,52 @@ export function PartnerModal({
                   <div className="space-y-2">
                     {links.map((link) => (
                       <div key={link.id} className="flex items-center justify-between p-3 border rounded">
-                        <div className="flex items-center gap-2">
-                          <ExternalLink className="h-4 w-4" />
-                          <div>
-                            <p className="font-medium">{link.title}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-md">{link.url}</p>
+                        {editingLink?.id === link.id ? (
+                          <div className="flex-1 space-y-2 mr-2">
+                            <Input
+                              value={editingLink.title}
+                              onChange={(e) => setEditingLink({ ...editingLink, title: e.target.value })}
+                              placeholder="Título"
+                            />
+                            <Input
+                              value={editingLink.url}
+                              onChange={(e) => setEditingLink({ ...editingLink, url: e.target.value })}
+                              placeholder="URL"
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={updateLink}>Salvar</Button>
+                              <Button size="sm" variant="outline" onClick={() => setEditingLink(null)}>
+                                Cancelar
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteLink(link.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 flex-1">
+                              <ExternalLink className="h-4 w-4" />
+                              <div>
+                                <p className="font-medium">{link.title}</p>
+                                <p className="text-xs text-muted-foreground truncate max-w-md">{link.url}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingLink(link)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteLink(link.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
