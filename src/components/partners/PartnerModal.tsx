@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
@@ -59,7 +60,7 @@ type PartnerFormData = z.infer<typeof partnerSchema>;
 interface PartnerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  categoryId: string;
+  categoryId?: string | null;
   partner?: any;
   onSuccess: () => void;
 }
@@ -76,6 +77,8 @@ export function PartnerModal({
   const [newLink, setNewLink] = useState({ title: "", url: "" });
   const [files, setFiles] = useState<any[]>([]);
   const [editingLink, setEditingLink] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
 
   const form = useForm<PartnerFormData>({
     resolver: zodResolver(partnerSchema),
@@ -89,6 +92,16 @@ export function PartnerModal({
       drive_link: "",
     },
   });
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    if (categoryId) {
+      setSelectedCategoryId(categoryId);
+    }
+  }, [categoryId]);
 
   useEffect(() => {
     if (partner) {
@@ -110,6 +123,15 @@ export function PartnerModal({
     }
   }, [partner]);
 
+  const loadCategories = async () => {
+    const { data } = await supabase
+      .from("partners_categories")
+      .select("*")
+      .eq("active", true)
+      .order("display_order");
+    setCategories(data || []);
+  };
+
   const loadLinks = async () => {
     if (!partner) return;
     const { data } = await supabase
@@ -130,6 +152,13 @@ export function PartnerModal({
   };
 
   const onSubmit = async (data: PartnerFormData) => {
+    const finalCategoryId = categoryId || selectedCategoryId;
+    
+    if (!finalCategoryId) {
+      toast.error("Selecione uma categoria");
+      return;
+    }
+
     setLoading(true);
     try {
       console.log("Salvando construtora:", data);
@@ -144,7 +173,7 @@ export function PartnerModal({
       } else {
         const { data: newPartner, error } = await supabase
           .from("partners")
-          .insert({ ...data, category_id: categoryId })
+          .insert({ ...data, category_id: finalCategoryId })
           .select()
           .single();
         
@@ -279,6 +308,27 @@ export function PartnerModal({
           <TabsContent value="dados" className="space-y-4 mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {!partner && !categoryId && (
+                  <div className="space-y-2">
+                    <FormLabel>Categoria *</FormLabel>
+                    <Select 
+                      value={selectedCategoryId} 
+                      onValueChange={setSelectedCategoryId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="name"

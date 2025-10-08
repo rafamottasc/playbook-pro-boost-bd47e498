@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Plus } from "lucide-react";
 import { CategorySection } from "@/components/partners/CategorySection";
 import { CategoryManager } from "@/components/partners/CategoryManager";
 import { PartnerModal } from "@/components/partners/PartnerModal";
@@ -101,7 +102,7 @@ export default function PartnersManager() {
   const getPartnersByCategory = (categoryId: string) =>
     filteredPartners.filter((p) => p.category_id === categoryId);
 
-  const handleAddPartner = (categoryId: string) => {
+  const handleAddPartner = (categoryId: string | null = null) => {
     setSelectedCategory(categoryId);
     setSelectedPartner(null);
     setModalOpen(true);
@@ -150,14 +151,20 @@ export default function PartnersManager() {
             </TabsList>
 
             <TabsContent value="partners" className="space-y-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar construtora..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex gap-4 items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar construtora..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button onClick={() => handleAddPartner()} size="lg">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Construtora
+                </Button>
               </div>
 
               {loading ? (
@@ -184,7 +191,6 @@ export default function PartnersManager() {
                         categoryName={`${category.name}${!category.active ? ' (Inativa)' : ''}`}
                         partners={categoryPartners}
                         isAdmin
-                        onAddPartner={() => handleAddPartner(category.id)}
                         onEditPartner={handleEditPartner}
                         onDeletePartner={handleDeletePartner}
                       />
@@ -210,15 +216,13 @@ export default function PartnersManager() {
             </TabsContent>
           </Tabs>
 
-          {selectedCategory && (
-            <PartnerModal
-              open={modalOpen}
-              onOpenChange={setModalOpen}
-              categoryId={selectedCategory}
-              partner={selectedPartner}
-              onSuccess={loadData}
-            />
-          )}
+          <PartnerModal
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+            categoryId={selectedCategory}
+            partner={selectedPartner}
+            onSuccess={loadData}
+          />
 
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogContent>

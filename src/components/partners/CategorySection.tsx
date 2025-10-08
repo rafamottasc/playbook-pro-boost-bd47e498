@@ -1,6 +1,4 @@
 import React from "react";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PartnerCard } from "./PartnerCard";
 
 interface Partner {
@@ -20,7 +18,6 @@ interface CategorySectionProps {
   categoryName: string;
   partners: Partner[];
   isAdmin?: boolean;
-  onAddPartner?: () => void;
   onEditPartner?: (partner: Partner) => void;
   onDeletePartner?: (partnerId: string) => void;
 }
@@ -29,25 +26,16 @@ export function CategorySection({
   categoryName,
   partners,
   isAdmin,
-  onAddPartner,
   onEditPartner,
   onDeletePartner,
 }: CategorySectionProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{categoryName}</h2>
-          <p className="text-sm text-muted-foreground">
-            {partners.length} {partners.length === 1 ? "construtora" : "construtoras"}
-          </p>
-        </div>
-        {isAdmin && (
-          <Button onClick={onAddPartner}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Construtora
-          </Button>
-        )}
+      <div>
+        <h2 className="text-2xl font-bold">{categoryName}</h2>
+        <p className="text-sm text-muted-foreground">
+          {partners.length} {partners.length === 1 ? "construtora" : "construtoras"}
+        </p>
       </div>
 
       {partners.length === 0 ? (
