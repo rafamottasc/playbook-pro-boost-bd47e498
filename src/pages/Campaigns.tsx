@@ -127,7 +127,7 @@ export default function Campaigns() {
   const fetchProfiles = async () => {
     try {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, full_name")
         .order("full_name");
 
