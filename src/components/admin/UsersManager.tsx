@@ -198,14 +198,34 @@ export function UsersManager() {
 
   const deleteUser = async (userId: string) => {
     try {
+      console.log('Iniciando deleção do usuário:', userId);
+      
+      // Obter token de autenticação atual
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('Sessão não encontrada. Faça login novamente.');
+      }
+
+      console.log('Token de autenticação obtido');
+
       // Chamar Edge Function para deletar usuário completamente
       const { data, error } = await supabase.functions.invoke('delete-user', {
-        body: { userId }
+        body: { userId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
-      if (error) throw error;
+      console.log('Resposta da Edge Function:', { data, error });
+
+      if (error) {
+        console.error('Erro ao invocar Edge Function:', error);
+        throw error;
+      }
       
       if (data?.error) {
+        console.error('Erro retornado pela Edge Function:', data.error);
         throw new Error(data.error);
       }
       
@@ -215,11 +235,12 @@ export function UsersManager() {
       });
       
       setDeleteUserId(null);
-      loadUsers();
+      await loadUsers();
     } catch (error: any) {
+      console.error('Erro completo ao excluir usuário:', error);
       toast({
         title: "Erro ao excluir usuário",
-        description: error.message,
+        description: error.message || "Erro desconhecido ao excluir usuário",
         variant: "destructive",
       });
     }
