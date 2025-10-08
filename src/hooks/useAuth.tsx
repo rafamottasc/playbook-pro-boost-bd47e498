@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext, useContext, ReactNode } from
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -53,6 +54,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
+    // First check if user is blocked
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("blocked")
+      .eq("id", userId)
+      .single();
+    
+    if (profile?.blocked) {
+      // User is blocked - force logout
+      await supabase.auth.signOut();
+      setIsAdmin(false);
+      setUser(null);
+      setSession(null);
+      navigate("/auth");
+      toast({
+        title: "Acesso Bloqueado",
+        description: "Sua conta foi bloqueada. Entre em contato com o administrador.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check admin role
     const { data } = await supabase
       .from("user_roles")
       .select("role")

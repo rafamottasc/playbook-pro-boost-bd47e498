@@ -662,6 +662,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      is_user_blocked: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "corretor"
