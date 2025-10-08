@@ -19,6 +19,8 @@ import Notifications from "./pages/Notifications";
 import AcademyModules from "./pages/academy/AcademyModules";
 import ModuleLessons from "./pages/academy/ModuleLessons";
 import LessonView from "./pages/academy/LessonView";
+import PartnersView from "./pages/campaigns/PartnersView";
+import PartnersManager from "./pages/admin/PartnersManager";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +75,22 @@ function AppRoutes() {
                     element={
                       <ProtectedRoute>
                         <Campaigns />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/campaigns/partners"
+                    element={
+                      <ProtectedRoute>
+                        <PartnersView />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/campaigns/partners"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <PartnersManager />
                       </ProtectedRoute>
                     }
                   />
