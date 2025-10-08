@@ -52,16 +52,28 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     }
   };
 
+  const getHoverStyle = () => {
+    if (notification.read) {
+      return 'hover:bg-muted/30';
+    }
+    return 'hover:bg-blue-50/50';
+  };
+
+  const getIconOpacity = () => {
+    return notification.read ? 'opacity-60' : 'opacity-100';
+  };
+
   return (
     <div
       onClick={handleClick}
       className={cn(
-        "p-4 border-b cursor-pointer transition-colors hover:bg-accent",
-        getNotificationStyle()
+        "p-4 border-b cursor-pointer transition-all duration-200",
+        getNotificationStyle(),
+        getHoverStyle()
       )}
     >
       <div className="flex gap-3">
-        <div className="flex-shrink-0 mt-1">
+        <div className={cn("flex-shrink-0 mt-1 transition-opacity duration-200", getIconOpacity())}>
           {getIcon()}
         </div>
         <div className="flex-1 min-w-0">
@@ -89,7 +101,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               )}
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
             {notification.message}
           </p>
           <p className="text-xs text-muted-foreground mt-2">
