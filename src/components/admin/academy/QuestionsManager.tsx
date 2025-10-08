@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, Edit, Trash2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +39,8 @@ export function QuestionsManager() {
   const [loading, setLoading] = useState(true);
   const [answeringQuestion, setAnsweringQuestion] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState("");
+  const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
+  const [editAnswerText, setEditAnswerText] = useState("");
 
   useEffect(() => {
     fetchQuestions();
@@ -160,6 +162,72 @@ export function QuestionsManager() {
     }
   };
 
+  const handleEditAnswer = async (questionId: string, question: Question) => {
+    if (!user || !editAnswerText.trim()) return;
+
+    try {
+      const { error: updateError } = await supabase
+        .from('lesson_questions')
+        .update({
+          answer: editAnswerText.trim(),
+          answered_by: user.id,
+          answered_at: new Date().toISOString()
+        })
+        .eq('id', questionId);
+
+      if (updateError) throw updateError;
+
+      // Notificar usuário sobre atualização
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: question.user_id,
+          title: "Resposta atualizada",
+          message: "A resposta da sua pergunta foi atualizada",
+          link: `/resources/training/${question.module_id}/${question.lesson_id}`,
+          type: "academy"
+        });
+
+      toast({ title: "Resposta atualizada com sucesso!" });
+      setEditingQuestion(null);
+      setEditAnswerText("");
+      fetchQuestions();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('lesson_questions')
+        .delete()
+        .eq('id', questionId);
+
+      if (error) throw error;
+
+      toast({ 
+        title: "Pergunta excluída",
+        description: "A pergunta foi removida com sucesso"
+      });
+      fetchQuestions();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const pendingCount = questions.filter(q => !q.answer).length;
 
   return (
@@ -238,9 +306,66 @@ export function QuestionsManager() {
                   <p className="text-sm mb-3">{question.question}</p>
 
                   {question.answer ? (
-                    <div className="bg-accent rounded-lg p-3">
-                      <Badge variant="secondary" className="mb-2">Resposta</Badge>
-                      <p className="text-sm">{question.answer}</p>
+                    <div className="space-y-2">
+                      {editingQuestion === question.id ? (
+                        <div className="space-y-3">
+                          <Textarea
+                            value={editAnswerText}
+                            onChange={(e) => setEditAnswerText(e.target.value)}
+                            placeholder="Edite sua resposta..."
+                            rows={4}
+                            autoFocus
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleEditAnswer(question.id, question)}
+                              size="sm"
+                            >
+                              <Save className="h-4 w-4 mr-2" />
+                              Salvar Alterações
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingQuestion(null);
+                                setEditAnswerText("");
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="bg-accent rounded-lg p-3">
+                            <Badge variant="secondary" className="mb-2">Resposta</Badge>
+                            <p className="text-sm">{question.answer}</p>
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingQuestion(question.id);
+                                setEditAnswerText(question.answer || "");
+                              }}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar Resposta
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteQuestion(question.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir Pergunta
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : answeringQuestion === question.id ? (
                     <div className="space-y-3">
