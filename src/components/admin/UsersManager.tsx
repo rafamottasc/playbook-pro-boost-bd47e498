@@ -79,6 +79,7 @@ export function UsersManager() {
       })) || [];
 
       setUsers(usersWithRoles);
+      
     } catch (error: any) {
       toast({
         title: "Erro ao carregar usuários",
