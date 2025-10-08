@@ -16,6 +16,18 @@ interface UploadingFile {
   error?: string;
 }
 
+const sanitizeFileName = (fileName: string): string => {
+  // Remove accents
+  const normalized = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  // Replace spaces with underscores and remove special characters
+  return normalized
+    .replace(/\s+/g, '_')           // spaces → _
+    .replace(/[^a-zA-Z0-9._-]/g, '') // remove special chars
+    .replace(/_+/g, '_')             // multiple _ → single _
+    .toLowerCase();                  // lowercase for consistency
+};
+
 export function FileUpload({ partnerId, onUploadComplete }: FileUploadProps) {
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -32,7 +44,7 @@ export function FileUpload({ partnerId, onUploadComplete }: FileUploadProps) {
 
   const uploadFile = async (file: File) => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${partnerId}/${Date.now()}-${file.name}`;
+    const fileName = `${partnerId}/${Date.now()}-${sanitizeFileName(file.name)}`;
 
     setUploadingFiles(prev => [...prev, { name: file.name, progress: 0 }]);
 
