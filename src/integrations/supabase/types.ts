@@ -552,6 +552,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved: boolean | null
           avatar_url: string | null
           blocked: boolean | null
           created_at: string | null
@@ -564,6 +565,7 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          approved?: boolean | null
           avatar_url?: string | null
           blocked?: boolean | null
           created_at?: string | null
@@ -576,6 +578,7 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          approved?: boolean | null
           avatar_url?: string | null
           blocked?: boolean | null
           created_at?: string | null
@@ -627,9 +630,12 @@ export type Database = {
       }
       resources: {
         Row: {
+          category: Database["public"]["Enums"]["resource_category"] | null
           created_at: string | null
           description: string | null
           display_order: number | null
+          file_name: string | null
+          file_size: number | null
           id: string
           resource_type: string
           title: string
@@ -637,9 +643,12 @@ export type Database = {
           url: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["resource_category"] | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          file_name?: string | null
+          file_size?: number | null
           id?: string
           resource_type: string
           title: string
@@ -647,9 +656,12 @@ export type Database = {
           url: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["resource_category"] | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          file_name?: string | null
+          file_size?: number | null
           id?: string
           resource_type?: string
           title?: string
@@ -706,6 +718,7 @@ export type Database = {
           id: string
           lesson_id: string
           user_id: string
+          video_progress: number | null
           watched: boolean | null
           watched_at: string | null
         }
@@ -714,6 +727,7 @@ export type Database = {
           id?: string
           lesson_id: string
           user_id: string
+          video_progress?: number | null
           watched?: boolean | null
           watched_at?: string | null
         }
@@ -722,6 +736,7 @@ export type Database = {
           id?: string
           lesson_id?: string
           user_id?: string
+          video_progress?: number | null
           watched?: boolean | null
           watched_at?: string | null
         }
@@ -838,6 +853,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "corretor"
+      resource_category: "administrativo" | "digital"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -966,6 +982,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "corretor"],
+      resource_category: ["administrativo", "digital"],
     },
   },
 } as const

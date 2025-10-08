@@ -45,6 +45,7 @@ export default function LessonView() {
   const [currentLessonNumber, setCurrentLessonNumber] = useState(0);
   const [moduleProgress, setModuleProgress] = useState(0);
   const [isLessonCompleted, setIsLessonCompleted] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   useEffect(() => {
     if (lessonId) {
@@ -76,12 +77,13 @@ export default function LessonView() {
       if (user) {
         const { data: progressData } = await supabase
           .from('user_lesson_progress')
-          .select('watched')
+          .select('watched, video_progress')
           .eq('user_id', user.id)
           .eq('lesson_id', lessonId)
-          .single();
+          .maybeSingle();
 
         setIsLessonCompleted(progressData?.watched || false);
+        setVideoProgress(progressData?.video_progress || 0);
       }
 
       // Fetch all lessons for progress tracking
@@ -132,7 +134,7 @@ export default function LessonView() {
   };
 
   const handleLessonComplete = async () => {
-    if (!user || !lessonId || !lesson || isLessonCompleted) return;
+    if (!user || !lessonId || !lesson) return;
 
     try {
       // Mark lesson as watched
@@ -143,7 +145,8 @@ export default function LessonView() {
           lesson_id: lessonId,
           watched: true,
           watched_at: new Date().toISOString(),
-          completed_percentage: 100
+          completed_percentage: 100,
+          video_progress: videoProgress
         });
 
       if (progressError) throw progressError;
@@ -161,6 +164,72 @@ export default function LessonView() {
     } catch (error) {
       console.error('Error updating progress:', error);
       toast.error("Erro ao marcar aula como concluída");
+    }
+  };
+
+  const handleLessonUncomplete = async () => {
+    if (!user || !lessonId || !lesson) return;
+
+    try {
+      // Unmark lesson and remove points
+      const { error: progressError } = await supabase
+        .from('user_lesson_progress')
+        .update({
+          watched: false,
+          watched_at: null
+        })
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId);
+
+      if (progressError) throw progressError;
+
+      // Remove points manually (direct update)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ points: Math.max(0, profile.points - lesson.points) })
+          .eq('id', user.id);
+      }
+
+      setIsLessonCompleted(false);
+      
+      // Recalculate module progress
+      await fetchLessonData();
+      
+      toast.success("Aula desmarcada", {
+        description: `${lesson.points} pontos removidos`
+      });
+    } catch (error) {
+      console.error('Error uncompleting lesson:', error);
+      toast.error("Erro ao desmarcar aula");
+    }
+  };
+
+  const handleVideoProgress = (percentage: number) => {
+    if (!user || !lessonId) return;
+    
+    // Update local state
+    setVideoProgress(percentage);
+    
+    // Save progress to database (debounced by only updating significant changes)
+    if (percentage % 10 === 0 || percentage >= 95) {
+      supabase
+        .from('user_lesson_progress')
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          video_progress: percentage,
+          completed_percentage: percentage
+        })
+        .then(({ error }) => {
+          if (error) console.error('Error saving video progress:', error);
+        });
     }
   };
 
@@ -211,9 +280,10 @@ export default function LessonView() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Video Player */}
-            <VideoPlayer
-              videoUrl={lesson.video_url}
+            <VideoPlayer 
+              videoUrl={lesson.video_url} 
               onComplete={handleVideoComplete}
+              onProgress={handleVideoProgress}
             />
 
             {/* Lesson Info */}
@@ -234,6 +304,8 @@ export default function LessonView() {
                     <LessonCompletionButton
                       isCompleted={isLessonCompleted}
                       onComplete={handleLessonComplete}
+                      onUncomplete={handleLessonUncomplete}
+                      videoProgress={videoProgress}
                       points={lesson.points}
                     />
                   </div>

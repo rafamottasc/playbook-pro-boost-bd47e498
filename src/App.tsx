@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Campaigns from "./pages/Campaigns";
 import NotFound from "./pages/NotFound";
 import Notifications from "./pages/Notifications";
+import PendingApproval from "./pages/PendingApproval";
 import AcademyModules from "./pages/academy/AcademyModules";
 import ModuleLessons from "./pages/academy/ModuleLessons";
 import LessonView from "./pages/academy/LessonView";
@@ -35,6 +36,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/pending-approval" element={<PendingApproval />} />
                   <Route
                     path="/"
                     element={

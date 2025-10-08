@@ -20,6 +20,11 @@ export function LessonFeedback({ lessonId }: LessonFeedbackProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Reset states when lesson changes
+    setFeedback(null);
+    setWasUseful(null);
+    setComment("");
+    
     if (user) {
       fetchFeedback();
     }

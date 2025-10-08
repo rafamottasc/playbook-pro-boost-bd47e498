@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle } from "lucide-react";
+import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
@@ -31,6 +31,7 @@ interface UserWithRole {
   avatar_url: string | null;
   created_at: string;
   blocked: boolean;
+  approved: boolean;
   roles: string[];
   isFirstAdmin?: boolean;
 }
@@ -50,7 +51,7 @@ export function UsersManager() {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, whatsapp, avatar_url, created_at, blocked")
+        .select("id, full_name, email, whatsapp, avatar_url, created_at, blocked, approved")
         .order("created_at");
 
       if (profilesError) throw profilesError;
@@ -70,6 +71,7 @@ export function UsersManager() {
       const usersWithRoles = profiles?.map((profile) => ({
         ...profile,
         blocked: profile.blocked === true,
+        approved: profile.approved === true,
         roles: userRoles
           ?.filter((role) => role.user_id === profile.id)
           .map((role) => role.role) || [],
@@ -168,6 +170,32 @@ export function UsersManager() {
     }
   };
 
+  const toggleApproval = async (userId: string, currentApproved: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ approved: !currentApproved })
+        .eq("id", userId);
+
+      if (error) throw error;
+      
+      toast({ 
+        title: currentApproved ? "Aprovação removida!" : "Usuário aprovado!",
+        description: currentApproved 
+          ? "O usuário não poderá mais acessar o sistema até ser aprovado novamente." 
+          : "O usuário agora pode acessar todas as funcionalidades do sistema."
+      });
+      
+      await loadUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao aprovar/desaprovar usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const deleteUser = async (userId: string) => {
     try {
       const { error } = await supabase
@@ -226,6 +254,12 @@ export function UsersManager() {
                           Bloqueado
                         </Badge>
                       )}
+                      {!user.approved && !user.blocked && (
+                        <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-600">
+                          <Clock className="h-3 w-3" />
+                          Pendente Aprovação
+                        </Badge>
+                      )}
                     </div>
                     
                     <div className="space-y-1">
@@ -275,6 +309,27 @@ export function UsersManager() {
                 
                 {!user.isFirstAdmin && (
                   <div className="flex flex-col gap-2">
+                    {!user.approved && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="default"
+                              onClick={() => toggleApproval(user.id, user.approved)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Aprovar Cadastro
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Aprovar acesso do usuário ao sistema</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>

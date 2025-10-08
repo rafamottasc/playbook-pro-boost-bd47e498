@@ -54,10 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    // First check if user is blocked
+    // First check if user is blocked or not approved
     const { data: profile } = await supabase
       .from("profiles")
-      .select("blocked")
+      .select("blocked, approved")
       .eq("id", userId)
       .single();
     
@@ -73,6 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Sua conta foi bloqueada. Entre em contato com o administrador.",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (!profile?.approved) {
+      // User is not approved - redirect to pending page
+      navigate("/pending-approval");
       return;
     }
 
