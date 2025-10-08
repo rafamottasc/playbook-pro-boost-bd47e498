@@ -163,20 +163,14 @@ export function Header() {
                   <FileText className="mr-2 h-4 w-4" />
                   Central de Recursos
                 </DropdownMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center w-full px-2 py-1.5 text-sm hover:bg-accent rounded-sm cursor-pointer">
-                    <Building2 className="mr-2 h-4 w-4" />
-                    Campanhas
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem onClick={() => navigate("/campaigns")}>
-                      Campanhas Ativas
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/campaigns/partners")}>
-                      Construtoras Parceiras
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <DropdownMenuItem onClick={() => navigate("/campaigns")}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Campanhas Ativas
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/campaigns/partners")}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Construtoras Parceiras
+                </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem onClick={() => navigate("/admin")}>
                     <Settings className="mr-2 h-4 w-4" />
