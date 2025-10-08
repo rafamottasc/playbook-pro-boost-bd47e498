@@ -192,7 +192,7 @@ export function QuestionsList({ lessonId }: QuestionsListProps) {
               <p className="text-sm mb-3">{question.question}</p>
 
               {question.answer && (
-                <div className="bg-accent rounded-lg p-3 mt-3">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
                   <Badge variant="secondary" className="mb-2">Resposta</Badge>
                   <p className="text-sm">{question.answer}</p>
                   {question.answeredBy && (

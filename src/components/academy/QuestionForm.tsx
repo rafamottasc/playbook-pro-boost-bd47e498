@@ -46,13 +46,13 @@ export function QuestionForm({ lessonId }: QuestionFormProps) {
         .eq('role', 'admin');
 
       if (adminRoles && lessonData) {
-        // Create notifications for all admins with correct link
+        // Create notifications for all admins - redirect to admin panel
         const notifications = adminRoles.map(admin => ({
           user_id: admin.user_id,
           title: "Nova pergunta na Academy",
           message: `${question.substring(0, 50)}...`,
-          link: `/resources/training/${lessonData.module_id}/${lessonId}`,
-          type: "academy"
+          link: `/admin?tab=academy&subtab=questions`,
+          type: "academy_question"
         }));
 
         await supabase

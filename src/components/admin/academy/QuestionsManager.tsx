@@ -146,7 +146,7 @@ export function QuestionsManager() {
           title: "Sua pergunta foi respondida!",
           message: answerText.substring(0, 100) + (answerText.length > 100 ? '...' : ''),
           link: `/resources/training/${question.module_id}/${question.lesson_id}`,
-          type: "academy"
+          type: "academy_answer"
         });
 
       toast({ title: "Resposta enviada!" });
