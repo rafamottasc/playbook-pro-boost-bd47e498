@@ -55,11 +55,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAdminStatus = async (userId: string) => {
     // First check if user is blocked or not approved
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("blocked, approved")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
+
+    // Se não houver profile, criar um automaticamente
+    if (!profile && !profileError) {
+      console.warn('Profile not found for user, creating one...');
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário',
+          email: user?.email || '',
+          whatsapp: user?.user_metadata?.whatsapp || '',
+          approved: false,
+        });
+      
+      if (insertError) {
+        console.error('Failed to create profile:', insertError);
+      }
+      
+      // Redirecionar para pending approval
+      navigate("/pending-approval");
+      return;
+    }
     
     if (profile?.blocked) {
       // User is blocked - force logout
