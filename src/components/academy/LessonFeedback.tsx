@@ -99,38 +99,41 @@ export function LessonFeedback({ lessonId }: LessonFeedbackProps) {
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="font-semibold mb-4">Esta aula foi útil para você?</h3>
+    <Card className="p-4 border-dashed">
+      <p className="text-sm text-muted-foreground mb-3">Esta aula foi útil?</p>
       
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-2 mb-3">
         <Button
           variant={wasUseful === true ? "default" : "outline"}
+          size="sm"
           className="flex-1"
           onClick={() => setWasUseful(true)}
         >
-          <ThumbsUp className="h-4 w-4 mr-2" />
+          <ThumbsUp className="h-3 w-3 mr-1" />
           Sim
         </Button>
         <Button
           variant={wasUseful === false ? "default" : "outline"}
+          size="sm"
           className="flex-1"
           onClick={() => setWasUseful(false)}
         >
-          <ThumbsDown className="h-4 w-4 mr-2" />
+          <ThumbsDown className="h-3 w-3 mr-1" />
           Não
         </Button>
       </div>
 
       {wasUseful !== null && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Textarea
             placeholder="Deixe um comentário (opcional)"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            rows={3}
+            rows={2}
+            className="text-sm"
           />
-          <Button onClick={handleSubmit} disabled={loading} className="w-full">
-            Enviar Avaliação
+          <Button onClick={handleSubmit} disabled={loading} size="sm" className="w-full">
+            Enviar
           </Button>
         </div>
       )}

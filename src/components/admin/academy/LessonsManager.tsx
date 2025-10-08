@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Play, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Play, Eye, EyeOff, FileText, Link as LinkIcon, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -37,6 +37,13 @@ interface Lesson {
   published: boolean;
 }
 
+interface Attachment {
+  id?: string;
+  title: string;
+  file_url: string;
+  file_type: 'pdf' | 'link';
+}
+
 export function LessonsManager() {
   const { toast } = useToast();
   const [modules, setModules] = useState<Module[]>([]);
@@ -55,6 +62,8 @@ export function LessonsManager() {
     display_order: 0,
     published: false
   });
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [newAttachment, setNewAttachment] = useState({ title: "", file_url: "", file_type: 'link' as 'pdf' | 'link' });
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
 
   useEffect(() => {
@@ -117,6 +126,8 @@ export function LessonsManager() {
     const embedUrl = convertYouTubeUrl(formData.video_url);
 
     try {
+      let lessonId = editingLesson?.id;
+
       if (editingLesson) {
         const { error } = await supabase
           .from('academy_lessons')
@@ -124,15 +135,43 @@ export function LessonsManager() {
           .eq('id', editingLesson.id);
 
         if (error) throw error;
-        toast({ title: "Aula atualizada!" });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('academy_lessons')
-          .insert({ ...formData, video_url: embedUrl, module_id: selectedModule });
+          .insert({ ...formData, video_url: embedUrl, module_id: selectedModule })
+          .select()
+          .single();
 
         if (error) throw error;
-        toast({ title: "Aula criada!" });
+        lessonId = data.id;
       }
+
+      // Save attachments
+      if (lessonId && attachments.length > 0) {
+        // Delete existing attachments if editing
+        if (editingLesson) {
+          await supabase
+            .from('lesson_attachments')
+            .delete()
+            .eq('lesson_id', lessonId);
+        }
+
+        // Insert new attachments
+        const attachmentsToInsert = attachments.map(att => ({
+          lesson_id: lessonId,
+          title: att.title,
+          file_url: att.file_url,
+          file_type: att.file_type
+        }));
+
+        const { error: attachError } = await supabase
+          .from('lesson_attachments')
+          .insert(attachmentsToInsert);
+
+        if (attachError) throw attachError;
+      }
+
+      toast({ title: editingLesson ? "Aula atualizada!" : "Aula criada!" });
 
       setDialogOpen(false);
       setEditingLesson(null);
@@ -146,6 +185,7 @@ export function LessonsManager() {
         display_order: 0,
         published: false
       });
+      setAttachments([]);
       fetchLessons();
     } catch (error: any) {
       toast({
@@ -156,7 +196,7 @@ export function LessonsManager() {
     }
   };
 
-  const handleEdit = (lesson: Lesson) => {
+  const handleEdit = async (lesson: Lesson) => {
     setEditingLesson(lesson);
     setFormData({
       module_id: lesson.module_id,
@@ -168,7 +208,69 @@ export function LessonsManager() {
       display_order: lesson.display_order,
       published: lesson.published
     });
+
+    // Fetch existing attachments
+    const { data: attachmentsData } = await supabase
+      .from('lesson_attachments')
+      .select('*')
+      .eq('lesson_id', lesson.id);
+
+    setAttachments((attachmentsData || []).map(att => ({
+      id: att.id,
+      title: att.title,
+      file_url: att.file_url,
+      file_type: att.file_type as 'pdf' | 'link'
+    })));
     setDialogOpen(true);
+  };
+
+  const handleAddAttachment = () => {
+    if (!newAttachment.title || !newAttachment.file_url) {
+      toast({
+        title: "Erro",
+        description: "Preencha título e URL/arquivo",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setAttachments([...attachments, newAttachment]);
+    setNewAttachment({ title: "", file_url: "", file_type: 'link' });
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error: uploadError, data } = await supabase.storage
+        .from('lesson-materials')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('lesson-materials')
+        .getPublicUrl(fileName);
+
+      setNewAttachment({ ...newAttachment, file_url: urlData.publicUrl });
+      
+      toast({
+        title: "Arquivo enviado!",
+        description: file.name
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro no upload",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const togglePublished = async (lesson: Lesson) => {
@@ -356,6 +458,98 @@ export function LessonsManager() {
                   onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
                 />
               </div>
+
+              {/* Materials Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label>Materiais de Apoio (opcional)</Label>
+                
+                {/* Existing attachments */}
+                {attachments.length > 0 && (
+                  <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                    {attachments.map((att, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-background rounded border">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {att.file_type === 'pdf' ? (
+                            <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          ) : (
+                            <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <span className="text-sm font-medium truncate">{att.title}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveAttachment(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add new attachment form */}
+                <div className="space-y-3 p-3 border rounded-lg">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={newAttachment.file_type === 'link' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setNewAttachment({ ...newAttachment, file_type: 'link', file_url: '' })}
+                    >
+                      <LinkIcon className="h-3 w-3 mr-1" />
+                      Link Externo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={newAttachment.file_type === 'pdf' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setNewAttachment({ ...newAttachment, file_type: 'pdf', file_url: '' })}
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      PDF
+                    </Button>
+                  </div>
+
+                  <Input
+                    placeholder="Título do material"
+                    value={newAttachment.title}
+                    onChange={(e) => setNewAttachment({ ...newAttachment, title: e.target.value })}
+                  />
+
+                  {newAttachment.file_type === 'link' ? (
+                    <Input
+                      placeholder="https://..."
+                      value={newAttachment.file_url}
+                      onChange={(e) => setNewAttachment({ ...newAttachment, file_url: e.target.value })}
+                    />
+                  ) : (
+                    <div>
+                      <Input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileUpload}
+                      />
+                      {newAttachment.file_url && (
+                        <p className="text-xs text-green-600 mt-1">✓ Arquivo carregado</p>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAddAttachment}
+                    className="w-full"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Adicionar Material
+                  </Button>
+                </div>
+              </div>
+
               <Button type="submit" className="w-full">
                 {editingLesson ? "Atualizar" : "Criar"}
               </Button>

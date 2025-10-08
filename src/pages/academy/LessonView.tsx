@@ -188,16 +188,16 @@ export default function LessonView() {
             <div>
               {/* Progress Indicator */}
               {user && totalLessons > 0 && (
-                <div className="mb-4 p-3 bg-accent rounded-lg">
+                <div className="mb-4 p-2 border border-border/40 rounded-lg bg-muted/20">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">
+                    <span className="text-xs text-muted-foreground">
                       Aula {currentLessonNumber} de {totalLessons}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {Math.round(moduleProgress)}% do módulo concluído
                     </span>
                   </div>
-                  <Progress value={moduleProgress} className="h-2" />
+                  <Progress value={moduleProgress} className="h-1.5" />
                 </div>
               )}
 
