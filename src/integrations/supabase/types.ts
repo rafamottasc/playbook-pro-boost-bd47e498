@@ -604,6 +604,7 @@ export type Database = {
           full_name: string
           gender: string | null
           id: string
+          last_sign_in_at: string | null
           points: number
           updated_at: string | null
           whatsapp: string
@@ -617,6 +618,7 @@ export type Database = {
           full_name: string
           gender?: string | null
           id: string
+          last_sign_in_at?: string | null
           points?: number
           updated_at?: string | null
           whatsapp: string
@@ -630,6 +632,7 @@ export type Database = {
           full_name?: string
           gender?: string | null
           id?: string
+          last_sign_in_at?: string | null
           points?: number
           updated_at?: string | null
           whatsapp?: string

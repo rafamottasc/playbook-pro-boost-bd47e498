@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +32,7 @@ interface UserWithRole {
   whatsapp: string;
   avatar_url: string | null;
   created_at: string;
+  last_sign_in_at: string | null;
   blocked: boolean;
   approved: boolean;
   roles: string[];
@@ -51,7 +54,7 @@ export function UsersManager() {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, whatsapp, avatar_url, created_at, blocked, approved")
+        .select("id, full_name, email, whatsapp, avatar_url, created_at, last_sign_in_at, blocked, approved")
         .order("created_at");
 
       if (profilesError) throw profilesError;
@@ -72,6 +75,7 @@ export function UsersManager() {
         ...profile,
         blocked: profile.blocked === true,
         approved: profile.approved === true,
+        last_sign_in_at: profile.last_sign_in_at,
         roles: userRoles
           ?.filter((role) => role.user_id === profile.id)
           .map((role) => role.role) || [],
@@ -88,6 +92,25 @@ export function UsersManager() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (approved: boolean, blocked: boolean) => {
+    if (blocked) {
+      return <Badge variant="destructive">Bloqueado</Badge>;
+    }
+    if (approved) {
+      return <Badge className="bg-green-600 hover:bg-green-700 text-white">Ativo</Badge>;
+    }
+    return <Badge variant="outline" className="border-yellow-500 text-yellow-600">Pendente</Badge>;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Nunca";
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: ptBR });
+    } catch {
+      return "Data inválida";
     }
   };
 
@@ -271,21 +294,46 @@ export function UsersManager() {
                         .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-lg">{user.full_name}</h3>
-                      {user.blocked && (
-                        <Badge variant="destructive" className="gap-1">
-                          <Ban className="h-3 w-3" />
-                          Bloqueado
-                        </Badge>
-                      )}
-                      {!user.approved && !user.blocked && (
-                        <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-600">
-                          <Clock className="h-3 w-3" />
-                          Pendente Aprovação
-                        </Badge>
-                      )}
+                  <div className="flex-1 space-y-3">
+                    <h3 className="font-semibold text-lg">{user.full_name}</h3>
+                    
+                    {/* Info Row with Badges */}
+                    <div className="flex flex-wrap items-center gap-2 text-sm pb-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground font-medium">Nível:</span>
+                        {user.roles.includes("admin") ? (
+                          <Badge variant="default" className="gap-1">
+                            <Shield className="h-3 w-3" />
+                            {user.isFirstAdmin ? "Admin Principal" : "Admin"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <User className="h-3 w-3" />
+                            Corretor
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <span className="text-muted-foreground hidden sm:inline">|</span>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground font-medium">Status:</span>
+                        {getStatusBadge(user.approved, user.blocked)}
+                      </div>
+                      
+                      <span className="text-muted-foreground hidden sm:inline">|</span>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground font-medium">Último Login:</span>
+                        <span className="text-xs">{formatDate(user.last_sign_in_at)}</span>
+                      </div>
+                      
+                      <span className="text-muted-foreground hidden md:inline">|</span>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground font-medium">Criado em:</span>
+                        <span className="text-xs">{formatDate(user.created_at)}</span>
+                      </div>
                     </div>
                     
                     <div className="space-y-1">
@@ -313,21 +361,6 @@ export function UsersManager() {
                             <span>{user.whatsapp}</span>
                           </a>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      {user.roles.includes("admin") && (
-                        <Badge variant="default" className="gap-1">
-                          <Shield className="h-3 w-3" />
-                          {user.isFirstAdmin ? "Admin Principal" : "Admin"}
-                        </Badge>
-                      )}
-                      {user.roles.includes("corretor") && (
-                        <Badge variant="secondary" className="gap-1">
-                          <User className="h-3 w-3" />
-                          Corretor
-                        </Badge>
                       )}
                     </div>
                   </div>

@@ -109,6 +109,15 @@ export const suggestionSchema = z.object({
     .max(1000, "Sugestão deve ter no máximo 1000 caracteres"),
 });
 
+// Change password validation schema
+export const changePasswordSchema = z.object({
+  newPassword: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
 // Type exports for TypeScript
 // Função para traduzir erros do Supabase Auth para português
 export function translateAuthError(errorMessage: string): string {
@@ -152,3 +161,4 @@ export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type MessageInput = z.infer<typeof messageSchema>;
 export type ResourceInput = z.infer<typeof resourceSchema>;
 export type SuggestionInput = z.infer<typeof suggestionSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

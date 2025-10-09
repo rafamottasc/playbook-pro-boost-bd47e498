@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ import { profileUpdateSchema } from "@/lib/validations";
 import { ZodError } from "zod";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { validateImageFile } from "@/lib/imageUtils";
+import { SecurityTab } from "@/components/profile/SecurityTab";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -182,14 +184,21 @@ export default function Profile() {
       <Header />
 
       <main className="container py-6 px-4 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Meu Perfil</CardTitle>
-            <CardDescription>
-              Gerencie suas informações pessoais e foto de perfil
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="profile">Informações Pessoais</TabsTrigger>
+            <TabsTrigger value="security">Segurança</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Meu Perfil</CardTitle>
+                <CardDescription>
+                  Gerencie suas informações pessoais e foto de perfil
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
             <div className="flex flex-col items-center gap-4">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name} />
@@ -297,6 +306,12 @@ export default function Profile() {
             </form>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="security">
+            <SecurityTab />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
