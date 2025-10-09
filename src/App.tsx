@@ -37,7 +37,14 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/pending-approval" element={<PendingApproval />} />
+      <Route 
+        path="/pending-approval" 
+        element={
+          <ProtectedRoute requireApproved={false}>
+            <PendingApproval />
+          </ProtectedRoute>
+        } 
+      />
                   <Route
                     path="/"
                     element={
