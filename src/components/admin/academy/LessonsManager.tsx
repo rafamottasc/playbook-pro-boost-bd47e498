@@ -332,8 +332,8 @@ export function LessonsManager() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
           <div>
             <h3 className="text-xl font-semibold">Aulas</h3>
             {selectedModule && (
@@ -344,7 +344,7 @@ export function LessonsManager() {
           </div>
           {modules.length > 0 && (
             <Select value={selectedModule} onValueChange={setSelectedModule}>
-              <SelectTrigger className="w-[250px]">
+              <SelectTrigger className="w-full sm:w-[250px]">
                 <SelectValue placeholder="Selecione um módulo" />
               </SelectTrigger>
               <SelectContent>
@@ -378,6 +378,7 @@ export function LessonsManager() {
                 });
               }}
               disabled={!selectedModule}
+              className="w-full sm:w-auto"
             >
               <Plus className="h-4 w-4 mr-2" />
               Nova Aula

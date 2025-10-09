@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { PageTransition } from "@/components/PageTransition";
+import { cn } from "@/lib/utils";
 
 interface Module {
   id: string;
@@ -125,13 +126,13 @@ export default function AcademyModules() {
                 variant="ghost"
                 size="icon"
                 onClick={scrollPrev}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-r from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-16 rounded-none bg-gradient-to-r from-background via-background/80 to-transparent opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity shadow-lg"
               >
-                <ChevronLeft className="h-8 w-8" />
+                <ChevronLeft className="h-10 w-10" />
               </Button>
             )}
             
-            <div className="overflow-hidden" ref={emblaRef}>
+            <div className="overflow-hidden px-0 md:px-8" ref={emblaRef}>
               <div className="flex gap-4">
                 {modules.map((module) => (
                   <div 
@@ -149,10 +150,29 @@ export default function AcademyModules() {
                 variant="ghost"
                 size="icon"
                 onClick={scrollNext}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-l from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-16 rounded-none bg-gradient-to-l from-background via-background/80 to-transparent opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity shadow-lg"
               >
-                <ChevronRight className="h-8 w-8" />
+                <ChevronRight className="h-10 w-10" />
               </Button>
+            )}
+
+            {/* Carousel indicators */}
+            {modules.length > 1 && (
+              <div className="flex justify-center gap-2 mt-4">
+                {modules.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => emblaApi?.scrollTo(index)}
+                    className={cn(
+                      "h-2 rounded-full transition-all",
+                      emblaApi?.selectedScrollSnap() === index 
+                        ? "w-8 bg-primary" 
+                        : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    )}
+                    aria-label={`Ir para módulo ${index + 1}`}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}

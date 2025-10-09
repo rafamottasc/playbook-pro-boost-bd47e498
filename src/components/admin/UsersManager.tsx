@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle, Clock } from "lucide-react";
+import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -281,12 +281,12 @@ export function UsersManager() {
         
         <div className="grid gap-4">
           {users.map((user) => (
-            <Card key={user.id} className="p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1">
-                  <Avatar className="h-16 w-16">
+            <Card key={user.id} className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-4 flex-1 w-full">
+                  <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
                     <AvatarImage src={user.avatar_url || ""} />
-                    <AvatarFallback className="text-lg">
+                    <AvatarFallback className="text-sm sm:text-lg">
                       {user.full_name
                         .split(" ")
                         .map((n) => n[0])
@@ -294,22 +294,22 @@ export function UsersManager() {
                         .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 space-y-3">
-                    <h3 className="font-semibold text-lg">{user.full_name}</h3>
+                  <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
+                    <h3 className="font-semibold text-base sm:text-lg truncate">{user.full_name}</h3>
                     
                     {/* Info Row with Badges */}
-                    <div className="flex flex-wrap items-center gap-2 text-sm pb-3 border-b">
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 text-xs sm:text-sm pb-3 border-b">
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground font-medium">Nível:</span>
                         {user.roles.includes("admin") ? (
-                          <Badge variant="default" className="gap-1">
+                          <Badge variant="default" className="gap-1 text-xs">
                             <Shield className="h-3 w-3" />
-                            {user.isFirstAdmin ? "Admin Principal" : "Admin"}
+                            <span className="hidden xs:inline">{user.isFirstAdmin ? "Admin Principal" : "Admin"}</span>
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="gap-1">
+                          <Badge variant="secondary" className="gap-1 text-xs">
                             <User className="h-3 w-3" />
-                            Corretor
+                            <span className="hidden xs:inline">Corretor</span>
                           </Badge>
                         )}
                       </div>
@@ -323,41 +323,41 @@ export function UsersManager() {
                       
                       <span className="text-muted-foreground hidden sm:inline">|</span>
                       
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground font-medium">Último Login:</span>
-                        <span className="text-xs">{formatDate(user.last_sign_in_at)}</span>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <span className="text-muted-foreground font-medium whitespace-nowrap">Último Login:</span>
+                        <span className="text-xs truncate">{formatDate(user.last_sign_in_at)}</span>
                       </div>
                       
                       <span className="text-muted-foreground hidden md:inline">|</span>
                       
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground font-medium">Criado em:</span>
-                        <span className="text-xs">{formatDate(user.created_at)}</span>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <span className="text-muted-foreground font-medium whitespace-nowrap">Criado em:</span>
+                        <span className="text-xs truncate">{formatDate(user.created_at)}</span>
                       </div>
                     </div>
                     
                     <div className="space-y-1">
                       {user.email && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm">
                           <a
                             href={`mailto:${user.email}`}
-                            className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors truncate"
                           >
-                            <Mail className="h-4 w-4" />
-                            <span>{user.email}</span>
+                            <Mail className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{user.email}</span>
                           </a>
                         </div>
                       )}
                       
                       {user.whatsapp && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm">
                           <a
                             href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
                           >
-                            <Phone className="h-4 w-4" />
+                            <Phone className="h-4 w-4 flex-shrink-0" />
                             <span>{user.whatsapp}</span>
                           </a>
                         </div>
@@ -367,7 +367,7 @@ export function UsersManager() {
                 </div>
                 
                 {!user.isFirstAdmin && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:min-w-[280px]">
                     {!user.approved && (
                       <TooltipProvider>
                         <Tooltip>
@@ -376,10 +376,10 @@ export function UsersManager() {
                               variant="default"
                               onClick={() => toggleApproval(user.id, user.approved)}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 w-full"
+                              className="bg-green-600 hover:bg-green-700 w-full col-span-2"
                             >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Aprovar
+                              <CheckCircle2 className="h-4 w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Aprovar</span>
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -398,9 +398,17 @@ export function UsersManager() {
                             size="sm"
                             className="w-full"
                           >
-                            {user.roles.includes("admin")
-                              ? "Remover Admin"
-                              : "Tornar Admin"}
+                            {user.roles.includes("admin") ? (
+                              <>
+                                <ShieldMinus className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Remover Admin</span>
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Tornar Admin</span>
+                              </>
+                            )}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -420,13 +428,13 @@ export function UsersManager() {
                           >
                             {user.blocked ? (
                               <>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Desbloquear
+                                <Unlock className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Desbloquear</span>
                               </>
                             ) : (
                               <>
-                                <Ban className="mr-2 h-4 w-4" />
-                                Bloquear
+                                <Ban className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Bloquear</span>
                               </>
                             )}
                           </Button>
@@ -444,10 +452,10 @@ export function UsersManager() {
                             variant="outline"
                             onClick={() => setDeleteUserId(user.id)}
                             size="sm"
-                            className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full"
+                            className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full col-span-2"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
+                            <Trash2 className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Excluir</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>

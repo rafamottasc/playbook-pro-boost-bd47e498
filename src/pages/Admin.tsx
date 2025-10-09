@@ -19,34 +19,34 @@ export default function Admin() {
         <h1 className="text-3xl font-bold mb-6">Painel Administrativo</h1>
 
         <Tabs defaultValue="messages" className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 w-full justify-start">
             <TabsTrigger value="messages" className="gap-2">
               <MessageSquare className="h-4 w-4" />
-              Mensagens
+              <span className="hidden sm:inline">Mensagens</span>
             </TabsTrigger>
             <TabsTrigger value="suggestions" className="gap-2">
               <Lightbulb className="h-4 w-4" />
-              Sugestões
+              <span className="hidden sm:inline">Sugestões</span>
             </TabsTrigger>
             <TabsTrigger value="metrics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              Métricas
+              <span className="hidden sm:inline">Métricas</span>
             </TabsTrigger>
             <TabsTrigger value="resources" className="gap-2">
               <BookOpen className="h-4 w-4" />
-              Recursos
+              <span className="hidden sm:inline">Recursos</span>
             </TabsTrigger>
             <TabsTrigger value="academy" className="gap-2">
               <GraduationCap className="h-4 w-4" />
-              Academy
+              <span className="hidden sm:inline">Academy</span>
             </TabsTrigger>
             <TabsTrigger value="partners" className="gap-2">
               <Building2 className="h-4 w-4" />
-              Construtoras
+              <span className="hidden sm:inline">Construtoras</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
-              Usuários
+              <span className="hidden sm:inline">Usuários</span>
             </TabsTrigger>
           </TabsList>
 
