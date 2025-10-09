@@ -31,17 +31,20 @@ All colors MUST be HSL.
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
+    /* Neutral Gray - Secondary Text */
+    --neutral-gray: 0 0% 45%;
+
     --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 6 78% 57%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 160 84% 39%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
     /* Gamification Colors */
     --badge-bronze: 30 100% 50%;
@@ -79,8 +82,10 @@ All colors MUST be HSL.
     --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 6 78% 57%;
     --destructive-foreground: 0 0% 98%;
+
+    --neutral-gray: 0 0% 55%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
@@ -98,5 +103,39 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Tipografia padronizada */
+  .text-body {
+    @apply text-base;
+  }
+  
+  .text-body-sm {
+    @apply text-sm;
+  }
+  
+  /* Sombra padrão COMARC */
+  .shadow-comarc {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+  
+  .shadow-comarc-hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  }
+  
+  /* Transições padronizadas */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .hover-lift {
+    @apply hover:scale-[1.02] hover:shadow-comarc-hover;
+  }
+  
+  .hover-highlight {
+    @apply hover:bg-accent/50 hover:border-primary/50;
   }
 }
