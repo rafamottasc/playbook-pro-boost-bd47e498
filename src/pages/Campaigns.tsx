@@ -705,21 +705,29 @@ export default function Campaigns() {
                   <AccordionContent>
                     <div className="space-y-4 pt-4">
                        {/* Participants */}
-                      <div>
+                       <div>
                         <p className="text-sm font-medium mb-2 flex items-center gap-2">
                           <Users className="h-4 w-4" />
                           Corretores Participantes:
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {campaign.campaign_participants && campaign.campaign_participants.filter(p => p.user_id && p.profiles).length > 0 ? (
-                            campaign.campaign_participants
-                              .filter(p => p.user_id && p.profiles)
-                              .map((participant, index) => (
-                                <Badge key={index} variant="secondary" className="flex items-center gap-1.5">
-                                  <User className="h-3 w-3" />
-                                  {participant.profiles?.full_name || 'Nome não disponível'}
+                            <>
+                              {campaign.campaign_participants
+                                .filter(p => p.user_id && p.profiles)
+                                .slice(0, 3)
+                                .map((participant, index) => (
+                                  <Badge key={index} variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
+                                    <User className="h-3 w-3" />
+                                    {participant.profiles?.full_name || 'Nome não disponível'}
+                                  </Badge>
+                                ))}
+                              {campaign.campaign_participants.filter(p => p.user_id && p.profiles).length > 3 && (
+                                <Badge variant="outline" className="px-2 py-1">
+                                  +{campaign.campaign_participants.filter(p => p.user_id && p.profiles).length - 3} mais
                                 </Badge>
-                              ))
+                              )}
+                            </>
                           ) : (
                             <p className="text-sm text-muted-foreground">
                               Nenhum corretor vinculado

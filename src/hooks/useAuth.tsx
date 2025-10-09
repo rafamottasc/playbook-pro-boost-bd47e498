@@ -59,12 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[useAuth] Checking admin status for user:', userId);
     
     // First check if user is blocked or not approved
-    // Force cache bypass with order clause
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("blocked, approved")
       .eq("id", userId)
-      .order('approved', { ascending: false })
       .maybeSingle();
     
     console.log('[useAuth] Profile data received:', profile);

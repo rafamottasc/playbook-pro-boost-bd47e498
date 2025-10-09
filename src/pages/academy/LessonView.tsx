@@ -153,12 +153,12 @@ export default function LessonView() {
 
       setIsLessonCompleted(true);
       
-      // Recalculate module progress
-      await fetchLessonData();
-      
-      toast.success(`Parabéns! Você ganhou +${lesson.points} pontos`, {
-        description: "Aula marcada como concluída"
+      toast.success(`🎉 Parabéns! Você ganhou +${lesson.points} pontos`, {
+        description: "Aula marcada como concluída com sucesso!"
       });
+      
+      // Recalculate module progress with explicit refetch
+      await fetchLessonData();
 
       // Points are automatically added by database trigger
     } catch (error) {
