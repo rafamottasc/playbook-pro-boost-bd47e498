@@ -76,6 +76,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
           <img
             src={module.cover_url}
             alt={module.title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (

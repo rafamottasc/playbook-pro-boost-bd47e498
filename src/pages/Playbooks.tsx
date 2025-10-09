@@ -465,7 +465,8 @@ export default function Index() {
       setUserFeedbacks(prev => ({ ...prev, [messageId]: 'like' }));
       setUserPoints((prev) => prev + 0.5);
       toast({
-        title: "Obrigado pelo feedback! 👍",
+        title: "👍 Obrigado pelo feedback positivo!",
+        description: "Sua avaliação ajuda a melhorar nossos playbooks.",
       });
     } catch (error: any) {
       console.error("Erro ao registrar like:", error);

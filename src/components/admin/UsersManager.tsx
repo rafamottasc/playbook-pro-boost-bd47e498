@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -86,8 +87,8 @@ export function UsersManager() {
       
     } catch (error: any) {
       toast({
-        title: "Erro ao carregar usuários",
-        description: error.message,
+        title: "❌ Erro ao carregar usuários",
+        description: "Não foi possível carregar a lista de usuários. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -134,15 +135,21 @@ export function UsersManager() {
           .eq("user_id", userId)
           .eq("role", "admin");
 
-        if (error) throw error;
-        toast({ title: "Permissão de admin removida!" });
+      if (error) throw error;
+      toast({ 
+        title: "✅ Permissão removida",
+        description: "O usuário não é mais administrador."
+      });
       } else {
         const { error } = await supabase
           .from("user_roles")
           .insert([{ user_id: userId, role: "admin" }]);
 
         if (error) throw error;
-        toast({ title: "Permissão de admin concedida!" });
+        toast({ 
+          title: "✅ Permissão concedida",
+          description: "O usuário agora é administrador."
+        });
       }
 
       setRemoveAdminUserId(null);
@@ -178,7 +185,7 @@ export function UsersManager() {
       if (error) throw error;
       
       toast({ 
-        title: currentBlocked ? "Usuário desbloqueado!" : "Usuário bloqueado!",
+        title: currentBlocked ? "🔓 Usuário desbloqueado" : "🚫 Usuário bloqueado",
         description: currentBlocked 
           ? "O usuário pode acessar o sistema novamente." 
           : "O usuário foi impedido de acessar o sistema."
@@ -204,7 +211,7 @@ export function UsersManager() {
       if (error) throw error;
       
       toast({ 
-        title: currentApproved ? "Aprovação removida!" : "Usuário aprovado!",
+        title: currentApproved ? "❌ Aprovação removida" : "✅ Usuário aprovado",
         description: currentApproved 
           ? "O usuário não poderá mais acessar o sistema até ser aprovado novamente." 
           : "O usuário agora pode acessar todas as funcionalidades do sistema."
@@ -254,7 +261,7 @@ export function UsersManager() {
       }
       
       toast({ 
-        title: "Usuário excluído com sucesso!",
+        title: "✅ Usuário excluído com sucesso",
         description: "Todos os dados do usuário foram removidos do sistema."
       });
       
@@ -271,7 +278,25 @@ export function UsersManager() {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>;
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Gerenciar Usuários</h2>
+        <div className="grid gap-4">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="p-4 sm:p-6">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-4 w-full max-w-md" />
+                  <Skeleton className="h-4 w-64" />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -285,7 +310,7 @@ export function UsersManager() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4 flex-1 w-full">
                   <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
-                    <AvatarImage src={user.avatar_url || ""} />
+                    <AvatarImage src={user.avatar_url || ""} loading="lazy" />
                     <AvatarFallback className="text-sm sm:text-lg">
                       {user.full_name
                         .split(" ")
@@ -371,11 +396,12 @@ export function UsersManager() {
                     {!user.approved && (
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger asChild>
+                        <TooltipTrigger asChild>
                             <Button
                               variant="default"
                               onClick={() => toggleApproval(user.id, user.approved)}
                               size="sm"
+                              aria-label={`Aprovar acesso de ${user.full_name}`}
                               className="bg-green-600 hover:bg-green-700 w-full col-span-2"
                             >
                               <CheckCircle2 className="h-4 w-4 sm:mr-2" />
@@ -396,6 +422,7 @@ export function UsersManager() {
                             variant={user.roles.includes("admin") ? "destructive" : "default"}
                             onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
                             size="sm"
+                            aria-label={user.roles.includes("admin") ? `Remover permissão de admin de ${user.full_name}` : `Tornar ${user.full_name} administrador`}
                             className="w-full"
                           >
                             {user.roles.includes("admin") ? (
@@ -424,6 +451,7 @@ export function UsersManager() {
                             variant={user.blocked ? "default" : "outline"}
                             onClick={() => toggleBlockUser(user.id, user.blocked)}
                             size="sm"
+                            aria-label={user.blocked ? `Desbloquear ${user.full_name}` : `Bloquear ${user.full_name}`}
                             className={`w-full ${!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}`}
                           >
                             {user.blocked ? (
@@ -452,6 +480,7 @@ export function UsersManager() {
                             variant="outline"
                             onClick={() => setDeleteUserId(user.id)}
                             size="sm"
+                            aria-label={`Excluir usuário ${user.full_name}`}
                             className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full col-span-2"
                           >
                             <Trash2 className="h-4 w-4 sm:mr-2" />

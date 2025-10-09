@@ -2,9 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { ModuleCard } from "@/components/academy/ModuleCard";
 import { AcademyOnboarding } from "@/components/academy/AcademyOnboarding";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { PageTransition } from "@/components/PageTransition";
@@ -20,6 +23,7 @@ interface Module {
 
 export default function AcademyModules() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -73,8 +77,13 @@ export default function AcademyModules() {
 
       if (error) throw error;
       setModules(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching modules:', error);
+      toast({
+        title: "❌ Erro ao carregar módulos",
+        description: "Não foi possível carregar os módulos. Verifique sua conexão e tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -89,9 +98,31 @@ export default function AcademyModules() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+        <PageTransition>
+          <main className="container mx-auto px-4 py-8">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <GraduationCap className="h-8 w-8 text-primary" />
+                <h1 className="text-4xl font-bold">COMARC Academy</h1>
+              </div>
+              <p className="text-muted-foreground text-lg">
+                Cursos e capacitações para você se tornar um especialista
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {[...Array(5)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="aspect-[2/3] w-full" />
+                  <div className="p-4">
+                    <Skeleton className="h-4 w-3/4 mb-3" />
+                    <Skeleton className="h-2 w-full mb-3" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </main>
+        </PageTransition>
       </div>
     );
   }
@@ -126,6 +157,7 @@ export default function AcademyModules() {
                 variant="ghost"
                 size="icon"
                 onClick={scrollPrev}
+                aria-label="Módulo anterior"
                 className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-16 rounded-none bg-gradient-to-r from-background via-background/80 to-transparent opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity shadow-lg"
               >
                 <ChevronLeft className="h-10 w-10" />
@@ -150,6 +182,7 @@ export default function AcademyModules() {
                 variant="ghost"
                 size="icon"
                 onClick={scrollNext}
+                aria-label="Próximo módulo"
                 className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-16 rounded-none bg-gradient-to-l from-background via-background/80 to-transparent opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity shadow-lg"
               >
                 <ChevronRight className="h-10 w-10" />

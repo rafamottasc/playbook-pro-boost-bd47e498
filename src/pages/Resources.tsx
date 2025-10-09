@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FileText, Link as LinkIcon, Video, ExternalLink, Upload, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,8 +40,8 @@ export default function Resources() {
       setResources(data || []);
     } catch (error: any) {
       toast({
-        title: "Erro ao carregar recursos",
-        description: error.message,
+        title: "❌ Erro ao carregar recursos",
+        description: "Não foi possível carregar os recursos. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -76,7 +77,17 @@ export default function Resources() {
         </CardHeader>
         <CardContent className="pt-6">
           {loading ? (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex gap-2">
+                  <Skeleton className="h-4 w-4 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : categoryResources.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               Nenhum recurso disponível ainda

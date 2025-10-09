@@ -136,6 +136,7 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
                         size="sm" 
                         variant="ghost" 
                         className="h-7 px-2"
+                        aria-label={`Visualizar ${file.file_name}`}
                         onClick={(e) => {
                           e.preventDefault();
                           window.open(file.file_url, '_blank');
@@ -147,6 +148,7 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
                         size="sm" 
                         variant="ghost"
                         className="h-7 px-2"
+                        aria-label={`Baixar ${file.file_name}`}
                         asChild
                       >
                         <a href={file.file_url} download={file.file_name}>
@@ -177,11 +179,11 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
               <>
                 <Separator />
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={onEdit}>
+                  <Button variant="outline" size="sm" className="flex-1" onClick={onEdit} aria-label={`Editar parceria ${partner.name}`}>
                     <Edit className="h-4 w-4 mr-1" />
                     Editar
                   </Button>
-                  <Button variant="outline" size="sm" className="text-destructive" onClick={onDelete}>
+                  <Button variant="outline" size="sm" className="text-destructive" onClick={onDelete} aria-label={`Excluir parceria ${partner.name}`}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
