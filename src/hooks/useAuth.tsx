@@ -13,6 +13,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isApproved: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,12 +56,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
+    console.log('[useAuth] Checking admin status for user:', userId);
+    
     // First check if user is blocked or not approved
+    // Force cache bypass with order clause
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("blocked, approved")
       .eq("id", userId)
+      .order('approved', { ascending: false })
       .maybeSingle();
+    
+    console.log('[useAuth] Profile data received:', profile);
 
     // Se não houver profile, criar um automaticamente
     if (!profile && !profileError) {
@@ -85,8 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (profile?.blocked) {
       // User is blocked - force logout
+      console.log('[useAuth] User is blocked, logging out');
       await supabase.auth.signOut();
       setIsAdmin(false);
+      setIsApproved(false);
       setUser(null);
       setSession(null);
       navigate("/auth");
@@ -98,8 +108,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!profile?.approved) {
-      // User is not approved - let ProtectedRoute handle redirection
+    const approved = profile?.approved || false;
+    console.log('[useAuth] User approval status:', approved);
+    setIsApproved(approved);
+
+    if (!approved) {
+      // User is not approved
+      console.log('[useAuth] User not approved, setting states');
       setIsAdmin(false);
       setLoading(false);
       return;
@@ -186,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, isAdmin, isApproved }}>
       {children}
     </AuthContext.Provider>
   );
