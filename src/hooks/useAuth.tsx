@@ -99,8 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (!profile?.approved) {
-      // User is not approved - redirect to pending page
-      navigate("/pending-approval");
+      // User is not approved - let ProtectedRoute handle redirection
+      setIsAdmin(false);
+      setLoading(false);
       return;
     }
 
