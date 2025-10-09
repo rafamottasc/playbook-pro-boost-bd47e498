@@ -697,7 +697,7 @@ export default function Campaigns() {
                         {getStatusBadge(campaign.status)}
                         <Badge variant="outline" className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {campaign.campaign_participants?.filter(p => p.user_id).length || 0}
+                          {campaign.campaign_participants?.filter(p => p.user_id && p.profiles).length || 0}
                         </Badge>
                       </div>
                     </div>
@@ -711,13 +711,13 @@ export default function Campaigns() {
                           Corretores Participantes:
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {campaign.campaign_participants && campaign.campaign_participants.filter(p => p.user_id).length > 0 ? (
+                          {campaign.campaign_participants && campaign.campaign_participants.filter(p => p.user_id && p.profiles).length > 0 ? (
                             campaign.campaign_participants
-                              .filter(p => p.user_id)
+                              .filter(p => p.user_id && p.profiles)
                               .map((participant, index) => (
                                 <Badge key={index} variant="secondary" className="flex items-center gap-1.5">
                                   <User className="h-3 w-3" />
-                                  {participant.profiles.full_name}
+                                  {participant.profiles?.full_name || 'Nome não disponível'}
                                 </Badge>
                               ))
                           ) : (
