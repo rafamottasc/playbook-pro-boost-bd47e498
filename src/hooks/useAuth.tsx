@@ -179,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
       
-      navigate("/");
+      // Navigation is handled by Auth.tsx after initializing completes
     }
     
     return { error };

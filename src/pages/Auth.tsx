@@ -25,7 +25,7 @@ export default function Auth() {
   const [resetEmail, setResetEmail] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -38,10 +38,11 @@ export default function Auth() {
   ];
 
   useEffect(() => {
-    if (user) {
+    // Only navigate after authentication state is fully initialized
+    if (user && !initializing) {
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, initializing, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
