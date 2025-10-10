@@ -384,14 +384,35 @@ export default function LessonView() {
                 </Card>
               )}
 
-              {/* Show Module Completion Card if last lesson and module 100% complete */}
-              {!nextLesson && moduleProgress === 100 && (
+              {/* Show Next Module button if last lesson and there's a next module */}
+              {!nextLesson && nextModule && (
+                <Button
+                  onClick={() => navigate(`/academy/modules/${nextModule.id}`)}
+                  className="w-full"
+                >
+                  Próximo módulo <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              )}
+
+              {/* Show Module Completion Card if last lesson and module 90%+ complete */}
+              {!nextLesson && moduleProgress >= 90 && (
                 <ModuleCompletionCard
                   moduleTitle={currentModuleTitle}
                   totalPoints={moduleCompletedPoints}
                   nextModule={nextModule}
                   onViewModules={() => navigate('/academy/modules')}
                 />
+              )}
+
+              {/* Show "Back to modules" button if last lesson and no next module */}
+              {!nextLesson && !nextModule && (
+                <Button
+                  onClick={() => navigate('/academy/modules')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" /> Voltar para módulos
+                </Button>
               )}
 
               {/* Show Next Lesson button if there's a next lesson */}
@@ -444,14 +465,35 @@ export default function LessonView() {
               </Card>
             )}
 
-            {/* Show Module Completion Card if last lesson and module 100% complete */}
-            {!nextLesson && moduleProgress === 100 && (
+            {/* Show Next Module button if last lesson and there's a next module */}
+            {!nextLesson && nextModule && (
+              <Button
+                onClick={() => navigate(`/academy/modules/${nextModule.id}`)}
+                className="w-full"
+              >
+                Próximo módulo <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+
+            {/* Show Module Completion Card if last lesson and module 90%+ complete */}
+            {!nextLesson && moduleProgress >= 90 && (
               <ModuleCompletionCard
                 moduleTitle={currentModuleTitle}
                 totalPoints={moduleCompletedPoints}
                 nextModule={nextModule}
                 onViewModules={() => navigate('/academy/modules')}
               />
+            )}
+
+            {/* Show "Back to modules" button if last lesson and no next module */}
+            {!nextLesson && !nextModule && (
+              <Button
+                onClick={() => navigate('/academy/modules')}
+                variant="outline"
+                className="w-full"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" /> Voltar para módulos
+              </Button>
             )}
 
             {/* Show Next Lesson button if there's a next lesson */}

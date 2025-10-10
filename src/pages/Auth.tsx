@@ -12,6 +12,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
 import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
+import { unformatPhone } from "@/lib/utils";
 import { ZodError } from "zod";
 
 export default function Auth() {
@@ -66,7 +67,12 @@ export default function Auth() {
     e.preventDefault();
     
     try {
-      const validated = signUpSchema.parse({ email, password, fullName, whatsapp });
+      const validated = signUpSchema.parse({ 
+        email, 
+        password, 
+        fullName, 
+        whatsapp: unformatPhone(whatsapp) 
+      });
       
       setLoading(true);
       

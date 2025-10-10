@@ -141,7 +141,7 @@ export default function Profile() {
     try {
       const validated = profileUpdateSchema.parse({
         fullName: profile.full_name,
-        whatsapp: profile.whatsapp,
+        whatsapp: unformatPhone(profile.whatsapp),
       });
 
       setLoading(true);
