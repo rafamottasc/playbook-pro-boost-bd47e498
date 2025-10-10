@@ -492,8 +492,7 @@ export function ResourcesManager() {
                                   </a>
                                   {(resource.resource_type === "pdf" || resource.resource_type === "image") && (
                                     <a
-                                      href={resource.url}
-                                      download={resource.file_name || true}
+                                      href={`${resource.url}?download`}
                                       className="text-xs text-blue-600 hover:underline flex items-center gap-1"
                                     >
                                       Baixar
