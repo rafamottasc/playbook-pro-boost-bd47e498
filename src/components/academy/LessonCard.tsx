@@ -99,7 +99,7 @@ export function LessonCard({ lesson, moduleId, lessonNumber, isWatched = false, 
         )}
 
         <Button
-          onClick={() => navigate(`/resources/training/${moduleId}/${lesson.id}`)}
+          onClick={() => navigate(`/academy/modules/${moduleId}/${lesson.id}`)}
           className="w-full"
           variant={isWatched ? "secondary" : "default"}
         >

@@ -123,36 +123,6 @@ function AppRoutes() {
                     }
                   />
       <Route
-        path="/resources/training"
-        element={
-          <ProtectedRoute>
-            <ErrorBoundary>
-              <AcademyModules />
-            </ErrorBoundary>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/resources/training/:moduleId"
-        element={
-          <ProtectedRoute>
-            <ErrorBoundary>
-              <ModuleLessons />
-            </ErrorBoundary>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/resources/training/:moduleId/:lessonId"
-        element={
-          <ProtectedRoute>
-            <ErrorBoundary>
-              <LessonView />
-            </ErrorBoundary>
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/academy/modules"
         element={
           <ProtectedRoute>

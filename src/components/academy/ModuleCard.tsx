@@ -82,7 +82,7 @@ export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardP
         )}
 
         <Button
-          onClick={() => navigate(`/resources/training/${module.id}`)}
+          onClick={() => navigate(`/academy/modules/${module.id}`)}
           className="w-full"
           size="lg"
         >

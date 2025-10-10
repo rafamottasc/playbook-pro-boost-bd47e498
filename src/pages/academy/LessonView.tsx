@@ -269,7 +269,7 @@ export default function LessonView() {
         <main className="container mx-auto px-4 py-8 max-w-6xl">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/resources/training/${moduleId}`)}
+          onClick={() => navigate(`/academy/modules/${moduleId}`)}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -345,7 +345,7 @@ export default function LessonView() {
 
               {nextLesson && (
                 <Button
-                  onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
+                  onClick={() => navigate(`/academy/modules/${moduleId}/${nextLesson.id}`)}
                   className="w-full"
                 >
                   Ir para próxima aula <ChevronRight className="h-4 w-4 ml-2" />
@@ -395,7 +395,7 @@ export default function LessonView() {
             {/* Next Lesson */}
             {nextLesson && (
               <Button
-                onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
+                onClick={() => navigate(`/academy/modules/${moduleId}/${nextLesson.id}`)}
                 className="w-full"
               >
                 Ir para próxima aula <ChevronRight className="h-4 w-4 ml-2" />

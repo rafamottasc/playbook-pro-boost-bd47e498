@@ -643,7 +643,7 @@ export function LessonsManager() {
                           asChild
                         >
                           <a 
-                            href={`/resources/training/${lesson.module_id}/${lesson.id}`} 
+                            href={`/academy/modules/${lesson.module_id}/${lesson.id}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                           >

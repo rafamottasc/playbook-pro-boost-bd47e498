@@ -145,7 +145,7 @@ export function QuestionsManager() {
           user_id: question.user_id,
           title: "Sua pergunta foi respondida!",
           message: answerText.substring(0, 100) + (answerText.length > 100 ? '...' : ''),
-          link: `/resources/training/${question.module_id}/${question.lesson_id}`,
+          link: `/academy/modules/${question.module_id}/${question.lesson_id}`,
           type: "academy_answer"
         });
 
@@ -184,7 +184,7 @@ export function QuestionsManager() {
           user_id: question.user_id,
           title: "Resposta atualizada",
           message: "A resposta da sua pergunta foi atualizada",
-          link: `/resources/training/${question.module_id}/${question.lesson_id}`,
+          link: `/academy/modules/${question.module_id}/${question.lesson_id}`,
           type: "academy"
         });
 

@@ -162,7 +162,7 @@ export default function Resources() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Academy Card */}
-          <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/resources/training')}>
+          <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/academy/modules')}>
             <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
               <CardTitle className="flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-primary" />

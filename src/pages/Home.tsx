@@ -29,7 +29,7 @@ export default function Home() {
       title: "COMARC Academy",
       description: "Treinamentos completos e materiais de capacitação profissional",
       icon: <GraduationCap className="w-12 h-12" />,
-      route: "/resources/training",
+      route: "/academy/modules",
     },
     {
       title: "Central de Recursos",
