@@ -109,23 +109,12 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
           </div>
         )}
 
-        {(files.length > 0 || links.length > 0 || partner.drive_link) && (
+        {(files.length > 0 || links.length > 0) && (
           <>
             <Separator />
             <div className="space-y-2">
               <p className="text-sm font-medium">Materiais:</p>
               <div className="space-y-1">
-                {partner.drive_link && (
-                  <a
-                    href={partner.drive_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Google Drive
-                  </a>
-                )}
                 {files.map((file) => (
                   <div key={file.id} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0 flex-1">

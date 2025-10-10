@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Copy, Plus, GripVertical } from "lucide-react";
 import {
   Dialog,
-  DialogContent,
+  DraggableDialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -467,7 +467,7 @@ export function MessagesManager() {
               Nova Mensagem
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DraggableDialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingMessage ? "Editar Mensagem" : "Nova Mensagem"}
@@ -549,7 +549,7 @@ export function MessagesManager() {
                 <Button onClick={handleSave}>Salvar</Button>
               </div>
             </div>
-          </DialogContent>
+          </DraggableDialogContent>
         </Dialog>
         </div>
       </div>

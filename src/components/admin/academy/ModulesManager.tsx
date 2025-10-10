@@ -13,7 +13,7 @@ import { resizeImage, validateImageFile } from "@/lib/imageUtils";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   Dialog,
-  DialogContent,
+  DraggableDialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -324,7 +324,7 @@ export function ModulesManager() {
               Novo Módulo
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DraggableDialogContent>
             <DialogHeader>
               <DialogTitle>
                 {editingModule ? "Editar Módulo" : "Novo Módulo"}
@@ -393,7 +393,7 @@ export function ModulesManager() {
                 {uploading ? "Enviando..." : editingModule ? "Atualizar" : "Criar"}
               </Button>
             </form>
-          </DialogContent>
+          </DraggableDialogContent>
         </Dialog>
       </div>
 

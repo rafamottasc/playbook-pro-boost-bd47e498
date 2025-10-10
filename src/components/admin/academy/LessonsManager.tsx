@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Pencil, Trash2, Play, Eye, EyeOff, FileText, Link as LinkIcon, X, ExternalLink as ExternalLinkIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DraggableDialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -403,7 +403,7 @@ export function LessonsManager() {
               Nova Aula
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DraggableDialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingLesson ? "Editar Aula" : "Nova Aula"}
@@ -574,7 +574,7 @@ export function LessonsManager() {
                 {editingLesson ? "Atualizar" : "Criar"}
               </Button>
             </form>
-          </DialogContent>
+          </DraggableDialogContent>
         </Dialog>
       </div>
 

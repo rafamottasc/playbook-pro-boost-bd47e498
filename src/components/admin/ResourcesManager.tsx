@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload } from "lucide-react";
 import {
   Dialog,
-  DialogContent,
+  DraggableDialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -297,7 +297,7 @@ export function ResourcesManager() {
               Novo Recurso
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DraggableDialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingResource ? "Editar Recurso" : "Novo Recurso"}
@@ -434,7 +434,7 @@ export function ResourcesManager() {
                 </Button>
               </div>
             </div>
-          </DialogContent>
+          </DraggableDialogContent>
         </Dialog>
       </div>
 

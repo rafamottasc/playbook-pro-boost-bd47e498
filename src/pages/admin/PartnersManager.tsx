@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
@@ -30,6 +30,9 @@ export default function PartnersManager() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
+
+  // Garantir que isAdmin seja estável durante re-renders
+  const isAdminStable = useMemo(() => true, []);
 
   useEffect(() => {
     loadData();
@@ -190,7 +193,7 @@ export default function PartnersManager() {
                         key={category.id}
                         categoryName={`${category.name}${!category.active ? ' (Inativa)' : ''}`}
                         partners={categoryPartners}
-                        isAdmin
+                        isAdmin={isAdminStable}
                         onEditPartner={handleEditPartner}
                         onDeletePartner={handleDeletePartner}
                       />
