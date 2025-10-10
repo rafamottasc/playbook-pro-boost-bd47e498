@@ -64,6 +64,15 @@ export function SecurityTab() {
                     />
                   </FormControl>
                   <FormMessage />
+                  <p className="text-sm text-muted-foreground">
+                    A senha deve conter:
+                    <ul className="list-disc list-inside mt-1 space-y-0.5">
+                      <li>Mínimo de 8 caracteres</li>
+                      <li>Pelo menos uma letra maiúscula (A-Z)</li>
+                      <li>Pelo menos uma letra minúscula (a-z)</li>
+                      <li>Pelo menos um número (0-9)</li>
+                    </ul>
+                  </p>
                 </FormItem>
               )}
             />
