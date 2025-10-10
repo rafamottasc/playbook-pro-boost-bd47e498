@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Check, Circle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
 import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
@@ -28,6 +28,14 @@ export default function Auth() {
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Validações individuais para cada requisito de senha
+  const requirements = [
+    { met: password.length >= 8, text: "Mínimo de 8 caracteres" },
+    { met: /[A-Z]/.test(password), text: "Pelo menos uma letra maiúscula (A-Z)" },
+    { met: /[a-z]/.test(password), text: "Pelo menos uma letra minúscula (a-z)" },
+    { met: /[0-9]/.test(password), text: "Pelo menos um número (0-9)" },
+  ];
 
   useEffect(() => {
     if (user) {
@@ -412,9 +420,23 @@ export default function Auth() {
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Mínimo 8 caracteres com letra maiúscula, minúscula e número
-                  </p>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-muted-foreground">A senha deve conter:</p>
+                    {requirements.map((req, index) => (
+                      <div key={index} className="flex items-center gap-2 transition-all duration-200">
+                        {req.met ? (
+                          <Check className="h-3 w-3 text-green-600 animate-in zoom-in-50" />
+                        ) : (
+                          <Circle className="h-3 w-3 text-muted-foreground/50" />
+                        )}
+                        <span className={`text-xs transition-colors duration-200 ${
+                          req.met ? "text-green-600 font-medium" : "text-muted-foreground"
+                        }`}>
+                          {req.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Cadastrando..." : "Cadastrar"}
