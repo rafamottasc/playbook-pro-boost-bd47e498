@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React from "react";
 import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2, BookOpen } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import comarcIcon from "@/assets/icone-comarc.png";
 import {
   DropdownMenu,
@@ -20,8 +21,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 const BADGE_THRESHOLDS = [
   { name: "🥉 Iniciante", points: 0, maxPoints: 49 },
@@ -33,43 +34,11 @@ const BADGE_THRESHOLDS = [
 export const Header = function Header() {
   const { theme, setTheme } = useTheme();
   const { user, signOut, isAdmin } = useAuth();
+  const { profile, loading } = useProfile();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null; gender: string | null; points?: number }>({
-    full_name: "Usuário",
-    avatar_url: null,
-    gender: null,
-    points: 0,
-  });
-  const profileCache = useRef<{[key: string]: any}>({});
-
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
-    if (!user) return;
-    
-    // Check cache first
-    if (profileCache.current[user.id]) {
-      setProfile(profileCache.current[user.id]);
-      return;
-    }
-    
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("full_name, avatar_url, gender, points")
-      .eq("id", user.id)
-      .maybeSingle();
-    
-    if (data) {
-      profileCache.current[user.id] = data;
-      setProfile(data);
-    }
-  };
 
   const getWelcomeMessage = () => {
+    if (!profile) return "";
     const firstName = profile.full_name.split(" ")[0];
     
     if (profile.gender === "feminino") {
@@ -80,7 +49,7 @@ export const Header = function Header() {
     return `Olá ${firstName}`;
   };
 
-  const userPoints = profile.points || 0;
+  const userPoints = profile?.points || 0;
   
   const currentBadge = [...BADGE_THRESHOLDS]
     .reverse()
@@ -130,25 +99,36 @@ export const Header = function Header() {
 
           {/* User Profile with Gamification */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:block text-right">
-              <p className="text-sm font-medium text-primary">{getWelcomeMessage()}</p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {currentBadge.name}
-                </span>
-                <span className="text-xs font-bold text-primary">{userPoints} pts</span>
+            {loading ? (
+              <div className="hidden md:block text-right space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
               </div>
-            </div>
+            ) : profile ? (
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-medium text-primary">{getWelcomeMessage()}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {currentBadge.name}
+                  </span>
+                  <span className="text-xs font-bold text-primary">{userPoints} pts</span>
+                </div>
+              </div>
+            ) : null}
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                  <Avatar className="h-10 w-10 border-2 border-primary">
-                    <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} />
-                    <AvatarFallback className="bg-gradient-primary text-white font-semibold">
-                      {profile.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  {loading ? (
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                  ) : (
+                    <Avatar className="h-10 w-10 border-2 border-primary">
+                      <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || "User"} />
+                      <AvatarFallback className="bg-gradient-primary text-white font-semibold">
+                        {profile?.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
