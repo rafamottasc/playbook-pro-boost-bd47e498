@@ -347,7 +347,7 @@ export function PartnerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DraggableDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DraggableDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto px-4 sm:px-6">
         <DialogHeader>
           <DialogTitle>
             {partner ? "Editar Construtora" : "Nova Construtora"}
@@ -531,7 +531,7 @@ export function PartnerModal({
                   
                   <div className="space-y-2 mt-4">
                     {files.map((file) => (
-                      <div key={file.id} className="flex items-center justify-between p-3 border rounded">
+                      <div key={file.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded gap-3">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <FileIcon className="h-4 w-4 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
@@ -541,26 +541,31 @@ export function PartnerModal({
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="flex-1 sm:flex-none"
                             onClick={() => window.open(file.file_url, '_blank')}
                           >
-                            👁️ Ver
+                            <span className="sm:hidden">👁️</span>
+                            <span className="hidden sm:inline">👁️ Ver</span>
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
+                            className="flex-1 sm:flex-none"
                             asChild
                           >
                             <a href={file.file_url} download={file.file_name}>
-                              ⬇️ Download
+                              <span className="sm:hidden">⬇️</span>
+                              <span className="hidden sm:inline">⬇️ Download</span>
                             </a>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="flex-shrink-0"
                             onClick={() => deleteFile(file)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -597,7 +602,7 @@ export function PartnerModal({
 
                   <div className="space-y-2">
                     {links.map((link) => (
-                      <div key={link.id} className="flex items-center justify-between p-3 border rounded">
+                      <div key={link.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded gap-3">
                         {editingLink?.id === link.id ? (
                           <div className="flex-1 space-y-2 mr-2">
                             <Input
@@ -619,17 +624,27 @@ export function PartnerModal({
                           </div>
                         ) : (
                           <>
-                            <div className="flex items-center gap-2 flex-1">
-                              <ExternalLink className="h-4 w-4" />
-                              <div>
-                                <p className="font-medium">{link.title}</p>
-                                <p className="text-xs text-muted-foreground truncate max-w-md">{link.url}</p>
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{link.title}</p>
+                                <p className="text-xs text-muted-foreground truncate">{link.url}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 sm:flex-none"
+                                onClick={() => window.open(normalizeUrl(link.url), '_blank')}
+                              >
+                                <span className="sm:hidden">🔗</span>
+                                <span className="hidden sm:inline">Abrir</span>
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="flex-shrink-0"
                                 onClick={() => setEditingLink(link)}
                               >
                                 <Pencil className="h-4 w-4" />
@@ -637,6 +652,7 @@ export function PartnerModal({
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="flex-shrink-0"
                                 onClick={() => deleteLink(link.id)}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
