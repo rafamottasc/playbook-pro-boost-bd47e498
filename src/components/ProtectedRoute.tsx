@@ -9,11 +9,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false, requireApproved = true }: ProtectedRouteProps) {
-  const { user, loading, isAdmin, isApproved } = useAuth();
+  const { user, loading, initializing, isAdmin, isApproved } = useAuth();
 
-  console.log('[ProtectedRoute] Debug:', { user: user?.email, loading, isAdmin, isApproved, requireApproved });
+  console.log('[ProtectedRoute] Debug:', { user: user?.email, loading, initializing, isAdmin, isApproved, requireApproved });
 
-  if (loading) {
+  if (loading || initializing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
