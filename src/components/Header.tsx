@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2 } from "lucide-react";
+import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2, BookOpen } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -168,6 +168,10 @@ export const Header = function Header() {
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                   <User className="mr-2 h-4 w-4" />
                   Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/academy/modules")}>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Comarc Academy
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/playbooks")}>
                   <MessageSquare className="mr-2 h-4 w-4" />
