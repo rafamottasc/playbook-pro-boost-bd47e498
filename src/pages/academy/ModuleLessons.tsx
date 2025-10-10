@@ -25,6 +25,13 @@ interface Lesson {
   display_order: number;
 }
 
+interface LessonProgress {
+  [lessonId: string]: {
+    watched: boolean;
+    progress: number;
+  };
+}
+
 export default function ModuleLessons() {
   const { moduleId } = useParams();
   const navigate = useNavigate();
@@ -33,6 +40,7 @@ export default function ModuleLessons() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [completedCount, setCompletedCount] = useState(0);
+  const [lessonsProgress, setLessonsProgress] = useState<LessonProgress>({});
 
   useEffect(() => {
     if (moduleId) {
@@ -63,17 +71,29 @@ export default function ModuleLessons() {
       if (lessonsError) throw lessonsError;
       setLessons(lessonsData || []);
 
-      // Fetch completed lessons count
-      if (user && lessonsData) {
+      // Fetch all progress data for all lessons in one query
+      if (user && lessonsData && lessonsData.length > 0) {
         const lessonIds = lessonsData.map(l => l.id);
-        const { count } = await supabase
+        const { data: progressData } = await supabase
           .from('user_lesson_progress')
-          .select('*', { count: 'exact', head: true })
+          .select('lesson_id, watched, completed_percentage')
           .eq('user_id', user.id)
-          .in('lesson_id', lessonIds)
-          .eq('watched', true);
+          .in('lesson_id', lessonIds);
 
-        setCompletedCount(count || 0);
+        // Build progress map
+        const progressMap: LessonProgress = {};
+        let completed = 0;
+        
+        progressData?.forEach(p => {
+          progressMap[p.lesson_id] = {
+            watched: p.watched,
+            progress: p.completed_percentage || 0
+          };
+          if (p.watched) completed++;
+        });
+
+        setLessonsProgress(progressMap);
+        setCompletedCount(completed);
       }
     } catch (error) {
       console.error('Error fetching module and lessons:', error);
@@ -156,14 +176,19 @@ export default function ModuleLessons() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {lessons.map((lesson, index) => (
-              <LessonCard
-                key={lesson.id}
-                lesson={lesson}
-                moduleId={moduleId!}
-                lessonNumber={index + 1}
-              />
-            ))}
+            {lessons.map((lesson, index) => {
+              const progress = lessonsProgress[lesson.id];
+              return (
+                <LessonCard
+                  key={lesson.id}
+                  lesson={lesson}
+                  moduleId={moduleId!}
+                  lessonNumber={index + 1}
+                  isWatched={progress?.watched || false}
+                  progress={progress?.progress || 0}
+                />
+              );
+            })}
           </div>
         )}
       </main>

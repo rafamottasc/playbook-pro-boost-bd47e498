@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -17,54 +14,12 @@ interface Module {
 
 interface ModuleCardProps {
   module: Module;
+  lessonsCount: number;
+  completedCount: number;
 }
 
-export function ModuleCard({ module }: ModuleCardProps) {
+export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [lessonsCount, setLessonsCount] = useState(0);
-  const [completedCount, setCompletedCount] = useState(0);
-
-  useEffect(() => {
-    fetchModuleStats();
-  }, [module.id, user]);
-
-  const fetchModuleStats = async () => {
-    try {
-      // Contar apenas aulas publicadas do módulo
-      const { count: totalLessons } = await supabase
-        .from('academy_lessons')
-        .select('*', { count: 'exact', head: true })
-        .eq('module_id', module.id)
-        .eq('published', true);
-
-      setLessonsCount(totalLessons || 0);
-
-      if (!user) return;
-
-      // Get completed lessons count (apenas publicadas)
-      const { data: lessons } = await supabase
-        .from('academy_lessons')
-        .select('id')
-        .eq('module_id', module.id)
-        .eq('published', true);
-
-      if (!lessons) return;
-
-      const lessonIds = lessons.map(l => l.id);
-
-      const { count: completed } = await supabase
-        .from('user_lesson_progress')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .in('lesson_id', lessonIds)
-        .eq('watched', true);
-
-      setCompletedCount(completed || 0);
-    } catch (error) {
-      console.error('Error fetching module stats:', error);
-    }
-  };
 
   const progress = lessonsCount > 0 ? (completedCount / lessonsCount) * 100 : 0;
   const isCompleted = lessonsCount > 0 && completedCount === lessonsCount;
@@ -115,14 +70,14 @@ export function ModuleCard({ module }: ModuleCardProps) {
             <BookOpen className="h-4 w-4" />
             <span>{lessonsCount} {lessonsCount === 1 ? 'aula' : 'aulas'}</span>
           </div>
-          {user && lessonsCount > 0 && (
-            <span className="text-sm font-medium">
-              {completedCount}/{lessonsCount}
-            </span>
-          )}
+        {lessonsCount > 0 && completedCount > 0 && (
+          <span className="text-sm font-medium">
+            {completedCount}/{lessonsCount}
+          </span>
+        )}
         </div>
 
-        {user && lessonsCount > 0 && (
+        {lessonsCount > 0 && completedCount > 0 && (
           <Progress value={progress} className="h-2 mb-3" />
         )}
 

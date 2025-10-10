@@ -19,6 +19,8 @@ interface Module {
   description: string | null;
   cover_url: string | null;
   display_order: number;
+  lessonsCount?: number;
+  completedCount?: number;
 }
 
 export default function AcademyModules() {
@@ -68,15 +70,54 @@ export default function AcademyModules() {
 
   const fetchModules = async () => {
     try {
-      // Usuários comuns só veem módulos publicados
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // Fetch modules with lesson counts in a single query
+      const { data: modulesData, error: modulesError } = await supabase
         .from('academy_modules')
         .select('*')
         .eq('published', true)
         .order('display_order', { ascending: true });
 
-      if (error) throw error;
-      setModules(data || []);
+      if (modulesError) throw modulesError;
+
+      // Fetch all lesson IDs and completion data in one query
+      const { data: lessonsData } = await supabase
+        .from('academy_lessons')
+        .select('id, module_id')
+        .eq('published', true);
+
+      const { data: userData } = await supabase.auth.getUser();
+      let progressData = [];
+      
+      if (userData.user) {
+        const { data } = await supabase
+          .from('user_lesson_progress')
+          .select('lesson_id')
+          .eq('user_id', userData.user.id)
+          .eq('watched', true);
+        progressData = data || [];
+      }
+
+      // Build stats map
+      const statsMap = new Map();
+      modulesData?.forEach(module => {
+        const moduleLessons = lessonsData?.filter(l => l.module_id === module.id) || [];
+        const completedLessons = moduleLessons.filter(l => 
+          progressData.some(p => p.lesson_id === l.id)
+        );
+        
+        statsMap.set(module.id, {
+          lessonsCount: moduleLessons.length,
+          completedCount: completedLessons.length
+        });
+      });
+
+      setModules(modulesData?.map(m => ({
+        ...m,
+        lessonsCount: statsMap.get(m.id)?.lessonsCount || 0,
+        completedCount: statsMap.get(m.id)?.completedCount || 0
+      })) || []);
     } catch (error: any) {
       console.error('Error fetching modules:', error);
       toast({
@@ -171,7 +212,11 @@ export default function AcademyModules() {
                     key={module.id} 
                     className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_25%] xl:flex-[0_0_20%]"
                   >
-                    <ModuleCard module={module} />
+                    <ModuleCard 
+                      module={module} 
+                      lessonsCount={module.lessonsCount || 0}
+                      completedCount={module.completedCount || 0}
+                    />
                   </div>
                 ))}
               </div>

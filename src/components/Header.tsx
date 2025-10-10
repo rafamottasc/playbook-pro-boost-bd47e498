@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ const BADGE_THRESHOLDS = [
   { name: "Mestre da Conversão", points: 200, icon: "🏆" },
 ];
 
-export function Header() {
+export const Header = memo(function Header() {
   const { theme, setTheme } = useTheme();
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -193,4 +193,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+});

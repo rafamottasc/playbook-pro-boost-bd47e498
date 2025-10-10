@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Play, CheckCircle2, Clock, Award } from "lucide-react";
 import { getYouTubeThumbnail } from "@/lib/youtube";
 import { Progress } from "@/components/ui/progress";
@@ -22,40 +19,12 @@ interface LessonCardProps {
   lesson: Lesson;
   moduleId: string;
   lessonNumber: number;
+  isWatched?: boolean;
+  progress?: number;
 }
 
-export function LessonCard({ lesson, moduleId, lessonNumber }: LessonCardProps) {
+export function LessonCard({ lesson, moduleId, lessonNumber, isWatched = false, progress = 0 }: LessonCardProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isWatched, setIsWatched] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    if (user) {
-      fetchProgress();
-    }
-  }, [user, lesson.id]);
-
-  const fetchProgress = async () => {
-    if (!user) return;
-
-    try {
-      const { data } = await supabase
-        .from('user_lesson_progress')
-        .select('watched, completed_percentage')
-        .eq('user_id', user.id)
-        .eq('lesson_id', lesson.id)
-        .single();
-
-      if (data) {
-        setIsWatched(data.watched);
-        setProgress(data.completed_percentage || 0);
-      }
-    } catch (error) {
-      // Progress not found, that's ok
-    }
-  };
-
   const thumbnail = getYouTubeThumbnail(lesson.video_url);
 
   return (
@@ -120,7 +89,7 @@ export function LessonCard({ lesson, moduleId, lessonNumber }: LessonCardProps) 
           </div>
         </div>
 
-        {user && progress > 0 && !isWatched && (
+        {progress > 0 && !isWatched && (
           <div className="mb-4">
             <Progress value={progress} className="h-2" />
             <p className="text-xs text-muted-foreground mt-1">

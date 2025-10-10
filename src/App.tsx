@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +11,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Home from "./pages/Home";
 import Playbooks from "./pages/Playbooks";
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
 import Resources from "./pages/Resources";
 import Profile from "./pages/Profile";
 import Campaigns from "./pages/Campaigns";
@@ -19,23 +18,29 @@ import NotFound from "./pages/NotFound";
 import Notifications from "./pages/Notifications";
 import PendingApproval from "./pages/PendingApproval";
 import AcademyModules from "./pages/academy/AcademyModules";
-import ModuleLessons from "./pages/academy/ModuleLessons";
-import LessonView from "./pages/academy/LessonView";
-import PartnersView from "./pages/campaigns/PartnersView";
-import PartnersManager from "./pages/admin/PartnersManager";
+
+// Lazy load heavy routes
+const Admin = lazy(() => import("./pages/Admin"));
+const ModuleLessons = lazy(() => import("./pages/academy/ModuleLessons"));
+const LessonView = lazy(() => import("./pages/academy/LessonView"));
+const PartnersView = lazy(() => import("./pages/campaigns/PartnersView"));
+const PartnersManager = lazy(() => import("./pages/admin/PartnersManager"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
+      staleTime: 1000 * 60 * 10, // 10 minutes for better caching
+      gcTime: 1000 * 60 * 30, // 30 minutes cache retention (formerly cacheTime)
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
 function AppRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Carregando...</div>}>
+      <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route 
         path="/pending-approval" 
@@ -148,7 +153,8 @@ function AppRoutes() {
         }
       />
       <Route path="*" element={<NotFound />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
 
