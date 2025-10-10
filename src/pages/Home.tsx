@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,9 @@ import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settin
 import { useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
+import { DailyMoodCard } from "@/components/DailyMoodCard";
+import { FeedbackCard } from "@/components/FeedbackCard";
+import { FeedbackModal } from "@/components/FeedbackModal";
 
 interface NavCard {
   title: string;
@@ -18,6 +21,7 @@ interface NavCard {
 export default function Home() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
   const navigationCards: NavCard[] = [
     {
@@ -77,6 +81,9 @@ export default function Home() {
           {/* Announcement Banner */}
           <AnnouncementBanner />
 
+          {/* Daily Mood Card */}
+          <DailyMoodCard />
+
           {/* Navigation Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {visibleCards.map((card, index) => (
@@ -99,7 +106,16 @@ export default function Home() {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Feedback Card */}
+            <FeedbackCard onClick={() => setFeedbackModalOpen(true)} />
           </div>
+
+          {/* Feedback Modal */}
+          <FeedbackModal 
+            open={feedbackModalOpen} 
+            onOpenChange={setFeedbackModalOpen} 
+          />
         </main>
       </PageTransition>
     </div>

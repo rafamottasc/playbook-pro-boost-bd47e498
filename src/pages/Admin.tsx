@@ -9,7 +9,9 @@ import { UsersManager } from "@/components/admin/UsersManager";
 import { AcademyManager } from "@/components/admin/AcademyManager";
 import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import PartnersManager from "@/pages/admin/PartnersManager";
-import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone } from "lucide-react";
+import { MoodMetrics } from "@/components/admin/MoodMetrics";
+import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
+import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle } from "lucide-react";
 
 export default function Admin() {
   return (
@@ -53,6 +55,14 @@ export default function Admin() {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Usuários</span>
             </TabsTrigger>
+            <TabsTrigger value="mood" className="gap-2">
+              <Smile className="h-4 w-4" />
+              <span className="hidden sm:inline">Clima</span>
+            </TabsTrigger>
+            <TabsTrigger value="feedbacks" className="gap-2">
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Feedbacks</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="messages">
@@ -85,6 +95,14 @@ export default function Admin() {
 
           <TabsContent value="users">
             <UsersManager />
+          </TabsContent>
+
+          <TabsContent value="mood">
+            <MoodMetrics />
+          </TabsContent>
+
+          <TabsContent value="feedbacks">
+            <FeedbacksManager />
           </TabsContent>
         </Tabs>
       </main>
