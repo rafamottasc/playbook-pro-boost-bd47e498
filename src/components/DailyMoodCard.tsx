@@ -62,10 +62,10 @@ export function DailyMoodCard() {
       <Card className="border border-border/50 bg-card hover:border-primary/30 transition-colors animate-fade-in">
         <CardHeader className="text-center pb-3 pt-4 px-4">
           <CardTitle className="text-lg font-medium">
-            Como você está hoje?
+            Olá, {userName}! 👋
           </CardTitle>
           <CardDescription className="text-sm">
-            Olá, {userName}! 😊
+            Como você está se sentindo hoje?
           </CardDescription>
         </CardHeader>
         <CardContent className="px-3 sm:px-6 pb-4">
