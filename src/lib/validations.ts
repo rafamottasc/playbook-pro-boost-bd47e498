@@ -61,7 +61,7 @@ export const profileUpdateSchema = z.object({
     .trim()
     .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: "WhatsApp inválido. Use o formato (XX) XXXXX-XXXX" }),
   gender: z.enum(["Masculino", "Feminino", ""]).optional(),
-  team: z.enum(["Equipe Leão", "Equipe Lobo", "Equipe Águia", ""]).optional(),
+  team: z.string().optional(),
 });
 
 // Message validation schemas

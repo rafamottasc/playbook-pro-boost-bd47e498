@@ -309,15 +309,15 @@ export default function Profile() {
               <div className="space-y-2">
                 <Label htmlFor="team">Equipe</Label>
                 <Select
-                  value={profile.team || ""}
-                  onValueChange={(value) => setProfile({ ...profile, team: value })}
+                  value={profile.team || "none"}
+                  onValueChange={(value) => setProfile({ ...profile, team: value === "none" ? "" : value })}
                   disabled={loading}
                 >
                   <SelectTrigger id="team">
                     <SelectValue placeholder="Selecione sua equipe" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma equipe</SelectItem>
+                    <SelectItem value="none">Nenhuma equipe</SelectItem>
                     <SelectItem value="Equipe Leão">🦁 Equipe Leão</SelectItem>
                     <SelectItem value="Equipe Lobo">🐺 Equipe Lobo</SelectItem>
                     <SelectItem value="Equipe Águia">🦅 Equipe Águia</SelectItem>
