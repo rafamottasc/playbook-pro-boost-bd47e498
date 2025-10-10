@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,8 +37,36 @@ export function SecurityTab() {
     { met: /[0-9]/.test(password), text: "Pelo menos um número (0-9)" },
   ];
 
+  // Validação em tempo real para verificar se as senhas coincidem
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "confirmPassword" && value.confirmPassword && value.newPassword) {
+        if (value.newPassword !== value.confirmPassword) {
+          form.setError("confirmPassword", {
+            type: "manual",
+            message: "As senhas não coincidem",
+          });
+        } else {
+          form.clearErrors("confirmPassword");
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   const onSubmit = async (data: ChangePasswordInput) => {
     console.log("onSubmit chamado com:", data);
+    
+    // Validação manual de senhas coincidentes
+    if (data.newPassword !== data.confirmPassword) {
+      toast.error("As senhas não coincidem");
+      form.setError("confirmPassword", {
+        type: "manual",
+        message: "As senhas não coincidem",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
@@ -59,17 +87,10 @@ export function SecurityTab() {
   const onError = (errors: any) => {
     console.log("Erros de validação:", errors);
     
-    // Processar todos os erros e mostrar o primeiro
-    if (errors.confirmPassword) {
-      toast.error(errors.confirmPassword.message);
-    } else if (errors.newPassword) {
+    if (errors.newPassword) {
       toast.error(errors.newPassword.message);
-    } else {
-      // Fallback para qualquer outro erro
-      const firstError = Object.values(errors)[0] as any;
-      if (firstError?.message) {
-        toast.error(firstError.message);
-      }
+    } else if (errors.confirmPassword) {
+      toast.error(errors.confirmPassword.message);
     }
   };
 
