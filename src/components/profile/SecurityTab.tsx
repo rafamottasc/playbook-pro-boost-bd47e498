@@ -18,6 +18,7 @@ export function SecurityTab() {
 
   const form = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
+    mode: "onChange",
     defaultValues: {
       newPassword: "",
       confirmPassword: "",
@@ -36,6 +37,7 @@ export function SecurityTab() {
   ];
 
   const onSubmit = async (data: ChangePasswordInput) => {
+    console.log("onSubmit chamado com:", data);
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
@@ -53,6 +55,14 @@ export function SecurityTab() {
     }
   };
 
+  const onError = (errors: any) => {
+    console.log("Erros de validação:", errors);
+    const firstError = Object.values(errors)[0] as any;
+    if (firstError?.message) {
+      toast.error(firstError.message);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -63,7 +73,7 @@ export function SecurityTab() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
             <FormField
               control={form.control}
               name="newPassword"
