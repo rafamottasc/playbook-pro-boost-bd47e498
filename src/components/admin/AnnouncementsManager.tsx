@@ -500,7 +500,7 @@ export function AnnouncementsManager() {
 
                       {/* Content Section */}
                       <div className="flex-1 min-w-0 pr-10">
-                        <h3 className={cn("text-xl font-bold mb-2", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
+                        <h3 className={cn("text-2xl font-bold mb-1", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
                           {formData.title || "Título do aviso"}
                         </h3>
                         <p className="text-base text-foreground/90 leading-relaxed">

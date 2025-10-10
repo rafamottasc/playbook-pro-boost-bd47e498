@@ -144,7 +144,7 @@ export function AnnouncementBanner() {
 
             {/* Content Section */}
             <div className="flex-1 min-w-0 pr-10">
-              <h3 className={cn("text-xl font-bold mb-2", styles.icon)}>
+              <h3 className={cn("font-bold mb-1", isMobile ? "text-xl" : "text-2xl", styles.icon)}>
                 {announcement.title}
               </h3>
               <div className={cn(
