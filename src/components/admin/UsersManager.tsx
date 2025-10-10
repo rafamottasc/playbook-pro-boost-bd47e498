@@ -625,7 +625,7 @@ export function UsersManager() {
                           variant="default"
                           onClick={() => toggleApproval(user.id, user.approved)}
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700 flex-1 min-w-[140px]"
+                          className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-auto min-w-[140px]"
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                           <span className="text-xs">Aprovar</span>
@@ -636,7 +636,7 @@ export function UsersManager() {
                         variant={user.roles.includes("admin") ? "destructive" : "default"}
                         onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
                         size="sm"
-                        className="flex-1 min-w-[120px]"
+                        className="flex-1 sm:flex-auto min-w-[120px]"
                       >
                         {user.roles.includes("admin") ? (
                           <>
@@ -657,7 +657,7 @@ export function UsersManager() {
                         variant={user.blocked ? "default" : "outline"}
                         onClick={() => toggleBlockUser(user.id, user.blocked)}
                         size="sm"
-                        className={`flex-1 min-w-[100px] ${
+                        className={`flex-1 sm:flex-auto min-w-[100px] ${
                           !user.blocked 
                             ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-500 dark:text-yellow-400" 
                             : ""
@@ -680,7 +680,7 @@ export function UsersManager() {
                         variant="outline"
                         onClick={() => setDeleteUserId(user.id)}
                         size="sm"
-                        className="border-orange-600 text-orange-700 hover:bg-orange-600 hover:text-white flex-1 min-w-[100px]"
+                        className="border-orange-600 text-orange-700 hover:bg-orange-600 hover:text-white flex-1 sm:flex-auto min-w-[100px]"
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         <span className="text-xs">Excluir</span>
