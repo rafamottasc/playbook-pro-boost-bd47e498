@@ -152,6 +152,36 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/academy/modules"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <AcademyModules />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/academy/modules/:moduleId"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <ModuleLessons />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/academy/modules/:moduleId/:lessonId"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LessonView />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
