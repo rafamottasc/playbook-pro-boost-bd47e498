@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronRight, FileText, ExternalLink } from "lucide-react";
 import { VideoPlayer } from "@/components/academy/VideoPlayer";
@@ -43,6 +44,7 @@ export default function LessonView() {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refreshProfile } = useProfile();
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
@@ -223,6 +225,7 @@ export default function LessonView() {
       });
       
       await fetchLessonData();
+      await refreshProfile();
     } catch (error) {
       console.error('Error updating progress:', error);
       toast.error("Erro ao marcar aula como concluída");
@@ -263,8 +266,8 @@ export default function LessonView() {
 
       setIsLessonCompleted(false);
       
-      // Recalculate module progress
       await fetchLessonData();
+      await refreshProfile();
       
       toast.success("Aula desmarcada", {
         description: `${lesson.points} pontos removidos`
