@@ -424,7 +424,7 @@ export default function Index() {
       if (!error) {
         toast({
           title: "✅ Mensagem copiada (+5 pts)",
-          description: "Continue interagindo para ganhar mais pontos!",
+          description: "Cole no WhatsApp e personalize com os dados do cliente. Continue interagindo para ganhar mais pontos!",
         });
       }
     } catch (error) {
@@ -586,8 +586,8 @@ export default function Index() {
         });
       } else {
         toast({
-          title: "Sugestão enviada!",
-          description: "Sua sugestão foi enviada para análise do administrador",
+          title: "✅ Sugestão enviada ao Master! (+5 pts)",
+          description: "Sua sugestão será analisada e pode melhorar os playbooks para todos.",
         });
       }
     } catch (error: any) {
