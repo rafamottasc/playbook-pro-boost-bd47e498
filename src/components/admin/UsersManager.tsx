@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock } from "lucide-react";
+import { formatPhone } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -383,7 +384,7 @@ export function UsersManager() {
                             className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
                           >
                             <Phone className="h-4 w-4 flex-shrink-0" />
-                            <span>{user.whatsapp}</span>
+                            <span>{formatPhone(user.whatsapp)}</span>
                           </a>
                         </div>
                       )}

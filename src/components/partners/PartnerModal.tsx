@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
 import { ExternalLink, Trash2, Plus, BookOpen, Building2, FileIcon, Pencil, AlertCircle } from "lucide-react";
+import { formatPhone, unformatPhone } from "@/lib/utils";
 
 const normalizeUrl = (url: string): string => {
   if (!url) return "";
@@ -130,7 +131,7 @@ export function PartnerModal({
         name: partner.name,
         manager_name: partner.manager_name || "",
         manager_email: partner.manager_email || "",
-        manager_phone: partner.manager_phone || "",
+        manager_phone: formatPhone(partner.manager_phone || ""),
         drive_link: partner.drive_link || "",
         observations: partner.observations || "",
       });
@@ -187,7 +188,10 @@ export function PartnerModal({
       if (partner) {
         const { error } = await supabase
           .from("partners")
-          .update(data)
+          .update({
+            ...data,
+            manager_phone: data.manager_phone ? unformatPhone(data.manager_phone) : null
+          })
           .eq("id", partner.id);
         if (error) throw error;
         toast.success("Construtora atualizada com sucesso!");
@@ -196,7 +200,11 @@ export function PartnerModal({
       } else {
         const { data: newPartner, error } = await supabase
           .from("partners")
-          .insert({ ...data, category_id: finalCategoryId })
+          .insert({ 
+            ...data, 
+            category_id: finalCategoryId,
+            manager_phone: data.manager_phone ? unformatPhone(data.manager_phone) : null
+          })
           .select()
           .single();
         
@@ -450,7 +458,14 @@ export function PartnerModal({
                       <FormItem>
                         <FormLabel>Telefone</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input 
+                            {...field} 
+                            placeholder="(47) 99663-3255"
+                            onChange={(e) => {
+                              const formatted = formatPhone(e.target.value);
+                              field.onChange(formatted);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

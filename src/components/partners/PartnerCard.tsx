@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { formatPhone } from "@/lib/utils";
 
 interface PartnerFile {
   id: string;
@@ -83,7 +84,7 @@ export function PartnerCard({ partner, isAdmin, onEdit, onDelete }: PartnerCardP
             <div className="flex items-center gap-2 text-sm">
               <Phone className="h-4 w-4 text-muted-foreground" />
               <a href={`tel:${partner.manager_phone}`} className="hover:underline">
-                {partner.manager_phone}
+                {formatPhone(partner.manager_phone)}
               </a>
             </div>
           </div>

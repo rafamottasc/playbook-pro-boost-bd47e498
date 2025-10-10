@@ -17,6 +17,7 @@ import { ZodError } from "zod";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { validateImageFile } from "@/lib/imageUtils";
 import { SecurityTab } from "@/components/profile/SecurityTab";
+import { formatPhone, unformatPhone } from "@/lib/utils";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -49,7 +50,10 @@ export default function Profile() {
       .maybeSingle();
 
     if (!error && data) {
-      setProfile(data);
+      setProfile({
+        ...data,
+        whatsapp: formatPhone(data.whatsapp)
+      });
     }
   };
 
@@ -146,7 +150,7 @@ export default function Profile() {
         .from("profiles")
         .update({
           full_name: validated.fullName,
-          whatsapp: validated.whatsapp,
+          whatsapp: unformatPhone(validated.whatsapp),
           gender: profile.gender || null,
         })
         .eq("id", user.id);
@@ -281,8 +285,12 @@ export default function Profile() {
                 <Label htmlFor="whatsapp">WhatsApp</Label>
                 <Input
                   id="whatsapp"
+                  placeholder="(47) 99601-5008"
                   value={profile.whatsapp}
-                  onChange={(e) => setProfile({ ...profile, whatsapp: e.target.value })}
+                  onChange={(e) => {
+                    const formatted = formatPhone(e.target.value);
+                    setProfile({ ...profile, whatsapp: formatted });
+                  }}
                   disabled={loading}
                 />
               </div>
