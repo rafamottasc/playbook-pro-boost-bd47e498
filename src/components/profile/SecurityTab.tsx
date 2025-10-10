@@ -176,7 +176,6 @@ export function SecurityTab() {
                       </button>
                     </div>
                   </FormControl>
-                  <FormMessage />
                   {form.formState.errors.confirmPassword && (
                     <div className="flex items-center gap-2 mt-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md">
                       <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
