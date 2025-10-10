@@ -31,6 +31,28 @@ export const useProfile = () => {
     }
 
     loadProfile();
+
+    // Listen for profile updates from other components
+    const handleProfileUpdate = (event: CustomEvent) => {
+      const { avatar_url } = event.detail;
+      
+      setProfile(prev => {
+        if (!prev) return prev;
+        
+        const updatedProfile = { ...prev, avatar_url };
+        
+        // Update cache immediately
+        setCachedProfile(user.id, updatedProfile);
+        
+        return updatedProfile;
+      });
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate as EventListener);
+    };
   }, [user]);
 
   const loadProfile = async () => {

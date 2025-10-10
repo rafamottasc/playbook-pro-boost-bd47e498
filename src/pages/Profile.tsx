@@ -119,6 +119,13 @@ export default function Profile() {
       if (updateError) throw updateError;
 
       setProfile({ ...profile, avatar_url: publicUrl });
+      
+      // Clear cache and notify Header
+      localStorage.removeItem("user_profile_cache");
+      window.dispatchEvent(new CustomEvent('profile-updated', { 
+        detail: { avatar_url: publicUrl } 
+      }));
+      
       toast({
         title: "Foto atualizada!",
         description: "Sua foto de perfil foi atualizada com sucesso",
