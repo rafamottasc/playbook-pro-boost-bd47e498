@@ -134,6 +134,7 @@ export function PartnerModal({
         manager_phone: formatPhone(partner.manager_phone || ""),
         drive_link: partner.drive_link || "",
         observations: partner.observations || "",
+        active: partner.active ?? true,
       });
       loadLinks();
       loadFiles();
