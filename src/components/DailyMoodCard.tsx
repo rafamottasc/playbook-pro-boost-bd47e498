@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Smile, Meh, Frown, ThumbsDown, CloudOff } from "lucide-react";
+import { Smile, Meh, Frown, ThumbsDown } from "lucide-react";
 import { useDailyMood, MoodType } from "@/hooks/useDailyMood";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -58,19 +58,18 @@ export function DailyMoodCard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mb-8 px-4">
-      <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-background to-primary/10 shadow-comarc animate-fade-in">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-2xl flex items-center justify-center gap-2">
-            <CloudOff className="h-6 w-6 text-primary" />
-            Como você está se sentindo hoje?
+    <div className="max-w-4xl mx-auto mb-6 px-4">
+      <Card className="border border-border/50 bg-card hover:border-primary/30 transition-colors animate-fade-in">
+        <CardHeader className="text-center pb-3 pt-4 px-4">
+          <CardTitle className="text-lg font-medium">
+            Como você está hoje?
           </CardTitle>
-          <CardDescription className="text-base">
-            Olá, {userName}! Nos ajude a entender como você está 😊
+          <CardDescription className="text-sm">
+            Olá, {userName}! 😊
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+        <CardContent className="px-3 sm:px-6 pb-4">
+          <div className="grid grid-cols-5 gap-2 sm:gap-3">
             {moodOptions.map((mood) => {
               const Icon = mood.icon;
               return (
@@ -79,15 +78,17 @@ export function DailyMoodCard() {
                   onClick={() => handleMoodClick(mood.value)}
                   disabled={submitting}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-2 p-4 rounded-lg",
-                    "border-2 border-border transition-all duration-300",
-                    "hover:scale-105 hover:shadow-lg hover:border-primary/50",
+                    "flex flex-col items-center justify-center gap-1 sm:gap-2",
+                    "p-2 sm:p-3 rounded-lg",
+                    "border border-border/50 transition-all duration-300",
+                    "hover:scale-[1.02] sm:hover:scale-105 hover:shadow-md hover:border-primary/40",
+                    "active:scale-95",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
                     mood.color
                   )}
                 >
-                  <span className="text-4xl">{mood.emoji}</span>
-                  <span className="text-sm font-medium text-foreground">{mood.label}</span>
+                  <span className="text-2xl sm:text-3xl">{mood.emoji}</span>
+                  <span className="text-xs sm:text-sm font-medium text-foreground">{mood.label}</span>
                 </button>
               );
             })}
