@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Check, Circle } from "lucide-react";
 
 export function SecurityTab() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,17 @@ export function SecurityTab() {
       confirmPassword: "",
     },
   });
+
+  // Observar senha em tempo real
+  const password = form.watch("newPassword") || "";
+
+  // Validações individuais para cada requisito
+  const requirements = [
+    { met: password.length >= 8, text: "Mínimo de 8 caracteres" },
+    { met: /[A-Z]/.test(password), text: "Pelo menos uma letra maiúscula (A-Z)" },
+    { met: /[a-z]/.test(password), text: "Pelo menos uma letra minúscula (a-z)" },
+    { met: /[0-9]/.test(password), text: "Pelo menos um número (0-9)" },
+  ];
 
   const onSubmit = async (data: ChangePasswordInput) => {
     setIsLoading(true);
@@ -64,15 +76,23 @@ export function SecurityTab() {
                     />
                   </FormControl>
                   <FormMessage />
-                  <p className="text-sm text-muted-foreground">
-                    A senha deve conter:
-                    <ul className="list-disc list-inside mt-1 space-y-0.5">
-                      <li>Mínimo de 8 caracteres</li>
-                      <li>Pelo menos uma letra maiúscula (A-Z)</li>
-                      <li>Pelo menos uma letra minúscula (a-z)</li>
-                      <li>Pelo menos um número (0-9)</li>
-                    </ul>
-                  </p>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm text-muted-foreground">A senha deve conter:</p>
+                    {requirements.map((req, index) => (
+                      <div key={index} className="flex items-center gap-2 transition-all duration-200">
+                        {req.met ? (
+                          <Check className="h-4 w-4 text-green-600 animate-in zoom-in-50" />
+                        ) : (
+                          <Circle className="h-4 w-4 text-muted-foreground/50" />
+                        )}
+                        <span className={`text-sm transition-colors duration-200 ${
+                          req.met ? "text-green-600 font-medium" : "text-muted-foreground"
+                        }`}>
+                          {req.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </FormItem>
               )}
             />
