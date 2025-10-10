@@ -11,6 +11,16 @@ import { Plus, Pencil, Trash2, Play, Eye, EyeOff, FileText, Link as LinkIcon, X,
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { convertYouTubeUrl } from "@/lib/youtube";
 import {
   Tooltip,
@@ -65,6 +75,8 @@ export function LessonsManager() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [newAttachment, setNewAttachment] = useState({ title: "", file_url: "", file_type: 'link' as 'pdf' | 'link' });
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchModules();
@@ -300,13 +312,18 @@ export function LessonsManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta aula?")) return;
+    setLessonToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!lessonToDelete) return;
 
     try {
       const { error } = await supabase
         .from('academy_lessons')
         .delete()
-        .eq('id', id);
+        .eq('id', lessonToDelete);
 
       if (error) throw error;
       toast({ title: "Aula excluída!" });
@@ -317,6 +334,9 @@ export function LessonsManager() {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setLessonToDelete(null);
     }
   };
 
@@ -716,6 +736,23 @@ export function LessonsManager() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta aula? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

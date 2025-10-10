@@ -11,6 +11,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Suggestion {
   id: string;
@@ -30,6 +40,8 @@ interface Suggestion {
 export function SuggestionsManager() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [suggestionToDelete, setSuggestionToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -137,13 +149,18 @@ export function SuggestionsManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta sugestão?")) return;
+    setSuggestionToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!suggestionToDelete) return;
 
     try {
       const { error } = await supabase
         .from("suggestions")
         .delete()
-        .eq("id", id);
+        .eq("id", suggestionToDelete);
 
       if (error) throw error;
       toast({ title: "Sugestão excluída com sucesso!" });
@@ -154,6 +171,9 @@ export function SuggestionsManager() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setSuggestionToDelete(null);
     }
   };
 
@@ -310,6 +330,23 @@ export function SuggestionsManager() {
           </Card>
         ))}
       </div>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta sugestão? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -10,6 +10,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Question {
   id: string;
@@ -41,6 +51,8 @@ export function QuestionsManager() {
   const [answerText, setAnswerText] = useState("");
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [editAnswerText, setEditAnswerText] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchQuestions();
@@ -202,15 +214,18 @@ export function QuestionsManager() {
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.")) {
-      return;
-    }
+    setQuestionToDelete(questionId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!questionToDelete) return;
 
     try {
       const { error } = await supabase
         .from('lesson_questions')
         .delete()
-        .eq('id', questionId);
+        .eq('id', questionToDelete);
 
       if (error) throw error;
 
@@ -225,6 +240,9 @@ export function QuestionsManager() {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setQuestionToDelete(null);
     }
   };
 
@@ -414,6 +432,23 @@ export function QuestionsManager() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

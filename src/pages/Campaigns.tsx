@@ -20,6 +20,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -72,6 +82,8 @@ export default function Campaigns() {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
@@ -342,13 +354,18 @@ export default function Campaigns() {
   };
 
   const handleDelete = async (campaignId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta campanha?")) return;
+    setCampaignToDelete(campaignId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!campaignToDelete) return;
 
     try {
       const { error } = await supabase
         .from("campaigns")
         .delete()
-        .eq("id", campaignId);
+        .eq("id", campaignToDelete);
 
       if (error) throw error;
 
@@ -365,6 +382,9 @@ export default function Campaigns() {
         description: "Não foi possível excluir a campanha.",
         variant: "destructive",
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setCampaignToDelete(null);
     }
   };
 
@@ -786,6 +806,23 @@ export default function Campaigns() {
           )}
         </div>
       </main>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

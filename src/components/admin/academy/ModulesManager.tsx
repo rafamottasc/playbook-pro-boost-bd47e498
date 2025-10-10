@@ -19,6 +19,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -51,6 +61,8 @@ export function ModulesManager() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [moduleToDelete, setModuleToDelete] = useState<string | null>(null);
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: false, 
     align: "start",
@@ -253,13 +265,18 @@ export function ModulesManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este módulo?")) return;
+    setModuleToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!moduleToDelete) return;
 
     try {
       const { error } = await supabase
         .from('academy_modules')
         .delete()
-        .eq('id', id);
+        .eq('id', moduleToDelete);
 
       if (error) throw error;
       toast({ title: "Módulo excluído!" });
@@ -270,6 +287,9 @@ export function ModulesManager() {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setModuleToDelete(null);
     }
   };
 
@@ -525,6 +545,23 @@ export function ModulesManager() {
           )}
         </div>
       )}
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este módulo? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
