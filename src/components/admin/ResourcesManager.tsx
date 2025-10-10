@@ -105,7 +105,15 @@ export function ResourcesManager() {
     setUploading(true);
     try {
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${selectedFile.name}`;
+      
+      // Sanitizar nome do arquivo
+      const sanitizedName = selectedFile.name
+        .normalize('NFD') // Remove acentos
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacríticos
+        .replace(/[^a-zA-Z0-9.-]/g, '_') // Substitui caracteres especiais por _
+        .replace(/\s+/g, '_'); // Substitui espaços por _
+      
+      const fileName = `${Date.now()}-${sanitizedName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('resources')
