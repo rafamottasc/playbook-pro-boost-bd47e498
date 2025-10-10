@@ -141,11 +141,20 @@ export function UsersManager() {
 
     const now = new Date();
     const lastActivity = new Date(lastSignIn);
-    const diffMinutes = Math.floor((now.getTime() - lastActivity.getTime()) / 60000);
+    
+    const diffMs = now.getTime() - lastActivity.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+
+    console.log('[Status Atividade]', {
+      now: now.toISOString(),
+      lastActivity: lastActivity.toISOString(),
+      diffMinutes,
+      diffMs
+    });
 
     if (diffMinutes < 5) {
       return {
-        text: "Online há menos de 5 min",
+        text: "Online agora",
         status: "online",
         color: "text-green-600",
         badge: "🟢"
@@ -461,273 +470,221 @@ export function UsersManager() {
             const activityStatus = getLastActivityStatus(user.last_sign_in_at);
             
             return (
-              <Card key={user.id} className="p-4 sm:p-6">
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    <div className="flex items-center gap-4 flex-1 w-full">
-                      <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
-                        <AvatarImage src={user.avatar_url || ""} loading="lazy" />
-                        <AvatarFallback className="text-sm sm:text-lg">
-                          {user.full_name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-semibold text-base sm:text-lg truncate">{user.full_name}</h3>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleExpand(user.id)}
-                            className="flex-shrink-0"
+              <Card key={user.id} className="p-3 sm:p-6 overflow-hidden">
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <Avatar className="h-10 w-10 sm:h-16 sm:w-16 flex-shrink-0">
+                      <AvatarImage src={user.avatar_url || ""} loading="lazy" />
+                      <AvatarFallback className="text-sm sm:text-lg">
+                        {user.full_name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <h3 className="font-semibold text-sm sm:text-lg truncate">
+                          {user.full_name}
+                        </h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleExpand(user.id)}
+                          className="flex-shrink-0 h-8 px-2"
+                        >
+                          <motion.div
+                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
                           >
-                            <span className="text-xs mr-1">Detalhes</span>
-                            <motion.div
-                              animate={{ rotate: isExpanded ? 180 : 0 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <ChevronDown className="h-4 w-4" />
-                            </motion.div>
-                          </Button>
-                        </div>
-                        
-                        {/* Info Row with Badges */}
-                        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 text-xs sm:text-sm pb-3 border-b">
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground font-medium">Nível:</span>
-                            {user.roles.includes("admin") ? (
-                              <Badge variant="default" className="gap-1 text-xs">
-                                <Shield className="h-3 w-3" />
-                                <span className="hidden xs:inline">{user.isFirstAdmin ? "Admin Principal" : "Admin"}</span>
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="gap-1 text-xs">
-                                <User className="h-3 w-3" />
-                                <span className="hidden xs:inline">Corretor</span>
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          <span className="text-muted-foreground hidden sm:inline">|</span>
-                          
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground font-medium">Status:</span>
-                            {getStatusBadge(user.approved, user.blocked)}
-                          </div>
-                          
-                          <span className="text-muted-foreground hidden sm:inline">|</span>
-                          
-                          <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <span className="text-muted-foreground font-medium whitespace-nowrap">Última Atividade:</span>
-                            <span className="flex items-center gap-1">
-                              <span>{activityStatus.badge}</span>
-                              <span className={`text-xs truncate ${activityStatus.color}`}>{activityStatus.text}</span>
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                        </Button>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 text-xs pb-2 border-b">
+                        {user.roles.includes("admin") ? (
+                          <Badge variant="default" className="gap-1">
+                            <Shield className="h-3 w-3" />
+                            <span className="hidden sm:inline">
+                              {user.isFirstAdmin ? "Admin Principal" : "Admin"}
                             </span>
-                          </div>
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <User className="h-3 w-3" />
+                            <span className="hidden sm:inline">Corretor</span>
+                          </Badge>
+                        )}
+                        
+                        {getStatusBadge(user.approved, user.blocked)}
+                        
+                        <div className="flex items-center gap-1 text-xs">
+                          <span>{activityStatus.badge}</span>
+                          <span className={`hidden sm:inline ${activityStatus.color}`}>
+                            {activityStatus.text}
+                          </span>
                         </div>
-                      
-                        <div className="space-y-1">
-                          {user.email && (
-                            <div className="flex items-center gap-2 text-xs sm:text-sm">
-                              <a
-                                href={`mailto:${user.email}`}
-                                className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors truncate"
-                              >
-                                <Mail className="h-4 w-4 flex-shrink-0" />
-                                <span className="truncate">{user.email}</span>
-                              </a>
-                            </div>
-                          )}
-                          
-                          {user.whatsapp && (
-                            <div className="flex items-center gap-2 text-xs sm:text-sm">
-                              <a
-                                href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
-                              >
-                                <Phone className="h-4 w-4 flex-shrink-0" />
-                                <span>{formatPhone(user.whatsapp)}</span>
-                              </a>
-                            </div>
-                          )}
-                        </div>
+                      </div>
 
-                        {/* Seção Expandida */}
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="pt-4 border-t mt-4 space-y-4">
-                                {/* Métricas de Aprendizado */}
-                                {user.metrics && (
-                                  <div className="space-y-2">
-                                    <h4 className="font-semibold flex items-center gap-2 text-sm">
-                                      <BookOpen className="h-4 w-4" />
-                                      Aprendizado e Progresso
-                                    </h4>
-                                    
-                                    <div className="text-sm space-y-2">
-                                      <p className="text-muted-foreground">
-                                        Aulas concluídas: <span className="font-medium text-foreground">{user.metrics.completedLessons}</span> de <span className="font-medium text-foreground">{user.metrics.totalLessons}</span> ({user.metrics.progressPercentage}%)
-                                      </p>
-                                      
-                                      {/* Barra de Progresso */}
-                                      <Progress value={user.metrics.progressPercentage} className="h-2" />
-                                      
-                                      {user.metrics.lastWatchedLesson && (
-                                        <p className="text-muted-foreground flex items-start gap-1">
-                                          <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                                          <span>
-                                            Última aula: <span className="font-medium text-foreground">"{user.metrics.lastWatchedLesson.title}"</span>{" "}
-                                            {formatDistanceToNow(new Date(user.metrics.lastWatchedLesson.watchedAt), { 
-                                              addSuffix: true, 
-                                              locale: ptBR 
-                                            })}
-                                          </span>
-                                        </p>
-                                      )}
-                                      
-                                      <p className="flex items-center gap-1">
-                                        <Trophy className="h-3 w-3 text-yellow-500" />
-                                        <span className="text-muted-foreground">
-                                          Pontos acumulados: <span className="font-medium text-foreground">{user.metrics.points} pts</span>
-                                        </span>
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
+                      <div className="space-y-1 mt-2 text-xs sm:text-sm">
+                        {user.email && (
+                          <a
+                            href={`mailto:${user.email}`}
+                            className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
+                          >
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">{user.email}</span>
+                          </a>
+                        )}
 
-                                {/* Informações de Acesso */}
+                        {user.whatsapp && (
+                          <a
+                            href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
+                          >
+                            <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">{formatPhone(user.whatsapp)}</span>
+                          </a>
+                        )}
+                      </div>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-4 border-t mt-4 space-y-4">
+                              {user.metrics && (
                                 <div className="space-y-2">
                                   <h4 className="font-semibold flex items-center gap-2 text-sm">
-                                    <Clock className="h-4 w-4" />
-                                    Informações de Acesso
+                                    <BookOpen className="h-4 w-4" />
+                                    Aprendizado e Progresso
                                   </h4>
                                   
-                                  <div className="text-sm space-y-1 text-muted-foreground">
-                                    <p>Criado em: <span className="font-medium text-foreground">{formatDate(user.created_at)}</span></p>
-                                    <p>Último acesso: <span className="font-medium text-foreground">{formatDate(user.last_sign_in_at)}</span></p>
+                                  <div className="text-sm space-y-2">
+                                    <p className="text-muted-foreground">
+                                      Aulas concluídas: <span className="font-medium text-foreground">{user.metrics.completedLessons}</span> de <span className="font-medium text-foreground">{user.metrics.totalLessons}</span> ({user.metrics.progressPercentage}%)
+                                    </p>
+                                    
+                                    <Progress value={user.metrics.progressPercentage} className="h-2" />
+                                    
+                                    {user.metrics.lastWatchedLesson && (
+                                      <p className="text-muted-foreground flex items-start gap-1">
+                                        <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                        <span>
+                                          Última aula: <span className="font-medium text-foreground">"{user.metrics.lastWatchedLesson.title}"</span>{" "}
+                                          {formatDistanceToNow(new Date(user.metrics.lastWatchedLesson.watchedAt), { 
+                                            addSuffix: true, 
+                                            locale: ptBR 
+                                          })}
+                                        </span>
+                                      </p>
+                                    )}
+                                    
+                                    <p className="flex items-center gap-1">
+                                      <Trophy className="h-3 w-3 text-yellow-500" />
+                                      <span className="text-muted-foreground">
+                                        Pontos acumulados: <span className="font-medium text-foreground">{user.metrics.points} pts</span>
+                                      </span>
+                                    </p>
                                   </div>
                                 </div>
+                              )}
+
+                              <div className="space-y-2">
+                                <h4 className="font-semibold flex items-center gap-2 text-sm">
+                                  <Clock className="h-4 w-4" />
+                                  Informações de Acesso
+                                </h4>
+                                
+                                <div className="text-sm space-y-1 text-muted-foreground">
+                                  <p>Criado em: <span className="font-medium text-foreground">{formatDate(user.created_at)}</span></p>
+                                  <p>Último acesso: <span className="font-medium text-foreground">{formatDate(user.last_sign_in_at)}</span></p>
+                                </div>
                               </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                  
+
                   {!user.isFirstAdmin && (
-                    <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:min-w-[280px]">
+                    <div className="flex flex-wrap gap-2 pt-3 border-t">
                       {!user.approved && (
-                        <TooltipProvider>
-                          <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button
-                                variant="default"
-                                onClick={() => toggleApproval(user.id, user.approved)}
-                                size="sm"
-                                aria-label={`Aprovar acesso de ${user.full_name}`}
-                                className="bg-green-600 hover:bg-green-700 w-full col-span-2"
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                <span>Aprovar</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Aprovar acesso do usuário ao sistema</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Button
+                          variant="default"
+                          onClick={() => toggleApproval(user.id, user.approved)}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 flex-1 min-w-[140px]"
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                          <span className="text-xs">Aprovar</span>
+                        </Button>
                       )}
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant={user.roles.includes("admin") ? "destructive" : "default"}
-                              onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
-                              size="sm"
-                              aria-label={user.roles.includes("admin") ? `Remover permissão de admin de ${user.full_name}` : `Tornar ${user.full_name} administrador`}
-                              className="w-full"
-                            >
-                              {user.roles.includes("admin") ? (
-                                <>
-                                  <ShieldMinus className="h-4 w-4 mr-2" />
-                                  <span>Remover Admin</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Shield className="h-4 w-4 mr-2" />
-                                  <span>Tornar Admin</span>
-                                </>
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Gerenciar permissão de administrador</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant={user.blocked ? "default" : "outline"}
-                              onClick={() => toggleBlockUser(user.id, user.blocked)}
-                              size="sm"
-                              aria-label={user.blocked ? `Desbloquear ${user.full_name}` : `Bloquear ${user.full_name}`}
-                              className={`w-full ${!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}`}
-                            >
-                              {user.blocked ? (
-                                <>
-                                  <Unlock className="h-4 w-4 mr-2" />
-                                  <span>Desbloquear</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  <span>Bloquear</span>
-                                </>
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{user.blocked ? "Desbloquear usuário" : "Bloquear usuário"}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              onClick={() => setDeleteUserId(user.id)}
-                              size="sm"
-                              aria-label={`Excluir usuário ${user.full_name}`}
-                              className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full col-span-2"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              <span>Excluir</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Excluir usuário</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+
+                      <Button
+                        variant={user.roles.includes("admin") ? "destructive" : "default"}
+                        onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
+                        size="sm"
+                        className="flex-1 min-w-[120px]"
+                      >
+                        {user.roles.includes("admin") ? (
+                          <>
+                            <ShieldMinus className="h-4 w-4 mr-1" />
+                            <span className="text-xs hidden sm:inline">Remover Admin</span>
+                            <span className="text-xs sm:hidden">Rem. Admin</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="h-4 w-4 mr-1" />
+                            <span className="text-xs hidden sm:inline">Tornar Admin</span>
+                            <span className="text-xs sm:hidden">Add Admin</span>
+                          </>
+                        )}
+                      </Button>
+
+                      <Button
+                        variant={user.blocked ? "default" : "outline"}
+                        onClick={() => toggleBlockUser(user.id, user.blocked)}
+                        size="sm"
+                        className={`flex-1 min-w-[100px] ${
+                          !user.blocked 
+                            ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-500 dark:text-yellow-400" 
+                            : ""
+                        }`}
+                      >
+                        {user.blocked ? (
+                          <>
+                            <Unlock className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Desbloquear</span>
+                          </>
+                        ) : (
+                          <>
+                            <Ban className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Bloquear</span>
+                          </>
+                        )}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={() => setDeleteUserId(user.id)}
+                        size="sm"
+                        className="border-orange-600 text-orange-700 hover:bg-orange-600 hover:text-white flex-1 min-w-[100px]"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Excluir</span>
+                      </Button>
                     </div>
                   )}
                 </div>
