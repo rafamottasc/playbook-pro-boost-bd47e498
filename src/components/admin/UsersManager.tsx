@@ -404,8 +404,8 @@ export function UsersManager() {
                               aria-label={`Aprovar acesso de ${user.full_name}`}
                               className="bg-green-600 hover:bg-green-700 w-full col-span-2"
                             >
-                              <CheckCircle2 className="h-4 w-4 sm:mr-2" />
-                              <span className="hidden sm:inline">Aprovar</span>
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                              <span>Aprovar</span>
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -427,13 +427,13 @@ export function UsersManager() {
                           >
                             {user.roles.includes("admin") ? (
                               <>
-                                <ShieldMinus className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Remover Admin</span>
+                                <ShieldMinus className="h-4 w-4 mr-2" />
+                                <span>Remover Admin</span>
                               </>
                             ) : (
                               <>
-                                <Shield className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Tornar Admin</span>
+                                <Shield className="h-4 w-4 mr-2" />
+                                <span>Tornar Admin</span>
                               </>
                             )}
                           </Button>
@@ -456,13 +456,13 @@ export function UsersManager() {
                           >
                             {user.blocked ? (
                               <>
-                                <Unlock className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Desbloquear</span>
+                                <Unlock className="h-4 w-4 mr-2" />
+                                <span>Desbloquear</span>
                               </>
                             ) : (
                               <>
-                                <Ban className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Bloquear</span>
+                                <Ban className="h-4 w-4 mr-2" />
+                                <span>Bloquear</span>
                               </>
                             )}
                           </Button>
@@ -483,8 +483,8 @@ export function UsersManager() {
                             aria-label={`Excluir usuário ${user.full_name}`}
                             className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full col-span-2"
                           >
-                            <Trash2 className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Excluir</span>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            <span>Excluir</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
