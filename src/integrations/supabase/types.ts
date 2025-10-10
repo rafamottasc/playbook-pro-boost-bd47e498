@@ -97,6 +97,107 @@ export type Database = {
         }
         Relationships: []
       }
+      announcement_views: {
+        Row: {
+          announcement_id: string | null
+          cta_clicked: boolean | null
+          dismissed: boolean | null
+          id: string
+          user_id: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          announcement_id?: string | null
+          cta_clicked?: boolean | null
+          dismissed?: boolean | null
+          id?: string
+          user_id?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          announcement_id?: string | null
+          cta_clicked?: boolean | null
+          dismissed?: boolean | null
+          id?: string
+          user_id?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_views_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          cta_link: string | null
+          cta_text: string | null
+          end_date: string | null
+          icon: string | null
+          id: string
+          message: string
+          priority: string
+          start_date: string
+          target_audience: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          cta_link?: string | null
+          cta_text?: string | null
+          end_date?: string | null
+          icon?: string | null
+          id?: string
+          message: string
+          priority: string
+          start_date?: string
+          target_audience?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          cta_link?: string | null
+          cta_text?: string | null
+          end_date?: string | null
+          icon?: string | null
+          id?: string
+          message?: string
+          priority?: string
+          start_date?: string
+          target_audience?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_logs: {
         Row: {
           action: string | null
@@ -917,6 +1018,19 @@ export type Database = {
       delete_old_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_active_announcements: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cta_link: string
+          cta_text: string
+          dismissed: boolean
+          icon: string
+          id: string
+          message: string
+          priority: string
+          title: string
+        }[]
       }
       get_public_profiles: {
         Args: Record<PropertyKey, never>

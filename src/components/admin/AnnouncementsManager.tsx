@@ -1,0 +1,641 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, Eye, X, ExternalLink } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
+interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  priority: string;
+  icon: string;
+  start_date: string;
+  end_date: string | null;
+  cta_text: string | null;
+  cta_link: string | null;
+  target_audience: string;
+  active: boolean;
+  created_at: string;
+  created_by: string | null;
+}
+
+interface AnnouncementStats {
+  announcement_id: string;
+  views: number;
+  dismissals: number;
+  cta_clicks: number;
+}
+
+const iconOptions = [
+  { value: "megaphone", label: "Megafone", Icon: Megaphone },
+  { value: "bell", label: "Sino", Icon: Bell },
+  { value: "alert", label: "Alerta", Icon: AlertTriangle },
+  { value: "check", label: "Check", Icon: CheckCircle },
+  { value: "info", label: "Info", Icon: Info },
+];
+
+const priorityStyles = {
+  urgent: "border-destructive bg-destructive/10 text-destructive",
+  warning: "border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400",
+  info: "border-blue-500 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400",
+  success: "border-green-500 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400",
+};
+
+export function AnnouncementsManager() {
+  const { toast } = useToast();
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [stats, setStats] = useState<AnnouncementStats[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    priority: "info",
+    icon: "megaphone",
+    start_date: new Date().toISOString().slice(0, 16),
+    end_date: "",
+    cta_text: "",
+    cta_link: "",
+    target_audience: "all",
+    active: true,
+  });
+
+  useEffect(() => {
+    fetchAnnouncements();
+    fetchStats();
+  }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setAnnouncements(data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+      toast({
+        title: "Erro ao carregar avisos",
+        description: "Não foi possível carregar os avisos.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("announcement_views")
+        .select("announcement_id, dismissed, cta_clicked");
+
+      if (error) throw error;
+
+      const statsMap = new Map<string, AnnouncementStats>();
+      
+      data?.forEach((view) => {
+        const current = statsMap.get(view.announcement_id) || {
+          announcement_id: view.announcement_id,
+          views: 0,
+          dismissals: 0,
+          cta_clicks: 0,
+        };
+        
+        current.views += 1;
+        if (view.dismissed) current.dismissals += 1;
+        if (view.cta_clicked) current.cta_clicks += 1;
+        
+        statsMap.set(view.announcement_id, current);
+      });
+
+      setStats(Array.from(statsMap.values()));
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const payload = {
+        ...formData,
+        end_date: formData.end_date || null,
+        cta_text: formData.cta_text || null,
+        cta_link: formData.cta_link || null,
+        created_by: user.id,
+      };
+
+      if (editingId) {
+        const { error } = await supabase
+          .from("announcements")
+          .update(payload)
+          .eq("id", editingId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Aviso atualizado",
+          description: "O aviso foi atualizado com sucesso.",
+        });
+      } else {
+        const { error } = await supabase
+          .from("announcements")
+          .insert([payload]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Aviso criado",
+          description: "O aviso foi criado com sucesso.",
+        });
+      }
+
+      setIsDialogOpen(false);
+      resetForm();
+      fetchAnnouncements();
+    } catch (error) {
+      console.error("Error saving announcement:", error);
+      toast({
+        title: "Erro ao salvar aviso",
+        description: "Não foi possível salvar o aviso.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (announcement: Announcement) => {
+    setEditingId(announcement.id);
+    setFormData({
+      title: announcement.title,
+      message: announcement.message,
+      priority: announcement.priority,
+      icon: announcement.icon,
+      start_date: announcement.start_date.slice(0, 16),
+      end_date: announcement.end_date?.slice(0, 16) || "",
+      cta_text: announcement.cta_text || "",
+      cta_link: announcement.cta_link || "",
+      target_audience: announcement.target_audience,
+      active: announcement.active,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleClone = (announcement: Announcement) => {
+    setEditingId(null);
+    setFormData({
+      title: `${announcement.title} (Cópia)`,
+      message: announcement.message,
+      priority: announcement.priority,
+      icon: announcement.icon,
+      start_date: new Date().toISOString().slice(0, 16),
+      end_date: "",
+      cta_text: announcement.cta_text || "",
+      cta_link: announcement.cta_link || "",
+      target_audience: announcement.target_audience,
+      active: false,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setItemToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("announcements")
+        .delete()
+        .eq("id", itemToDelete);
+
+      if (error) throw error;
+
+      toast({
+        title: "Aviso excluído",
+        description: "O aviso foi excluído com sucesso.",
+      });
+
+      fetchAnnouncements();
+      fetchStats();
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
+      toast({
+        title: "Erro ao excluir aviso",
+        description: "Não foi possível excluir o aviso.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormData({
+      title: "",
+      message: "",
+      priority: "info",
+      icon: "megaphone",
+      start_date: new Date().toISOString().slice(0, 16),
+      end_date: "",
+      cta_text: "",
+      cta_link: "",
+      target_audience: "all",
+      active: true,
+    });
+  };
+
+  const getStatus = (announcement: Announcement) => {
+    if (!announcement.active) return { label: "Inativo", variant: "secondary" as const };
+    
+    const now = new Date();
+    const start = new Date(announcement.start_date);
+    const end = announcement.end_date ? new Date(announcement.end_date) : null;
+
+    if (start > now) return { label: "Agendado", variant: "default" as const };
+    if (end && end < now) return { label: "Expirado", variant: "outline" as const };
+    return { label: "Ativo", variant: "default" as const };
+  };
+
+  const SelectedIcon = iconOptions.find((opt) => opt.value === formData.icon)?.Icon || Megaphone;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Gerenciar Avisos</h2>
+          <p className="text-muted-foreground">
+            Crie avisos globais para exibir na página inicial
+          </p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Aviso
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingId ? "Editar Aviso" : "Novo Aviso"}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Título *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Mensagem *</Label>
+                <Textarea
+                  id="message"
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  rows={3}
+                  maxLength={500}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formData.message.length}/500 caracteres
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Prioridade *</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="info">Info</SelectItem>
+                      <SelectItem value="warning">Aviso</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                      <SelectItem value="success">Sucesso</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="icon">Ícone *</Label>
+                  <Select
+                    value={formData.icon}
+                    onValueChange={(value) => setFormData({ ...formData, icon: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {iconOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <div className="flex items-center gap-2">
+                            <opt.Icon className="w-4 h-4" />
+                            {opt.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start_date">Data/Hora Início *</Label>
+                  <Input
+                    id="start_date"
+                    type="datetime-local"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">Data/Hora Fim</Label>
+                  <Input
+                    id="end_date"
+                    type="datetime-local"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cta_text">Texto do Botão</Label>
+                  <Input
+                    id="cta_text"
+                    value={formData.cta_text}
+                    onChange={(e) => setFormData({ ...formData, cta_text: e.target.value })}
+                    placeholder="Ex: Saiba mais"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cta_link">Link do Botão</Label>
+                  <Input
+                    id="cta_link"
+                    type="url"
+                    value={formData.cta_link}
+                    onChange={(e) => setFormData({ ...formData, cta_link: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="target_audience">Público-Alvo *</Label>
+                <Select
+                  value={formData.target_audience}
+                  onValueChange={(value) => setFormData({ ...formData, target_audience: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="corretor">Corretores</SelectItem>
+                    <SelectItem value="admin">Admins</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
+                />
+                <Label htmlFor="active">Ativo</Label>
+              </div>
+
+              {/* Preview */}
+              <div className="space-y-2">
+                <Label>Preview</Label>
+                <Alert className={cn(priorityStyles[formData.priority as keyof typeof priorityStyles])}>
+                  <SelectedIcon className="h-5 w-5" />
+                  <AlertTitle>{formData.title || "Título do aviso"}</AlertTitle>
+                  <AlertDescription className="mt-2">
+                    {formData.message || "Mensagem do aviso aparecerá aqui..."}
+                    {formData.cta_text && (
+                      <Button size="sm" className="mt-3 ml-0">
+                        {formData.cta_text}
+                      </Button>
+                    )}
+                  </AlertDescription>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </Alert>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    resetForm();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {editingId ? "Atualizar" : "Criar"} Aviso
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Announcements List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Avisos Criados</CardTitle>
+          <CardDescription>
+            Gerencie todos os avisos do sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Status</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Prioridade</TableHead>
+                <TableHead>Público</TableHead>
+                <TableHead>Período</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {announcements.map((announcement) => {
+                const status = getStatus(announcement);
+                return (
+                  <TableRow key={announcement.id}>
+                    <TableCell>
+                      <Badge variant={status.variant}>{status.label}</Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">{announcement.title}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          announcement.priority === "urgent" && "border-destructive text-destructive",
+                          announcement.priority === "warning" && "border-orange-500 text-orange-600",
+                          announcement.priority === "info" && "border-blue-500 text-blue-600",
+                          announcement.priority === "success" && "border-green-500 text-green-600"
+                        )}
+                      >
+                        {announcement.priority === "urgent" && "Urgente"}
+                        {announcement.priority === "warning" && "Aviso"}
+                        {announcement.priority === "info" && "Info"}
+                        {announcement.priority === "success" && "Sucesso"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {announcement.target_audience === "all" && "Todos"}
+                      {announcement.target_audience === "corretor" && "Corretores"}
+                      {announcement.target_audience === "admin" && "Admins"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{format(new Date(announcement.start_date), "dd/MM/yyyy HH:mm")}</div>
+                        {announcement.end_date && (
+                          <div className="text-muted-foreground">
+                            → {format(new Date(announcement.end_date), "dd/MM/yyyy HH:mm")}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(announcement)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleClone(announcement)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(announcement.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Métricas</CardTitle>
+          <CardDescription>Estatísticas de visualização dos avisos</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Aviso</TableHead>
+                <TableHead className="text-right">Visualizações</TableHead>
+                <TableHead className="text-right">Dispensas</TableHead>
+                <TableHead className="text-right">Taxa Dispensa</TableHead>
+                <TableHead className="text-right">Cliques CTA</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {announcements.map((announcement) => {
+                const stat = stats.find((s) => s.announcement_id === announcement.id);
+                const dismissRate = stat ? ((stat.dismissals / stat.views) * 100).toFixed(1) : "0.0";
+                
+                return (
+                  <TableRow key={announcement.id}>
+                    <TableCell className="font-medium">{announcement.title}</TableCell>
+                    <TableCell className="text-right">{stat?.views || 0}</TableCell>
+                    <TableCell className="text-right">{stat?.dismissals || 0}</TableCell>
+                    <TableCell className="text-right">{dismissRate}%</TableCell>
+                    <TableCell className="text-right">{stat?.cta_clicks || 0}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este aviso? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

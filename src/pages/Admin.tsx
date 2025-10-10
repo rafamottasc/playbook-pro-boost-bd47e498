@@ -7,8 +7,9 @@ import { MetricsView } from "@/components/admin/MetricsView";
 import { ResourcesManager } from "@/components/admin/ResourcesManager";
 import { UsersManager } from "@/components/admin/UsersManager";
 import { AcademyManager } from "@/components/admin/AcademyManager";
+import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import PartnersManager from "@/pages/admin/PartnersManager";
-import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users } from "lucide-react";
+import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone } from "lucide-react";
 
 export default function Admin() {
   return (
@@ -44,6 +45,10 @@ export default function Admin() {
               <Building2 className="h-4 w-4" />
               <span className="hidden sm:inline">Construtoras</span>
             </TabsTrigger>
+            <TabsTrigger value="announcements" className="gap-2">
+              <Megaphone className="h-4 w-4" />
+              <span className="hidden sm:inline">Avisos</span>
+            </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Usuários</span>
@@ -72,6 +77,10 @@ export default function Admin() {
 
           <TabsContent value="partners">
             <PartnersManager />
+          </TabsContent>
+
+          <TabsContent value="announcements">
+            <AnnouncementsManager />
           </TabsContent>
 
           <TabsContent value="users">

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 
 interface NavCard {
   title: string;
@@ -72,6 +73,9 @@ export default function Home() {
               Selecione uma seção para começar
             </p>
           </div>
+
+          {/* Announcement Banner */}
+          <AnnouncementBanner />
 
           {/* Navigation Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
