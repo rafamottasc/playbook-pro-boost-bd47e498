@@ -31,6 +31,7 @@ export default function Profile() {
     whatsapp: "",
     avatar_url: "",
     gender: "",
+    team: "",
     points: 0,
   });
 
@@ -147,8 +148,10 @@ export default function Profile() {
 
     try {
       const validated = profileUpdateSchema.parse({
-        fullName: profile.full_name,
-        whatsapp: unformatPhone(profile.whatsapp),
+        full_name: profile.full_name,
+        whatsapp: profile.whatsapp,
+        gender: profile.gender || "",
+        team: profile.team || "",
       });
 
       setLoading(true);
@@ -156,9 +159,10 @@ export default function Profile() {
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: validated.fullName,
+          full_name: validated.full_name,
           whatsapp: unformatPhone(validated.whatsapp),
-          gender: profile.gender || null,
+          gender: validated.gender || null,
+          team: validated.team || null,
         })
         .eq("id", user.id);
 
@@ -300,6 +304,28 @@ export default function Profile() {
                   }}
                   disabled={loading}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="team">Equipe</Label>
+                <Select
+                  value={profile.team || ""}
+                  onValueChange={(value) => setProfile({ ...profile, team: value })}
+                  disabled={loading}
+                >
+                  <SelectTrigger id="team">
+                    <SelectValue placeholder="Selecione sua equipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhuma equipe</SelectItem>
+                    <SelectItem value="Equipe Leão">🦁 Equipe Leão</SelectItem>
+                    <SelectItem value="Equipe Lobo">🐺 Equipe Lobo</SelectItem>
+                    <SelectItem value="Equipe Águia">🦅 Equipe Águia</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Identifica sua equipe dentro da imobiliária
+                </p>
               </div>
 
               <div className="space-y-2">

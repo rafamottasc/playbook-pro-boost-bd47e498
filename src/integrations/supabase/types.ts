@@ -707,6 +707,7 @@ export type Database = {
           id: string
           last_sign_in_at: string | null
           points: number
+          team: string | null
           updated_at: string | null
           whatsapp: string
         }
@@ -721,6 +722,7 @@ export type Database = {
           id: string
           last_sign_in_at?: string | null
           points?: number
+          team?: string | null
           updated_at?: string | null
           whatsapp: string
         }
@@ -735,6 +737,7 @@ export type Database = {
           id?: string
           last_sign_in_at?: string | null
           points?: number
+          team?: string | null
           updated_at?: string | null
           whatsapp?: string
         }

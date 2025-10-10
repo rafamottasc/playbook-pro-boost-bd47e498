@@ -51,16 +51,17 @@ export const resetPasswordSchema = z.object({
 
 // Profile validation schemas
 export const profileUpdateSchema = z.object({
-  fullName: z
+  full_name: z
     .string()
     .trim()
-    .min(1, "Nome completo é obrigatório")
+    .min(3, { message: "Nome completo deve ter pelo menos 3 caracteres" })
     .max(100, "Nome deve ter no máximo 100 caracteres"),
   whatsapp: z
     .string()
     .trim()
-    .min(1, "WhatsApp é obrigatório")
-    .regex(/^\d{10,15}$/, "WhatsApp deve conter entre 10 e 15 dígitos (apenas números)"),
+    .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: "WhatsApp inválido. Use o formato (XX) XXXXX-XXXX" }),
+  gender: z.enum(["Masculino", "Feminino", ""]).optional(),
+  team: z.enum(["Equipe Leão", "Equipe Lobo", "Equipe Águia", ""]).optional(),
 });
 
 // Message validation schemas

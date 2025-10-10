@@ -53,6 +53,7 @@ interface UserWithRole {
   roles: string[];
   isFirstAdmin?: boolean;
   metrics?: UserMetrics;
+  team?: string | null;
 }
 
 export function UsersManager() {
@@ -71,7 +72,7 @@ export function UsersManager() {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, whatsapp, avatar_url, created_at, last_sign_in_at, blocked, approved")
+        .select("id, full_name, email, whatsapp, avatar_url, created_at, last_sign_in_at, blocked, approved, team")
         .order("created_at");
 
       if (profilesError) throw profilesError;
@@ -550,6 +551,18 @@ export function UsersManager() {
                             <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                             <span className="truncate">{formatPhone(user.whatsapp)}</span>
                           </a>
+                        )}
+
+                        {user.team && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Shield className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">
+                              {user.team === 'Equipe Leão' && '🦁 '}
+                              {user.team === 'Equipe Lobo' && '🐺 '}
+                              {user.team === 'Equipe Águia' && '🦅 '}
+                              {user.team}
+                            </span>
+                          </div>
                         )}
                       </div>
 
