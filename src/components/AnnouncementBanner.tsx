@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Megaphone, Bell, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,24 +26,24 @@ const iconMap = {
 
 const priorityStyles = {
   urgent: {
-    container: "border-destructive bg-destructive/10",
+    container: "border-destructive/60 bg-gradient-to-br from-destructive/5 via-background to-destructive/10",
     icon: "text-destructive",
-    button: "bg-destructive hover:bg-destructive/90",
+    button: "bg-destructive hover:bg-destructive/90 text-white",
   },
   warning: {
-    container: "border-orange-500 bg-orange-50 dark:bg-orange-950/20",
+    container: "border-orange-500/60 bg-gradient-to-br from-orange-50/50 via-background to-orange-100/50 dark:from-orange-950/10 dark:via-background dark:to-orange-900/20",
     icon: "text-orange-600 dark:text-orange-400",
-    button: "bg-orange-600 hover:bg-orange-700",
+    button: "bg-orange-600 hover:bg-orange-700 text-white",
   },
   info: {
-    container: "border-blue-500 bg-blue-50 dark:bg-blue-950/20",
+    container: "border-blue-500/60 bg-gradient-to-br from-blue-50/50 via-background to-blue-100/50 dark:from-blue-950/10 dark:via-background dark:to-blue-900/20",
     icon: "text-blue-600 dark:text-blue-400",
-    button: "bg-blue-600 hover:bg-blue-700",
+    button: "bg-blue-600 hover:bg-blue-700 text-white",
   },
   success: {
-    container: "border-green-500 bg-green-50 dark:bg-green-950/20",
+    container: "border-green-500/60 bg-gradient-to-br from-green-50/50 via-background to-green-100/50 dark:from-green-950/10 dark:via-background dark:to-green-900/20",
     icon: "text-green-600 dark:text-green-400",
-    button: "bg-green-600 hover:bg-green-700",
+    button: "bg-green-600 hover:bg-green-700 text-white",
   },
 };
 
@@ -126,29 +126,51 @@ export function AnnouncementBanner() {
   const styles = priorityStyles[announcement.priority];
 
   return (
-    <Alert className={cn("relative animate-fade-in mb-8", styles.container)}>
-      <Icon className={cn("h-5 w-5", styles.icon)} />
-      <AlertTitle className="pr-8">{announcement.title}</AlertTitle>
-      <AlertDescription className="mt-2">
-        {announcement.message}
-        {announcement.cta_text && announcement.cta_link && (
-          <Button
-            onClick={handleCtaClick}
-            size="sm"
-            className={cn("mt-3 ml-0", styles.button)}
-          >
-            {announcement.cta_text}
-          </Button>
-        )}
-      </AlertDescription>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-2 right-2 h-6 w-6"
-        onClick={handleDismiss}
-      >
-        <X className="h-4 w-4" />
-      </Button>
-    </Alert>
+    <div className="max-w-7xl mx-auto mb-8 px-4">
+      <Card className={cn(
+        "relative animate-fade-in shadow-comarc border-2 rounded-xl overflow-hidden",
+        styles.container
+      )}>
+        <CardContent className="p-6">
+          <div className="flex gap-4">
+            {/* Icon Section */}
+            <div className="flex-shrink-0 pt-1">
+              <div className={cn("p-2 rounded-lg bg-background/50 backdrop-blur-sm", styles.icon)}>
+                <Icon className="h-10 w-10" />
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="flex-1 min-w-0 pr-10">
+              <h3 className={cn("text-lg font-bold mb-2", styles.icon)}>
+                {announcement.title}
+              </h3>
+              <p className="text-base text-foreground/90 leading-relaxed">
+                {announcement.message}
+              </p>
+              {announcement.cta_text && announcement.cta_link && (
+                <Button
+                  onClick={handleCtaClick}
+                  size="sm"
+                  className={cn("mt-4 font-medium shadow-sm", styles.button)}
+                >
+                  {announcement.cta_text}
+                </Button>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-3 right-3 h-8 w-8 rounded-full hover:bg-background/80"
+              onClick={handleDismiss}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

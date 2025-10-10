@@ -31,6 +31,9 @@ interface Announcement {
   active: boolean;
   created_at: string;
   created_by: string | null;
+  profiles?: {
+    full_name: string;
+  } | null;
 }
 
 interface AnnouncementStats {
@@ -86,7 +89,10 @@ export function AnnouncementsManager() {
     try {
       const { data, error } = await supabase
         .from("announcements")
-        .select("*")
+        .select(`
+          *,
+          profiles!announcements_created_by_fkey(full_name)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -504,6 +510,7 @@ export function AnnouncementsManager() {
             <TableHeader>
               <TableRow>
                 <TableHead>Status</TableHead>
+                <TableHead>Usuário</TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Público</TableHead>
@@ -518,6 +525,9 @@ export function AnnouncementsManager() {
                   <TableRow key={announcement.id}>
                     <TableCell>
                       <Badge variant={status.variant}>{status.label}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {announcement.profiles?.full_name || "Sistema"}
                     </TableCell>
                     <TableCell className="font-medium">{announcement.title}</TableCell>
                     <TableCell>
