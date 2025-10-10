@@ -30,10 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let subscription: any;
 
     const initAuth = async () => {
       // Set up auth state listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      const { data: authSubscription } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (!mounted) return;
           
@@ -49,6 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       );
 
+      subscription = authSubscription.subscription;
+
       // Check for existing session
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -63,14 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setLoading(false);
       setInitializing(false);
-
-      return () => {
-        mounted = false;
-        subscription.unsubscribe();
-      };
     };
 
     initAuth();
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
