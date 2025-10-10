@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Link as LinkIcon, Video, ExternalLink, Upload, GraduationCap } from "lucide-react";
+import { FileText, Link as LinkIcon, Video, ExternalLink, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 interface Resource {
   id: string;
@@ -23,7 +21,6 @@ export default function Resources() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadResources();
@@ -160,26 +157,7 @@ export default function Resources() {
           Hub de Suporte, Materiais e Treinamentos
         </p>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Academy Card */}
-          <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/academy/modules')}>
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-primary" />
-                Treinamentos COMARC
-              </CardTitle>
-              <CardDescription>Cursos e capacitações internas</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground mb-4">
-                Acesse módulos de treinamento, assista às aulas e tire suas dúvidas com nossa equipe.
-              </p>
-              <Button className="w-full">
-                Acessar Academy
-              </Button>
-            </CardContent>
-          </Card>
-
+        <div className="grid gap-6 md:grid-cols-2">
           {renderResources("administrativo", "Materiais Administrativos", "Roteiros, guias, PDFs e materiais de apoio")}
           {renderResources("digital", "Material Digital", "Links, vídeos, imagens e recursos digitais")}
         </div>
