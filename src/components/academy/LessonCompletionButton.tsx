@@ -22,21 +22,9 @@ export function LessonCompletionButton({
   disabled = false
 }: LessonCompletionButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const canComplete = videoProgress >= 50;
 
   const handleClick = async () => {
     if (isLoading) return;
-    
-    // Se não pode completar (menos de 50% do vídeo), mostra mensagem
-    if (!canComplete && !isCompleted) {
-      toast({
-        title: "Você precisa assistir a aula",
-        description: "Assista pelo menos 50% do vídeo para concluir a aula.",
-        variant: "destructive"
-      });
-      return;
-    }
     
     setIsLoading(true);
     try {
@@ -56,14 +44,12 @@ export function LessonCompletionButton({
         variant="outline"
         size="sm"
         onClick={handleClick}
-        disabled={(!canComplete && !isCompleted) || isLoading || disabled}
+        disabled={isLoading || disabled}
         className={cn(
-          "gap-2 transition-all duration-300 w-full",
+          "gap-2 transition-all duration-300 w-full cursor-pointer",
           isCompleted 
-            ? "border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400 hover:bg-green-500/10 cursor-pointer" 
-            : canComplete
-            ? "border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20"
-            : "opacity-50 cursor-not-allowed"
+            ? "border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400 hover:bg-green-500/10" 
+            : "border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20"
         )}
       >
         {isLoading ? (
