@@ -3,7 +3,6 @@ import { Copy, ThumbsUp, ThumbsDown, MessageSquarePlus, Check } from "lucide-rea
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -100,12 +99,7 @@ export function MessageCard({
             {dislikes}
           </span>
           {totalFeedback > 0 && (
-            <Badge 
-              variant={approvalRate >= 80 ? "default" : approvalRate >= 50 ? "secondary" : "outline"}
-              className="ml-auto"
-            >
-              {approvalRate}% aprovação
-            </Badge>
+            <span className="ml-auto font-medium text-primary">{approvalRate}% aprovação</span>
           )}
         </div>
 
