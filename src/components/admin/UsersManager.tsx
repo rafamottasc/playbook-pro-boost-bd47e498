@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock } from "lucide-react";
+import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock, ChevronDown, BookOpen, Trophy } from "lucide-react";
 import { formatPhone } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { motion, AnimatePresence } from "framer-motion";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +29,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+interface UserMetrics {
+  totalLessons: number;
+  completedLessons: number;
+  progressPercentage: number;
+  lastWatchedLesson: {
+    title: string;
+    watchedAt: string;
+  } | null;
+  points: number;
+}
+
 interface UserWithRole {
   id: string;
   full_name: string;
@@ -39,6 +52,7 @@ interface UserWithRole {
   approved: boolean;
   roles: string[];
   isFirstAdmin?: boolean;
+  metrics?: UserMetrics;
 }
 
 export function UsersManager() {
@@ -46,6 +60,7 @@ export function UsersManager() {
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [removeAdminUserId, setRemoveAdminUserId] = useState<string | null>(null);
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -114,6 +129,141 @@ export function UsersManager() {
     } catch {
       return "Data inválida";
     }
+  };
+
+  const getLastActivityStatus = (lastSignIn: string | null) => {
+    if (!lastSignIn) return { 
+      text: "Nunca", 
+      status: "offline", 
+      color: "text-muted-foreground",
+      badge: "⚪"
+    };
+
+    const now = new Date();
+    const lastActivity = new Date(lastSignIn);
+    const diffMinutes = Math.floor((now.getTime() - lastActivity.getTime()) / 60000);
+
+    if (diffMinutes < 5) {
+      return {
+        text: "Online há menos de 5 min",
+        status: "online",
+        color: "text-green-600",
+        badge: "🟢"
+      };
+    }
+
+    if (diffMinutes < 60) {
+      return {
+        text: `Há ${diffMinutes} min`,
+        status: "recent",
+        color: "text-green-500",
+        badge: "🟡"
+      };
+    }
+
+    try {
+      return {
+        text: formatDistanceToNow(lastActivity, { 
+          addSuffix: true, 
+          locale: ptBR 
+        }),
+        status: "offline",
+        color: "text-muted-foreground",
+        badge: "⚪"
+      };
+    } catch {
+      return {
+        text: "Data inválida",
+        status: "offline",
+        color: "text-muted-foreground",
+        badge: "⚪"
+      };
+    }
+  };
+
+  const loadUserMetrics = async (userId: string): Promise<UserMetrics> => {
+    try {
+      // Buscar total de aulas disponíveis
+      const { count: totalLessons } = await supabase
+        .from("academy_lessons")
+        .select("*", { count: "exact", head: true })
+        .eq("published", true);
+
+      // Buscar progresso do usuário
+      const { data: progress } = await supabase
+        .from("user_lesson_progress")
+        .select(`
+          watched,
+          watched_at,
+          lesson:academy_lessons(title)
+        `)
+        .eq("user_id", userId)
+        .order("watched_at", { ascending: false });
+
+      const completedLessons = progress?.filter(p => p.watched).length || 0;
+      const progressPercentage = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+      // Última aula assistida
+      const lastWatched = progress?.find(p => p.watched && p.watched_at);
+      const lastWatchedLesson = lastWatched ? {
+        title: (lastWatched.lesson as any)?.title || "Sem título",
+        watchedAt: lastWatched.watched_at
+      } : null;
+
+      // Buscar pontos do perfil
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("points")
+        .eq("id", userId)
+        .single();
+
+      return {
+        totalLessons: totalLessons || 0,
+        completedLessons,
+        progressPercentage,
+        lastWatchedLesson,
+        points: profile?.points || 0
+      };
+    } catch (error) {
+      console.error("Erro ao carregar métricas:", error);
+      return {
+        totalLessons: 0,
+        completedLessons: 0,
+        progressPercentage: 0,
+        lastWatchedLesson: null,
+        points: 0
+      };
+    }
+  };
+
+  const handleExpand = async (userId: string) => {
+    const newExpandedUsers = new Set(expandedUsers);
+    
+    if (expandedUsers.has(userId)) {
+      newExpandedUsers.delete(userId);
+    } else {
+      newExpandedUsers.add(userId);
+      
+      // Se está expandindo e ainda não tem métricas, buscar
+      const user = users.find(u => u.id === userId);
+      if (user && !user.metrics) {
+        try {
+          const metrics = await loadUserMetrics(userId);
+          setUsers(prev => prev.map(u => 
+            u.id === userId ? { ...u, metrics } : u
+          ));
+        } catch (error) {
+          console.error("Erro ao carregar métricas:", error);
+          toast({
+            title: "Erro ao carregar métricas",
+            description: "Não foi possível carregar as informações de progresso.",
+            variant: "destructive"
+          });
+        }
+      }
+    }
+    
+    setExpandedUsers(newExpandedUsers);
   };
 
   const toggleAdminRole = async (userId: string, currentRoles: string[], isFirstAdmin: boolean) => {
@@ -306,198 +456,284 @@ export function UsersManager() {
         <h2 className="text-xl font-semibold">Gerenciar Usuários</h2>
         
         <div className="grid gap-4">
-          {users.map((user) => (
-            <Card key={user.id} className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="flex items-center gap-4 flex-1 w-full">
-                  <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
-                    <AvatarImage src={user.avatar_url || ""} loading="lazy" />
-                    <AvatarFallback className="text-sm sm:text-lg">
-                      {user.full_name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
-                    <h3 className="font-semibold text-base sm:text-lg truncate">{user.full_name}</h3>
-                    
-                    {/* Info Row with Badges */}
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 text-xs sm:text-sm pb-3 border-b">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground font-medium">Nível:</span>
-                        {user.roles.includes("admin") ? (
-                          <Badge variant="default" className="gap-1 text-xs">
-                            <Shield className="h-3 w-3" />
-                            <span className="hidden xs:inline">{user.isFirstAdmin ? "Admin Principal" : "Admin"}</span>
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1 text-xs">
-                            <User className="h-3 w-3" />
-                            <span className="hidden xs:inline">Corretor</span>
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <span className="text-muted-foreground hidden sm:inline">|</span>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground font-medium">Status:</span>
-                        {getStatusBadge(user.approved, user.blocked)}
-                      </div>
-                      
-                      <span className="text-muted-foreground hidden sm:inline">|</span>
-                      
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <span className="text-muted-foreground font-medium whitespace-nowrap">Último Login:</span>
-                        <span className="text-xs truncate">{formatDate(user.last_sign_in_at)}</span>
-                      </div>
-                      
-                      <span className="text-muted-foreground hidden md:inline">|</span>
-                      
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <span className="text-muted-foreground font-medium whitespace-nowrap">Criado em:</span>
-                        <span className="text-xs truncate">{formatDate(user.created_at)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      {user.email && (
-                        <div className="flex items-center gap-2 text-xs sm:text-sm">
-                          <a
-                            href={`mailto:${user.email}`}
-                            className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors truncate"
+          {users.map((user) => {
+            const isExpanded = expandedUsers.has(user.id);
+            const activityStatus = getLastActivityStatus(user.last_sign_in_at);
+            
+            return (
+              <Card key={user.id} className="p-4 sm:p-6">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-4 flex-1 w-full">
+                      <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
+                        <AvatarImage src={user.avatar_url || ""} loading="lazy" />
+                        <AvatarFallback className="text-sm sm:text-lg">
+                          {user.full_name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-semibold text-base sm:text-lg truncate">{user.full_name}</h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleExpand(user.id)}
+                            className="flex-shrink-0"
                           >
-                            <Mail className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{user.email}</span>
-                          </a>
+                            <span className="text-xs mr-1">Detalhes</span>
+                            <motion.div
+                              animate={{ rotate: isExpanded ? 180 : 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </motion.div>
+                          </Button>
                         </div>
-                      )}
+                        
+                        {/* Info Row with Badges */}
+                        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 text-xs sm:text-sm pb-3 border-b">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground font-medium">Nível:</span>
+                            {user.roles.includes("admin") ? (
+                              <Badge variant="default" className="gap-1 text-xs">
+                                <Shield className="h-3 w-3" />
+                                <span className="hidden xs:inline">{user.isFirstAdmin ? "Admin Principal" : "Admin"}</span>
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="gap-1 text-xs">
+                                <User className="h-3 w-3" />
+                                <span className="hidden xs:inline">Corretor</span>
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <span className="text-muted-foreground hidden sm:inline">|</span>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground font-medium">Status:</span>
+                            {getStatusBadge(user.approved, user.blocked)}
+                          </div>
+                          
+                          <span className="text-muted-foreground hidden sm:inline">|</span>
+                          
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <span className="text-muted-foreground font-medium whitespace-nowrap">Última Atividade:</span>
+                            <span className="flex items-center gap-1">
+                              <span>{activityStatus.badge}</span>
+                              <span className={`text-xs truncate ${activityStatus.color}`}>{activityStatus.text}</span>
+                            </span>
+                          </div>
+                        </div>
                       
-                      {user.whatsapp && (
-                        <div className="flex items-center gap-2 text-xs sm:text-sm">
-                          <a
-                            href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
-                          >
-                            <Phone className="h-4 w-4 flex-shrink-0" />
-                            <span>{formatPhone(user.whatsapp)}</span>
-                          </a>
+                        <div className="space-y-1">
+                          {user.email && (
+                            <div className="flex items-center gap-2 text-xs sm:text-sm">
+                              <a
+                                href={`mailto:${user.email}`}
+                                className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors truncate"
+                              >
+                                <Mail className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{user.email}</span>
+                              </a>
+                            </div>
+                          )}
+                          
+                          {user.whatsapp && (
+                            <div className="flex items-center gap-2 text-xs sm:text-sm">
+                              <a
+                                href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-muted-foreground hover:text-comarc-green transition-colors"
+                              >
+                                <Phone className="h-4 w-4 flex-shrink-0" />
+                                <span>{formatPhone(user.whatsapp)}</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                        {/* Seção Expandida */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pt-4 border-t mt-4 space-y-4">
+                                {/* Métricas de Aprendizado */}
+                                {user.metrics && (
+                                  <div className="space-y-2">
+                                    <h4 className="font-semibold flex items-center gap-2 text-sm">
+                                      <BookOpen className="h-4 w-4" />
+                                      Aprendizado e Progresso
+                                    </h4>
+                                    
+                                    <div className="text-sm space-y-2">
+                                      <p className="text-muted-foreground">
+                                        Aulas concluídas: <span className="font-medium text-foreground">{user.metrics.completedLessons}</span> de <span className="font-medium text-foreground">{user.metrics.totalLessons}</span> ({user.metrics.progressPercentage}%)
+                                      </p>
+                                      
+                                      {/* Barra de Progresso */}
+                                      <Progress value={user.metrics.progressPercentage} className="h-2" />
+                                      
+                                      {user.metrics.lastWatchedLesson && (
+                                        <p className="text-muted-foreground flex items-start gap-1">
+                                          <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                          <span>
+                                            Última aula: <span className="font-medium text-foreground">"{user.metrics.lastWatchedLesson.title}"</span>{" "}
+                                            {formatDistanceToNow(new Date(user.metrics.lastWatchedLesson.watchedAt), { 
+                                              addSuffix: true, 
+                                              locale: ptBR 
+                                            })}
+                                          </span>
+                                        </p>
+                                      )}
+                                      
+                                      <p className="flex items-center gap-1">
+                                        <Trophy className="h-3 w-3 text-yellow-500" />
+                                        <span className="text-muted-foreground">
+                                          Pontos acumulados: <span className="font-medium text-foreground">{user.metrics.points} pts</span>
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Informações de Acesso */}
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold flex items-center gap-2 text-sm">
+                                    <Clock className="h-4 w-4" />
+                                    Informações de Acesso
+                                  </h4>
+                                  
+                                  <div className="text-sm space-y-1 text-muted-foreground">
+                                    <p>Criado em: <span className="font-medium text-foreground">{formatDate(user.created_at)}</span></p>
+                                    <p>Último acesso: <span className="font-medium text-foreground">{formatDate(user.last_sign_in_at)}</span></p>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {!user.isFirstAdmin && (
-                  <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:min-w-[280px]">
-                    {!user.approved && (
+                  
+                  {!user.isFirstAdmin && (
+                    <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:min-w-[280px]">
+                      {!user.approved && (
+                        <TooltipProvider>
+                          <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                onClick={() => toggleApproval(user.id, user.approved)}
+                                size="sm"
+                                aria-label={`Aprovar acesso de ${user.full_name}`}
+                                className="bg-green-600 hover:bg-green-700 w-full col-span-2"
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                <span>Aprovar</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Aprovar acesso do usuário ao sistema</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      
                       <TooltipProvider>
                         <Tooltip>
-                        <TooltipTrigger asChild>
+                          <TooltipTrigger asChild>
                             <Button
-                              variant="default"
-                              onClick={() => toggleApproval(user.id, user.approved)}
+                              variant={user.roles.includes("admin") ? "destructive" : "default"}
+                              onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
                               size="sm"
-                              aria-label={`Aprovar acesso de ${user.full_name}`}
-                              className="bg-green-600 hover:bg-green-700 w-full col-span-2"
+                              aria-label={user.roles.includes("admin") ? `Remover permissão de admin de ${user.full_name}` : `Tornar ${user.full_name} administrador`}
+                              className="w-full"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-2" />
-                              <span>Aprovar</span>
+                              {user.roles.includes("admin") ? (
+                                <>
+                                  <ShieldMinus className="h-4 w-4 mr-2" />
+                                  <span>Remover Admin</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Shield className="h-4 w-4 mr-2" />
+                                  <span>Tornar Admin</span>
+                                </>
+                              )}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Aprovar acesso do usuário ao sistema</p>
+                            <p>Gerenciar permissão de administrador</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    )}
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={user.roles.includes("admin") ? "destructive" : "default"}
-                            onClick={() => handleAdminRoleClick(user.id, user.roles, user.isFirstAdmin || false)}
-                            size="sm"
-                            aria-label={user.roles.includes("admin") ? `Remover permissão de admin de ${user.full_name}` : `Tornar ${user.full_name} administrador`}
-                            className="w-full"
-                          >
-                            {user.roles.includes("admin") ? (
-                              <>
-                                <ShieldMinus className="h-4 w-4 mr-2" />
-                                <span>Remover Admin</span>
-                              </>
-                            ) : (
-                              <>
-                                <Shield className="h-4 w-4 mr-2" />
-                                <span>Tornar Admin</span>
-                              </>
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Gerenciar permissão de administrador</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={user.blocked ? "default" : "outline"}
-                            onClick={() => toggleBlockUser(user.id, user.blocked)}
-                            size="sm"
-                            aria-label={user.blocked ? `Desbloquear ${user.full_name}` : `Bloquear ${user.full_name}`}
-                            className={`w-full ${!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}`}
-                          >
-                            {user.blocked ? (
-                              <>
-                                <Unlock className="h-4 w-4 mr-2" />
-                                <span>Desbloquear</span>
-                              </>
-                            ) : (
-                              <>
-                                <Ban className="h-4 w-4 mr-2" />
-                                <span>Bloquear</span>
-                              </>
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{user.blocked ? "Desbloquear usuário" : "Bloquear usuário"}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => setDeleteUserId(user.id)}
-                            size="sm"
-                            aria-label={`Excluir usuário ${user.full_name}`}
-                            className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full col-span-2"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            <span>Excluir</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Excluir usuário</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={user.blocked ? "default" : "outline"}
+                              onClick={() => toggleBlockUser(user.id, user.blocked)}
+                              size="sm"
+                              aria-label={user.blocked ? `Desbloquear ${user.full_name}` : `Bloquear ${user.full_name}`}
+                              className={`w-full ${!user.blocked ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-950 dark:hover:text-yellow-300" : ""}`}
+                            >
+                              {user.blocked ? (
+                                <>
+                                  <Unlock className="h-4 w-4 mr-2" />
+                                  <span>Desbloquear</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  <span>Bloquear</span>
+                                </>
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{user.blocked ? "Desbloquear usuário" : "Bloquear usuário"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              onClick={() => setDeleteUserId(user.id)}
+                              size="sm"
+                              aria-label={`Excluir usuário ${user.full_name}`}
+                              className="border-orange-600 text-orange-700 bg-background hover:bg-orange-600 hover:text-white dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500 dark:hover:text-white w-full col-span-2"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              <span>Excluir</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Excluir usuário</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
