@@ -365,7 +365,7 @@ export function PartnerModal({
           <TabsContent value="dados" className="space-y-4 mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {!categoryId && (
+                {(!categoryId || partner) && (
                   <div className="space-y-2">
                     <FormLabel>Categoria *</FormLabel>
                     

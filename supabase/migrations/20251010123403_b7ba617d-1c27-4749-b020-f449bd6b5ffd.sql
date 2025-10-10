@@ -1,0 +1,5 @@
+-- Habilitar REPLICA IDENTITY FULL para realtime funcionar corretamente com DELETE
+ALTER TABLE partners REPLICA IDENTITY FULL;
+ALTER TABLE partners_categories REPLICA IDENTITY FULL;
+ALTER TABLE partner_files REPLICA IDENTITY FULL;
+ALTER TABLE partner_links REPLICA IDENTITY FULL;

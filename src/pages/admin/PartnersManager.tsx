@@ -109,7 +109,7 @@ export default function PartnersManager() {
   };
 
   const handleEditPartner = (partner: any) => {
-    setSelectedCategory(partner.category_id);
+    setSelectedCategory(null);
     setSelectedPartner(partner);
     setModalOpen(true);
   };
