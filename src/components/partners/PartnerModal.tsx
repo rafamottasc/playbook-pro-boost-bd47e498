@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   Dialog,
-  DialogContent,
+  DraggableDialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -44,16 +44,6 @@ const partnerSchema = z.object({
   manager_email: z.string().email("Email inválido").optional().or(z.literal("")),
   observations: z.string().optional(),
   active: z.boolean(),
-  drive_link: z.string()
-    .transform((val) => {
-      if (!val) return "";
-      // Se não começar com http:// ou https://, adiciona https://
-      if (val && !val.match(/^https?:\/\//)) {
-        return `https://${val}`;
-      }
-      return val;
-    })
-    .pipe(z.string().url("Link do Google Drive inválido").or(z.literal(""))),
 });
 
 type PartnerFormData = z.infer<typeof partnerSchema>;
@@ -93,7 +83,6 @@ export function PartnerModal({
       manager_email: "",
       observations: "",
       active: true,
-      drive_link: "",
     },
   });
 
@@ -127,12 +116,12 @@ export function PartnerModal({
   useEffect(() => {
     if (partner) {
       setCurrentPartner(partner);
+      setSelectedCategoryId(partner.category_id);
       form.reset({
         name: partner.name,
         manager_name: partner.manager_name || "",
         manager_email: partner.manager_email || "",
         manager_phone: formatPhone(partner.manager_phone || ""),
-        drive_link: partner.drive_link || "",
         observations: partner.observations || "",
         active: partner.active ?? true,
       });
@@ -191,6 +180,7 @@ export function PartnerModal({
           .from("partners")
           .update({
             ...data,
+            category_id: finalCategoryId,
             manager_phone: data.manager_phone ? unformatPhone(data.manager_phone) : null
           })
           .eq("id", partner.id);
@@ -357,7 +347,7 @@ export function PartnerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DraggableDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {partner ? "Editar Construtora" : "Nova Construtora"}
@@ -375,7 +365,7 @@ export function PartnerModal({
           <TabsContent value="dados" className="space-y-4 mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {!partner && !categoryId && (
+                {!categoryId && (
                   <div className="space-y-2">
                     <FormLabel>Categoria *</FormLabel>
                     
@@ -487,20 +477,6 @@ export function PartnerModal({
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={form.control}
-                  name="drive_link"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Link do Google Drive</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://drive.google.com/..." />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
@@ -689,7 +665,7 @@ export function PartnerModal({
             )}
           </TabsContent>
         </Tabs>
-      </DialogContent>
+      </DraggableDialogContent>
     </Dialog>
   );
 }

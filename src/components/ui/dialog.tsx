@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import Draggable from "react-draggable";
 
 import { cn } from "@/lib/utils";
 
@@ -51,8 +52,36 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
+const DraggableDialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <Draggable handle=".dialog-drag-handle" bounds="parent">
+      <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+        <DialogPrimitive.Content
+          ref={ref}
+          className={cn(
+            "grid w-[90vw] max-w-lg max-h-[80vh] gap-4 border bg-background p-4 sm:p-6 shadow-lg overflow-y-auto sm:rounded-lg",
+            className,
+          )}
+          {...props}
+        >
+          {children}
+          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity z-10 data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
+        </DialogPrimitive.Content>
+      </div>
+    </Draggable>
+  </DialogPortal>
+));
+DraggableDialogContent.displayName = "DraggableDialogContent";
+
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left dialog-drag-handle cursor-grab active:cursor-grabbing", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
@@ -88,6 +117,7 @@ export {
   DialogClose,
   DialogTrigger,
   DialogContent,
+  DraggableDialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
