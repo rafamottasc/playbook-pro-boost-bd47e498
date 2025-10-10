@@ -198,6 +198,42 @@ export type Database = {
           },
         ]
       }
+      anonymous_feedbacks: {
+        Row: {
+          admin_notes: string | null
+          category: string
+          created_at: string
+          id: string
+          message: string
+          status: string
+          team: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+          team?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          team?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       application_logs: {
         Row: {
           action: string | null
@@ -311,6 +347,33 @@ export type Database = {
           states?: string[] | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_mood: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          mood: string
+          team: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          mood: string
+          team?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          mood?: string
+          team?: string | null
+          user_id?: string
         }
         Relationships: []
       }
