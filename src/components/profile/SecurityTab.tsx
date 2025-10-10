@@ -18,7 +18,8 @@ export function SecurityTab() {
 
   const form = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
-    mode: "onChange",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: {
       newPassword: "",
       confirmPassword: "",
@@ -97,6 +98,11 @@ export function SecurityTab() {
                     </div>
                   </FormControl>
                   <FormMessage />
+                  {form.formState.errors.newPassword && (
+                    <p className="text-sm text-destructive mt-1">
+                      {form.formState.errors.newPassword.message}
+                    </p>
+                  )}
                   <div className="mt-3 space-y-2">
                     <p className="text-sm text-muted-foreground">A senha deve conter:</p>
                     {requirements.map((req, index) => (
@@ -141,6 +147,11 @@ export function SecurityTab() {
                     </div>
                   </FormControl>
                   <FormMessage />
+                  {form.formState.errors.confirmPassword && (
+                    <p className="text-sm text-destructive mt-1">
+                      {form.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
                 </FormItem>
               )}
             />
