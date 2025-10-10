@@ -143,7 +143,7 @@ export const Header = function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/playbooks")}>
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  Playbooks WhatsApp
+                  Playbooks de Abordagem
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/resources")}>
                   <FolderOpen className="mr-2 h-4 w-4" />

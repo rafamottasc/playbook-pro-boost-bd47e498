@@ -25,7 +25,7 @@ export default function Home() {
 
   const navigationCards: NavCard[] = [
     {
-      title: "Playbooks WhatsApp",
+      title: "Playbooks de Abordagem",
       description: "Acesse mensagens prontas e abordagens estratégicas para suas conversas",
       icon: <MessageSquare className="w-12 h-12" />,
       route: "/playbooks",
