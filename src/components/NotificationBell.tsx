@@ -14,14 +14,14 @@ export function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-primary shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+          <Bell className="h-5 w-5 text-primary-foreground" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-bold">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-        </Button>
+        </div>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
         <NotificationDropdown />
