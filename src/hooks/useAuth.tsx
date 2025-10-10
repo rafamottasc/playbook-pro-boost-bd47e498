@@ -31,12 +31,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAdminStatus = async (userId: string) => {
     console.log('[useAuth] Checking admin status for user:', userId);
     
-    // First check if user is blocked or not approved
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("blocked, approved")
-      .eq("id", userId)
-      .maybeSingle();
+    // Execute queries in parallel
+    const [profileResult, roleResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("blocked, approved")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle()
+    ]);
+    
+    const profile = profileResult.data;
+    const profileError = profileResult.error;
+    const role = roleResult.data;
     
     console.log('[useAuth] Profile data received:', profile);
 
@@ -57,13 +69,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Failed to create profile:', insertError);
       }
       
-      // Redirecionar para pending approval
       navigate("/pending-approval");
       return;
     }
     
     if (profile?.blocked) {
-      // User is blocked - force logout
       console.log('[useAuth] User is blocked, logging out');
       await supabase.auth.signOut();
       setIsAdmin(false);
@@ -84,21 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsApproved(approved);
 
     if (!approved) {
-      // User is not approved
       console.log('[useAuth] User not approved, setting states');
       setIsAdmin(false);
       return;
     }
 
-    // Check admin role
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    
-    setIsAdmin(!!data);
+    setIsAdmin(!!role);
   };
 
   useEffect(() => {

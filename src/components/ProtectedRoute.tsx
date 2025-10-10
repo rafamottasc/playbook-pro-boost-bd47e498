@@ -34,8 +34,6 @@ export function ProtectedRoute({ children, requireAdmin = false, requireApproved
 
   if (requireApproved && !isApproved) {
     console.log('[ProtectedRoute] Redirecting to /pending-approval - user not approved');
-    // Add small delay to prevent flash
-    setTimeout(() => {}, 50);
     return <Navigate to="/pending-approval" replace />;
   }
 

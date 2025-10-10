@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export const Header = function Header() {
     gender: null,
     points: 0,
   });
+  const profileCache = useRef<{[key: string]: any}>({});
 
   useEffect(() => {
     if (user) {
@@ -51,6 +52,13 @@ export const Header = function Header() {
 
   const loadProfile = async () => {
     if (!user) return;
+    
+    // Check cache first
+    if (profileCache.current[user.id]) {
+      setProfile(profileCache.current[user.id]);
+      return;
+    }
+    
     const { data, error } = await supabase
       .from("profiles")
       .select("full_name, avatar_url, gender")
@@ -58,7 +66,9 @@ export const Header = function Header() {
       .maybeSingle();
     
     if (data) {
-      setProfile({ ...data, points: 0 });
+      const profileData = { ...data, points: 0 };
+      profileCache.current[user.id] = profileData;
+      setProfile(profileData);
     }
   };
 
