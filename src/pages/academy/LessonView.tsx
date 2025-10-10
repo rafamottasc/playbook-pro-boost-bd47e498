@@ -349,16 +349,12 @@ export default function LessonView() {
               )}
 
               {nextLesson && (
-                <Card className="p-4">
-                  <h3 className="font-semibold mb-3">Próxima Aula</h3>
-                  <Button
-                    onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
-                    className="w-full justify-between"
-                  >
-                    <span className="truncate">{nextLesson.title}</span>
-                    <ChevronRight className="h-4 w-4 ml-2 flex-shrink-0" />
-                  </Button>
-                </Card>
+                <Button
+                  onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
+                  className="w-full"
+                >
+                  Ir para próxima aula <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
               )}
             </div>
 
@@ -405,16 +401,12 @@ export default function LessonView() {
 
             {/* Next Lesson */}
             {nextLesson && (
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3">Próxima Aula</h3>
-                <Button
-                  onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
-                  className="w-full justify-between"
-                >
-                  <span className="truncate">{nextLesson.title}</span>
-                  <ChevronRight className="h-4 w-4 ml-2 flex-shrink-0" />
-                </Button>
-              </Card>
+              <Button
+                onClick={() => navigate(`/resources/training/${moduleId}/${nextLesson.id}`)}
+                className="w-full"
+              >
+                Ir para próxima aula <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
             )}
           </div>
         </div>
