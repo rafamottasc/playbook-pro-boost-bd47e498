@@ -412,8 +412,25 @@ export default function Index() {
     }
   };
 
-  const handleMessageCopy = (messageId: string) => {
-    setUserPoints((prev) => prev + 1);
+  const handleMessageCopy = async (messageId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_message_copies')
+        .insert({ user_id: user.id, message_id: messageId });
+      
+      if (!error) {
+        toast({
+          title: "✅ Mensagem copiada (+5 pts)",
+          description: "Continue interagindo para ganhar mais pontos!",
+        });
+      }
+    } catch (error) {
+      // Erro silencioso se já copiou esta mensagem hoje (duplicate key)
+      console.log("Mensagem já copiada hoje");
+    }
   };
 
   const handleMessageLike = async (messageId: string) => {
@@ -463,9 +480,8 @@ export default function Index() {
         )
       );
       setUserFeedbacks(prev => ({ ...prev, [messageId]: 'like' }));
-      setUserPoints((prev) => prev + 0.5);
       toast({
-        title: "👍 Obrigado pelo feedback positivo!",
+        title: "👍 Obrigado pelo feedback! (+5 pts)",
         description: "Sua avaliação ajuda a melhorar nossos playbooks.",
       });
     } catch (error: any) {
@@ -526,7 +542,7 @@ export default function Index() {
       );
       setUserFeedbacks(prev => ({ ...prev, [messageId]: 'dislike' }));
       toast({
-        title: "Feedback registrado. Considere enviar uma sugestão! 👎",
+        title: "Feedback registrado (+5 pts). Considere enviar uma sugestão! 👎",
       });
     } catch (error: any) {
       console.error("Erro ao registrar dislike:", error);

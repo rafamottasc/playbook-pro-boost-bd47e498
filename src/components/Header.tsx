@@ -4,9 +4,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import comarcIcon from "@/assets/icone-comarc.png";
-import comarcLogo from "@/assets/logo-comarc.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,10 +24,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const BADGE_THRESHOLDS = [
-  { name: "Iniciante", points: 10, icon: "🟢" },
-  { name: "Consistente", points: 50, icon: "🔵" },
-  { name: "Estrategista", points: 100, icon: "🟠" },
-  { name: "Mestre da Conversão", points: 200, icon: "🏆" },
+  { name: "🥉 Iniciante", points: 0, maxPoints: 49 },
+  { name: "🥈 Consistente", points: 50, maxPoints: 149 },
+  { name: "🥇 Avançado", points: 150, maxPoints: 299 },
+  { name: "💎 Expert", points: 300, maxPoints: Infinity },
 ];
 
 export const Header = function Header() {
@@ -61,14 +59,13 @@ export const Header = function Header() {
     
     const { data, error } = await supabase
       .from("profiles")
-      .select("full_name, avatar_url, gender")
+      .select("full_name, avatar_url, gender, points")
       .eq("id", user.id)
       .maybeSingle();
     
     if (data) {
-      const profileData = { ...data, points: 0 };
-      profileCache.current[user.id] = profileData;
-      setProfile(profileData);
+      profileCache.current[user.id] = data;
+      setProfile(data);
     }
   };
 
@@ -88,11 +85,6 @@ export const Header = function Header() {
   const currentBadge = [...BADGE_THRESHOLDS]
     .reverse()
     .find((badge) => userPoints >= badge.points) || BADGE_THRESHOLDS[0];
-
-  const nextBadge = BADGE_THRESHOLDS.find((badge) => badge.points > userPoints);
-  const progressPercentage = nextBadge
-    ? ((userPoints - currentBadge.points) / (nextBadge.points - currentBadge.points)) * 100
-    : 100;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -142,7 +134,7 @@ export const Header = function Header() {
               <p className="text-sm font-medium text-primary">{getWelcomeMessage()}</p>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">
-                  {currentBadge.icon} {currentBadge.name}
+                  {currentBadge.name}
                 </span>
                 <span className="text-xs font-bold text-primary">{userPoints} pts</span>
               </div>
@@ -157,9 +149,6 @@ export const Header = function Header() {
                       {profile.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1 w-16">
-                    <Progress value={progressPercentage} className="h-1" />
-                  </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">

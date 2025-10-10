@@ -62,7 +62,7 @@ export function LessonCompletionButton({
           isCompleted 
             ? "border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400 hover:bg-green-500/10 cursor-pointer" 
             : canComplete
-            ? "hover:border-primary/50 hover:bg-primary/5"
+            ? "border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20"
             : "opacity-50 cursor-not-allowed"
         )}
       >

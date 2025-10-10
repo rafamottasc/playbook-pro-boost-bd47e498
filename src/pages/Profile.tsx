@@ -58,11 +58,11 @@ export default function Profile() {
   };
 
   const getRankingBadge = (points: number) => {
-    if (points >= 1000) {
+    if (points >= 300) {
       return { label: "💎 Expert", variant: "default" as const, color: "text-purple-600" };
-    } else if (points >= 501) {
+    } else if (points >= 150) {
       return { label: "🥇 Avançado", variant: "default" as const, color: "text-yellow-600" };
-    } else if (points >= 101) {
+    } else if (points >= 50) {
       return { label: "🥈 Consistente", variant: "secondary" as const, color: "text-gray-600" };
     } else {
       return { label: "🥉 Iniciante", variant: "outline" as const, color: "text-orange-600" };
@@ -314,6 +314,84 @@ export default function Profile() {
             </form>
           </CardContent>
         </Card>
+
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-5 w-5" />
+                  Sistema de Pontuação
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                      <span className="text-2xl">🥉</span>
+                      <div className="text-right">
+                        <p className="font-medium text-sm">Iniciante</p>
+                        <p className="text-xs text-muted-foreground">0-49 pts</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-950/20">
+                      <span className="text-2xl">🥈</span>
+                      <div className="text-right">
+                        <p className="font-medium text-sm">Consistente</p>
+                        <p className="text-xs text-muted-foreground">50-149 pts</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
+                      <span className="text-2xl">🥇</span>
+                      <div className="text-right">
+                        <p className="font-medium text-sm">Avançado</p>
+                        <p className="text-xs text-muted-foreground">150-299 pts</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                      <span className="text-2xl">💎</span>
+                      <div className="text-right">
+                        <p className="font-medium text-sm">Expert</p>
+                        <p className="text-xs text-muted-foreground">300+ pts</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                    <p className="font-medium text-sm mb-2">Como ganhar pontos:</p>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>📚 Completar aula: <strong>+10 pts</strong></p>
+                      <p>📋 Copiar mensagem: <strong>+5 pts</strong></p>
+                      <p>👍 Avaliar mensagem: <strong>+5 pts</strong></p>
+                      <p className="text-xs mt-2 opacity-70">Máximo 25 pts/dia em Playbooks</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-primary/5 rounded-lg">
+                    <p className="text-sm">
+                      Você está em <strong className={rankingBadge.color}>{rankingBadge.label}</strong> com <strong>{profile.points} pontos</strong>.
+                      {(() => {
+                        const thresholds = [
+                          { name: "Iniciante", min: 0, max: 49 },
+                          { name: "Consistente", min: 50, max: 149 },
+                          { name: "Avançado", min: 150, max: 299 },
+                          { name: "Expert", min: 300, max: Infinity },
+                        ];
+                        const currentLevel = thresholds.find(t => profile.points <= t.max);
+                        const nextLevel = thresholds[thresholds.indexOf(currentLevel!) + 1];
+                        const pointsToNext = nextLevel ? nextLevel.min - profile.points : 0;
+                        
+                        if (nextLevel) {
+                          return <> Faltam <strong>{pointsToNext} pontos</strong> para <strong>{nextLevel.name}</strong>!</>;
+                        }
+                        return <> Você alcançou o nível máximo! 🎉</>;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="security">
