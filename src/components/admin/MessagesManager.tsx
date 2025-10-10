@@ -45,6 +45,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { FUNNELS, STAGES_BY_FUNNEL } from "@/lib/playbook-constants";
 
 interface Message {
   id: string;
@@ -56,47 +57,6 @@ interface Message {
   likes: number;
   dislikes: number;
 }
-
-const FUNNELS = [
-  { id: "lead-novo", name: "Abordagem – Lead Novo" },
-  { id: "atendimento", name: "Atendimento Geral" },
-  { id: "repescagem", name: "Repescagem" },
-  { id: "nutricao", name: "Nutrição" },
-];
-
-const STAGES_BY_FUNNEL: Record<string, string[]> = {
-  "lead-novo": [
-    "Primeira Abordagem",
-    "Segunda Abordagem",
-    "Terceira Abordagem",
-    "Quarta Abordagem",
-    "Quinta Abordagem",
-    "Sexta Abordagem",
-    "Sétima Abordagem",
-  ],
-  atendimento: [
-    "Sondagem",
-    "Apresentação Produto",
-    "Visita/Call",
-    "Proposta",
-    "Fechamento",
-  ],
-  repescagem: [
-    "Etapa 1",
-    "Etapa 2",
-  ],
-  nutricao: [
-    "Etapa 1",
-    "Etapa 2",
-    "Etapa 3",
-    "Etapa 4",
-    "Etapa 5",
-    "Etapa 6",
-    "Etapa 7",
-    "Etapa 8",
-    "Etapa 9",
-  ],
-};
 
 function SortableMessageCard({
   message,
@@ -306,6 +266,25 @@ export function MessagesManager() {
   };
 
   const handleSave = async () => {
+    // Validação
+    if (!formData.title.trim()) {
+      toast({
+        title: "Erro de validação",
+        description: "O título é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.stage) {
+      toast({
+        title: "Erro de validação",
+        description: "Selecione uma etapa",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       if (editingMessage) {
         const { error } = await supabase

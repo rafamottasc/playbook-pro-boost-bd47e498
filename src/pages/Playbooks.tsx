@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { FUNNELS as FUNNELS_BASE, STAGES } from "@/lib/playbook-constants";
 
 interface Message {
   id: string;
@@ -341,19 +342,19 @@ const INITIAL_MESSAGES: Message[] = [
   },
 ];
 
-const FUNNELS = [
-  { id: "lead-novo", name: "🔴 Abordagem – Lead Novo" },
-  { id: "atendimento", name: "🟢 Atendimento Geral" },
-  { id: "repescagem", name: "🟠 Repescagem" },
-  { id: "nutricao", name: "🔵 Nutrição" },
-];
-
-const STAGES = {
-  "lead-novo": ["1ª Abordagem", "2ª Abordagem", "3ª Abordagem", "4ª Abordagem", "5ª Abordagem", "6ª Abordagem", "7ª Abordagem"],
-  "atendimento": ["Sondagem", "Apresentação do Produto", "Visita / Call", "Proposta", "Fechamento"],
-  "repescagem": ["Reativação"],
-  "nutricao": ["Educação", "Oportunidades"],
+// Emojis para exibição visual dos funis
+const FUNNEL_EMOJIS: Record<string, string> = {
+  "lead-novo": "🔴",
+  "atendimento": "🟢",
+  "repescagem": "🟠",
+  "nutricao": "🔵",
 };
+
+// Adicionar emojis aos funis para exibição
+const FUNNELS = FUNNELS_BASE.map(funnel => ({
+  ...funnel,
+  name: `${FUNNEL_EMOJIS[funnel.id]} ${funnel.name}`
+}));
 
 export default function Index() {
   const [messages, setMessages] = useState<Message[]>([]);
