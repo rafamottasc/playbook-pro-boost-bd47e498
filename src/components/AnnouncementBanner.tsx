@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Megaphone, Bell, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Announcement {
   id: string;
@@ -50,6 +51,7 @@ const priorityStyles = {
 export function AnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchAnnouncement();
@@ -128,7 +130,7 @@ export function AnnouncementBanner() {
   return (
     <div className="max-w-7xl mx-auto mb-8 px-4">
       <Card className={cn(
-        "relative animate-fade-in shadow-comarc border-2 rounded-xl overflow-hidden",
+        "relative animate-fade-in shadow-comarc border-2 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
         styles.container
       )}>
         <CardContent className="p-6">
@@ -145,25 +147,30 @@ export function AnnouncementBanner() {
               <h3 className={cn("text-lg font-bold mb-2", styles.icon)}>
                 {announcement.title}
               </h3>
-              <p className="text-base text-foreground/90 leading-relaxed">
-                {announcement.message}
-              </p>
-              {announcement.cta_text && announcement.cta_link && (
-                <Button
-                  onClick={handleCtaClick}
-                  size="sm"
-                  className={cn("mt-4 font-medium shadow-sm", styles.button)}
-                >
-                  {announcement.cta_text}
-                </Button>
-              )}
+              <div className={cn(
+                "flex gap-4",
+                isMobile ? "flex-col items-start" : "flex-row items-center justify-between"
+              )}>
+                <p className="text-base text-foreground/90 leading-relaxed flex-1">
+                  {announcement.message}
+                </p>
+                {announcement.cta_text && announcement.cta_link && (
+                  <Button
+                    onClick={handleCtaClick}
+                    size="sm"
+                    className={cn("font-medium shadow-sm flex-shrink-0", styles.button, isMobile ? "mt-2 w-fit" : "")}
+                  >
+                    {announcement.cta_text}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Close Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-3 right-3 h-8 w-8 rounded-full hover:bg-background/80"
+              className="absolute top-3 right-3 h-8 w-8 rounded-full text-foreground/60 hover:text-foreground hover:bg-background/90 hover:shadow-sm"
               onClick={handleDismiss}
             >
               <X className="h-4 w-4" />

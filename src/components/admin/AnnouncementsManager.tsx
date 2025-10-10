@@ -52,10 +52,35 @@ const iconOptions = [
 ];
 
 const priorityStyles = {
-  urgent: "border-destructive bg-destructive/10 text-destructive",
-  warning: "border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400",
-  info: "border-blue-500 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400",
-  success: "border-green-500 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400",
+  urgent: {
+    container: "border-destructive/60 bg-gradient-to-br from-destructive/5 via-background to-destructive/10",
+    icon: "text-destructive",
+    button: "bg-destructive hover:bg-destructive/90 text-white",
+  },
+  warning: {
+    container: "border-orange-500/60 bg-gradient-to-br from-orange-50/50 via-background to-orange-100/50 dark:from-orange-950/10 dark:via-background dark:to-orange-900/20",
+    icon: "text-orange-600 dark:text-orange-400",
+    button: "bg-orange-600 hover:bg-orange-700 text-white",
+  },
+  info: {
+    container: "border-blue-500/60 bg-gradient-to-br from-blue-50/50 via-background to-blue-100/50 dark:from-blue-950/10 dark:via-background dark:to-blue-900/20",
+    icon: "text-blue-600 dark:text-blue-400",
+    button: "bg-blue-600 hover:bg-blue-700 text-white",
+  },
+  success: {
+    container: "border-green-500/60 bg-gradient-to-br from-green-50/50 via-background to-green-100/50 dark:from-green-950/10 dark:via-background dark:to-green-900/20",
+    icon: "text-green-600 dark:text-green-400",
+    button: "bg-green-600 hover:bg-green-700 text-white",
+  },
+};
+
+const normalizeUrl = (url: string): string => {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
 };
 
 export function AnnouncementsManager() {
@@ -149,7 +174,7 @@ export function AnnouncementsManager() {
         ...formData,
         end_date: formData.end_date || null,
         cta_text: formData.cta_text || null,
-        cta_link: formData.cta_link || null,
+        cta_link: formData.cta_link ? normalizeUrl(formData.cta_link) : null,
         created_by: user.id,
       };
 
@@ -423,10 +448,10 @@ export function AnnouncementsManager() {
                   <Label htmlFor="cta_link">Link do Botão</Label>
                   <Input
                     id="cta_link"
-                    type="url"
+                    type="text"
                     value={formData.cta_link}
                     onChange={(e) => setFormData({ ...formData, cta_link: e.target.value })}
-                    placeholder="https://..."
+                    placeholder="google.com.br ou https://google.com.br"
                   />
                 </div>
               </div>
@@ -460,21 +485,48 @@ export function AnnouncementsManager() {
               {/* Preview */}
               <div className="space-y-2">
                 <Label>Preview</Label>
-                <Alert className={cn(priorityStyles[formData.priority as keyof typeof priorityStyles])}>
-                  <SelectedIcon className="h-5 w-5" />
-                  <AlertTitle>{formData.title || "Título do aviso"}</AlertTitle>
-                  <AlertDescription className="mt-2">
-                    {formData.message || "Mensagem do aviso aparecerá aqui..."}
-                    {formData.cta_text && (
-                      <Button size="sm" className="mt-3 ml-0">
-                        {formData.cta_text}
+                <Card className={cn(
+                  "relative shadow-comarc border-2 rounded-xl overflow-hidden",
+                  priorityStyles[formData.priority as keyof typeof priorityStyles].container
+                )}>
+                  <CardContent className="p-6">
+                    <div className="flex gap-4">
+                      {/* Icon Section */}
+                      <div className="flex-shrink-0 pt-1">
+                        <div className={cn("p-2 rounded-lg bg-background/50 backdrop-blur-sm", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
+                          <SelectedIcon className="h-10 w-10" />
+                        </div>
+                      </div>
+
+                      {/* Content Section */}
+                      <div className="flex-1 min-w-0 pr-10">
+                        <h3 className={cn("text-lg font-bold mb-2", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
+                          {formData.title || "Título do aviso"}
+                        </h3>
+                        <p className="text-base text-foreground/90 leading-relaxed">
+                          {formData.message || "Mensagem do aviso aparecerá aqui..."}
+                        </p>
+                        {formData.cta_text && (
+                          <Button
+                            size="sm"
+                            className={cn("mt-4 font-medium shadow-sm", priorityStyles[formData.priority as keyof typeof priorityStyles].button)}
+                          >
+                            {formData.cta_text}
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Close Button */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-3 right-3 h-8 w-8 rounded-full text-foreground/60 hover:text-foreground hover:bg-background/90"
+                      >
+                        <X className="h-4 w-4" />
                       </Button>
-                    )}
-                  </AlertDescription>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </Alert>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="flex justify-end gap-2">
