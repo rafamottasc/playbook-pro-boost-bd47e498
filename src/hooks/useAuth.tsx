@@ -28,54 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isApproved, setIsApproved] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let mounted = true;
-    let subscription: any;
-
-    const initAuth = async () => {
-      // Set up auth state listener
-      const { data: authSubscription } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (!mounted) return;
-          
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await checkAdminStatus(session.user.id);
-          } else {
-            setIsAdmin(false);
-            setIsApproved(false);
-          }
-        }
-      );
-
-      subscription = authSubscription.subscription;
-
-      // Check for existing session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await checkAdminStatus(session.user.id);
-      }
-      
-      setLoading(false);
-      setInitializing(false);
-    };
-
-    initAuth();
-
-    return () => {
-      mounted = false;
-      subscription?.unsubscribe();
-    };
-  }, []);
-
   const checkAdminStatus = async (userId: string) => {
     console.log('[useAuth] Checking admin status for user:', userId);
     
@@ -135,7 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // User is not approved
       console.log('[useAuth] User not approved, setting states');
       setIsAdmin(false);
-      setLoading(false);
       return;
     }
 
@@ -149,6 +100,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     setIsAdmin(!!data);
   };
+
+  useEffect(() => {
+    let mounted = true;
+    let subscription: any;
+
+    const initAuth = async () => {
+      // Set up auth state listener
+      const { data: authSubscription } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          if (!mounted) return;
+          
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            setTimeout(() => {
+              checkAdminStatus(session.user.id);
+            }, 0);
+          } else {
+            setIsAdmin(false);
+            setIsApproved(false);
+          }
+        }
+      );
+
+      subscription = authSubscription.subscription;
+
+      // Check for existing session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!mounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
+        setIsApproved(false);
+      }
+      
+      setLoading(false);
+      setInitializing(false);
+    };
+
+    initAuth();
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
     const { error, data } = await supabase.auth.signInWithPassword({
