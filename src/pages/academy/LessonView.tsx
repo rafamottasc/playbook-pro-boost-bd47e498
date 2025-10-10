@@ -131,7 +131,7 @@ export default function LessonView() {
           .gt('display_order', lessonData.display_order || 0)
           .order('display_order', { ascending: true })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         setNextLesson(nextLessonData);
 
@@ -142,7 +142,7 @@ export default function LessonView() {
             .from('academy_modules')
             .select('display_order, title')
             .eq('id', lessonData.module_id)
-            .single();
+            .maybeSingle();
 
           if (currentModule) {
             setCurrentModuleTitle(currentModule.title);
@@ -161,7 +161,7 @@ export default function LessonView() {
               .gt('display_order', currentModule.display_order)
               .order('display_order', { ascending: true })
               .limit(1)
-              .single();
+              .maybeSingle();
 
             setNextModule(nextModuleData);
           }
@@ -323,8 +323,6 @@ export default function LessonView() {
             {/* Video Player */}
             <VideoPlayer 
               videoUrl={lesson.video_url} 
-              onComplete={handleVideoComplete}
-              onProgress={handleVideoProgress}
             />
 
             {/* Lesson Info */}
