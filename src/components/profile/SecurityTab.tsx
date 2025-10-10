@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Check, Circle, Eye, EyeOff } from "lucide-react";
+import { Check, Circle, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export function SecurityTab() {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,9 +58,18 @@ export function SecurityTab() {
 
   const onError = (errors: any) => {
     console.log("Erros de validação:", errors);
-    const firstError = Object.values(errors)[0] as any;
-    if (firstError?.message) {
-      toast.error(firstError.message);
+    
+    // Processar todos os erros e mostrar o primeiro
+    if (errors.confirmPassword) {
+      toast.error(errors.confirmPassword.message);
+    } else if (errors.newPassword) {
+      toast.error(errors.newPassword.message);
+    } else {
+      // Fallback para qualquer outro erro
+      const firstError = Object.values(errors)[0] as any;
+      if (firstError?.message) {
+        toast.error(firstError.message);
+      }
     }
   };
 
@@ -148,9 +157,12 @@ export function SecurityTab() {
                   </FormControl>
                   <FormMessage />
                   {form.formState.errors.confirmPassword && (
-                    <p className="text-sm text-destructive mt-1">
-                      {form.formState.errors.confirmPassword.message}
-                    </p>
+                    <div className="flex items-center gap-2 mt-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+                      <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                      <p className="text-sm text-destructive font-medium">
+                        {form.formState.errors.confirmPassword.message}
+                      </p>
+                    </div>
                   )}
                 </FormItem>
               )}
