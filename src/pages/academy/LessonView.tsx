@@ -215,12 +215,16 @@ export default function LessonView() {
       // Unmark lesson and remove points
       const { error: progressError } = await supabase
         .from('user_lesson_progress')
-        .update({
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
           watched: false,
-          watched_at: null
-        })
-        .eq('user_id', user.id)
-        .eq('lesson_id', lessonId);
+          watched_at: null,
+          video_progress: 0,
+          completed_percentage: 0
+        }, {
+          onConflict: 'user_id,lesson_id'
+        });
 
       if (progressError) throw progressError;
 
