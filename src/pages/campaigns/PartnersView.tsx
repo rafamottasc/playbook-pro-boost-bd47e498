@@ -6,8 +6,10 @@ import { Search } from "lucide-react";
 import { CategorySection } from "@/components/partners/CategorySection";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PartnersView() {
+  const { isAdmin } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +130,7 @@ export default function PartnersView() {
                     key={category.id}
                     categoryName={category.name}
                     partners={categoryPartners}
-                    isAdmin={false}
+                    isAdmin={isAdmin}
                   />
                 );
               })}
