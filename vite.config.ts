@@ -18,5 +18,10 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
+    force: true,
+    esbuildOptions: {
+      resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
+    },
   },
+  clearScreen: false,
 }));

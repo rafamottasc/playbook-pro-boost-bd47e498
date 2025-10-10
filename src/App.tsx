@@ -160,21 +160,19 @@ function AppRoutes() {
 
 function App() {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AuthProvider>
-                <AppRoutes />
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
