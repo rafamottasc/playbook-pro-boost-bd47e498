@@ -312,12 +312,7 @@ export default function LessonView() {
                 </div>
               )}
 
-              <div className="flex items-start justify-between mb-3">
-                <h1 className="text-lg sm:text-xl font-bold">{lesson.title}</h1>
-                <Badge variant="secondary" className="text-sm">
-                  +{lesson.points} pts
-                </Badge>
-              </div>
+              <h1 className="text-lg sm:text-xl font-bold mb-3">{lesson.title}</h1>
               {lesson.description && (
                 <p className="text-muted-foreground">{lesson.description}</p>
               )}

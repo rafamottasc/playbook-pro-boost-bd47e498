@@ -86,21 +86,7 @@ export function LessonFeedback({ lessonId }: LessonFeedbackProps) {
   };
 
   if (feedback) {
-    return (
-      <Card className="p-4 bg-accent/50">
-        <p className="text-sm text-muted-foreground">
-          Você já avaliou esta aula como{" "}
-          <span className="font-semibold">
-            {feedback.was_useful ? "útil" : "não útil"}
-          </span>
-          {feedback.comment && (
-            <>
-              {" "}e comentou: "{feedback.comment}"
-            </>
-          )}
-        </p>
-      </Card>
-    );
+    return null;
   }
 
   return (

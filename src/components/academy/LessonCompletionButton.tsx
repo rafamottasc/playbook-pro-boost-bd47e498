@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface LessonCompletionButtonProps {
   isCompleted: boolean;
@@ -21,10 +22,21 @@ export function LessonCompletionButton({
   disabled = false
 }: LessonCompletionButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const canComplete = videoProgress >= 50;
 
   const handleClick = async () => {
     if (isLoading) return;
+    
+    // Se não pode completar (menos de 50% do vídeo), mostra mensagem
+    if (!canComplete && !isCompleted) {
+      toast({
+        title: "Você precisa assistir a aula",
+        description: "Assista pelo menos 50% do vídeo para concluir a aula.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsLoading(true);
     try {
