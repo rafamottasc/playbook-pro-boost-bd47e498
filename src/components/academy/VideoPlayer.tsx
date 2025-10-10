@@ -11,43 +11,45 @@ export function VideoPlayer({ videoUrl, onComplete, onProgress }: VideoPlayerPro
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const embedUrl = convertYouTubeUrl(videoUrl);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const playerRef = useRef<any>(null);
 
   useEffect(() => {
-    // YouTube Player API
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    const initializePlayer = () => {
+      if (!iframeRef.current) return;
 
-    // @ts-ignore
-    window.onYouTubeIframeAPIReady = () => {
       // @ts-ignore
-      const player = new window.YT.Player(iframeRef.current, {
+      playerRef.current = new window.YT.Player(iframeRef.current, {
         events: {
           onStateChange: (event: any) => {
-            // 0 = ended, 1 = playing
-            if (event.data === 0 && onComplete) {
-              onComplete();
+            // 0 = ended, 1 = playing, 2 = paused
+            if (event.data === 0) {
+              // Video ended
+              if (onComplete) onComplete();
+              if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
+              }
+            } else if (event.data === 1) {
+              // Video playing - start progress tracking
               if (progressIntervalRef.current) {
                 clearInterval(progressIntervalRef.current);
               }
-            } else if (event.data === 1 && onProgress) {
-              // Start tracking progress when playing
-              if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current);
-              }
+              
               progressIntervalRef.current = setInterval(() => {
-                const currentTime = player.getCurrentTime();
-                const duration = player.getDuration();
-                if (duration > 0) {
-                  const percentage = Math.floor((currentTime / duration) * 100);
-                  onProgress(percentage);
+                if (playerRef.current && onProgress) {
+                  const currentTime = playerRef.current.getCurrentTime();
+                  const duration = playerRef.current.getDuration();
+                  if (duration > 0) {
+                    const percentage = Math.floor((currentTime / duration) * 100);
+                    onProgress(percentage);
+                  }
                 }
-              }, 2000); // Update every 2 seconds
+              }, 1000); // Update every second for better accuracy
             } else if (event.data === 2) {
-              // Paused
+              // Video paused - stop progress tracking
               if (progressIntervalRef.current) {
                 clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
               }
             }
           }
@@ -55,12 +57,31 @@ export function VideoPlayer({ videoUrl, onComplete, onProgress }: VideoPlayerPro
       });
     };
 
+    // Load YouTube API if not already loaded
+    // @ts-ignore
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      // @ts-ignore
+      window.onYouTubeIframeAPIReady = initializePlayer;
+    } else {
+      // API already loaded, initialize player directly
+      initializePlayer();
+    }
+
     return () => {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      if (playerRef.current && playerRef.current.destroy) {
+        playerRef.current.destroy();
       }
     };
-  }, [onComplete, onProgress]);
+  }, [videoUrl, onComplete, onProgress]);
 
   return (
     <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
