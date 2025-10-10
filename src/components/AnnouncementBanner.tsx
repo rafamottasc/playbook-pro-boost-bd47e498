@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, Megaphone, Bell, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { X, Megaphone, Bell, AlertTriangle, CheckCircle, Info, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -144,7 +144,7 @@ export function AnnouncementBanner() {
 
             {/* Content Section */}
             <div className="flex-1 min-w-0 pr-10">
-              <h3 className={cn("text-lg font-bold mb-2", styles.icon)}>
+              <h3 className={cn("text-xl font-bold mb-2", styles.icon)}>
                 {announcement.title}
               </h3>
               <div className={cn(
@@ -157,10 +157,15 @@ export function AnnouncementBanner() {
                 {announcement.cta_text && announcement.cta_link && (
                   <Button
                     onClick={handleCtaClick}
-                    size="sm"
-                    className={cn("font-medium shadow-sm flex-shrink-0", styles.button, isMobile ? "mt-2 w-fit" : "")}
+                    size={isMobile ? "sm" : "default"}
+                    className={cn(
+                      "font-medium shadow-sm flex-shrink-0 gap-2",
+                      styles.button,
+                      isMobile ? "mt-2 w-fit text-sm px-3" : "px-6 text-base"
+                    )}
                   >
                     {announcement.cta_text}
+                    <MousePointerClick className="h-4 w-4" />
                   </Button>
                 )}
               </div>

@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, Eye, X, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, Eye, X, ExternalLink, MousePointerClick } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -500,7 +500,7 @@ export function AnnouncementsManager() {
 
                       {/* Content Section */}
                       <div className="flex-1 min-w-0 pr-10">
-                        <h3 className={cn("text-lg font-bold mb-2", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
+                        <h3 className={cn("text-xl font-bold mb-2", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
                           {formData.title || "Título do aviso"}
                         </h3>
                         <p className="text-base text-foreground/90 leading-relaxed">
@@ -508,10 +508,11 @@ export function AnnouncementsManager() {
                         </p>
                         {formData.cta_text && (
                           <Button
-                            size="sm"
-                            className={cn("mt-4 font-medium shadow-sm", priorityStyles[formData.priority as keyof typeof priorityStyles].button)}
+                            size="default"
+                            className={cn("mt-4 font-medium shadow-sm gap-2 px-6 text-base", priorityStyles[formData.priority as keyof typeof priorityStyles].button)}
                           >
                             {formData.cta_text}
+                            <MousePointerClick className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
