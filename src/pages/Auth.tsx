@@ -303,6 +303,23 @@ export default function Auth() {
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-muted-foreground">A senha deve conter:</p>
+                    {requirements.map((req, index) => (
+                      <div key={index} className="flex items-center gap-2 transition-all duration-200">
+                        {req.met ? (
+                          <Check className="h-3 w-3 text-green-600 animate-in zoom-in-50" />
+                        ) : (
+                          <Circle className="h-3 w-3 text-muted-foreground/50" />
+                        )}
+                        <span className={`text-xs transition-colors duration-200 ${
+                          req.met ? "text-green-600 font-medium" : "text-muted-foreground"
+                        }`}>
+                          {req.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox
