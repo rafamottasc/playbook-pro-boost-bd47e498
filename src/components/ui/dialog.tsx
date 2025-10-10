@@ -1,7 +1,6 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import Draggable from "react-draggable";
 
 import { cn } from "@/lib/utils";
 
@@ -55,11 +54,58 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 const DraggableDialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <Draggable handle=".dialog-drag-handle" bounds="parent">
-      <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+>(({ className, children, ...props }, ref) => {
+  const [position, setPosition] = React.useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.dialog-drag-handle')) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition({
+          x: e.clientX - dragStart.x,
+          y: e.clientY - dragStart.y
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart]);
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <div
+        ref={dialogRef}
+        onMouseDown={handleMouseDown}
+        style={{
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+        }}
+        className="fixed left-[50%] top-[50%] z-50"
+      >
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
@@ -75,9 +121,9 @@ const DraggableDialogContent = React.forwardRef<
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </div>
-    </Draggable>
-  </DialogPortal>
-));
+    </DialogPortal>
+  );
+});
 DraggableDialogContent.displayName = "DraggableDialogContent";
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
