@@ -443,11 +443,12 @@ export function MessagesManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center gap-4">
+      <div className="flex flex-col gap-4 mb-6">
         <h2 className="text-xl font-semibold">Mensagens do Playbook</h2>
-        <div className="flex gap-2 items-center">
+        
+        <div className="flex flex-col sm:flex-row gap-3">
           <Select value={selectedFunnel} onValueChange={setSelectedFunnel}>
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-full sm:w-[250px]">
               <SelectValue placeholder="Filtrar por funil" />
             </SelectTrigger>
             <SelectContent>
@@ -459,9 +460,10 @@ export function MessagesManager() {
               ))}
             </SelectContent>
           </Select>
+          
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Nova Mensagem
             </Button>

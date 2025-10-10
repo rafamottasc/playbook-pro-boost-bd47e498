@@ -332,34 +332,33 @@ export function LessonsManager() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
-          <div>
-            <h3 className="text-xl font-semibold">Aulas</h3>
-            {selectedModule && (
-              <p className="text-sm text-muted-foreground">
-                {lessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
-              </p>
-            )}
-          </div>
-          {modules.length > 0 && (
-            <Select value={selectedModule} onValueChange={setSelectedModule}>
-              <SelectTrigger className="w-full sm:w-[250px]">
-                <SelectValue placeholder="Selecione um módulo" />
-              </SelectTrigger>
-              <SelectContent>
-                {modules.map((module) => (
-                  <SelectItem key={module.id} value={module.id}>
-                    {module.title}
-                    {!module.published && (
-                      <Badge variant="secondary" className="ml-2">Não publicado</Badge>
-                    )}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="space-y-4 mb-4">
+        <div>
+          <h3 className="text-xl font-semibold">Aulas</h3>
+          {selectedModule && (
+            <p className="text-sm text-muted-foreground">
+              {lessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
+            </p>
           )}
         </div>
+
+        {modules.length > 0 && (
+          <Select value={selectedModule} onValueChange={setSelectedModule}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione um módulo" />
+            </SelectTrigger>
+            <SelectContent>
+              {modules.map((module) => (
+                <SelectItem key={module.id} value={module.id}>
+                  {module.title}
+                  {!module.published && (
+                    <Badge variant="secondary" className="ml-2">Não publicado</Badge>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -378,7 +377,7 @@ export function LessonsManager() {
                 });
               }}
               disabled={!selectedModule}
-              className="w-full sm:w-auto"
+              className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Nova Aula
@@ -568,11 +567,12 @@ export function LessonsManager() {
       )}
 
       {selectedModule && lessons.length > 0 && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             variant={filterStatus === 'all' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilterStatus('all')}
+            className="flex-1 min-w-[100px] sm:flex-initial"
           >
             Todas ({lessons.length})
           </Button>
@@ -580,6 +580,7 @@ export function LessonsManager() {
             variant={filterStatus === 'published' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilterStatus('published')}
+            className="flex-1 min-w-[100px] sm:flex-initial"
           >
             Publicadas ({publishedCount})
           </Button>
@@ -587,6 +588,7 @@ export function LessonsManager() {
             variant={filterStatus === 'draft' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilterStatus('draft')}
+            className="flex-1 min-w-[100px] sm:flex-initial"
           >
             Rascunhos ({draftCount})
           </Button>

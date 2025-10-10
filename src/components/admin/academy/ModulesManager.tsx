@@ -284,13 +284,14 @@ export function ModulesManager() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="space-y-4 mb-4">
         <div>
           <h3 className="text-xl font-semibold">Módulos de Treinamento</h3>
           <p className="text-sm text-muted-foreground">
             {modules.length} total • {publishedCount} publicados • {draftCount} rascunhos
           </p>
         </div>
+        
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => {
@@ -298,7 +299,7 @@ export function ModulesManager() {
               setFormData({ title: "", description: "", cover_url: "", display_order: modules.length, published: false });
               setCoverFile(null);
               setCoverPreview(null);
-            }}>
+            }} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Novo Módulo
             </Button>
@@ -376,11 +377,12 @@ export function ModulesManager() {
         </Dialog>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         <Button
           variant={filterStatus === 'all' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setFilterStatus('all')}
+          className="flex-1 min-w-[100px] sm:flex-initial"
         >
           Todos ({modules.length})
         </Button>
@@ -388,6 +390,7 @@ export function ModulesManager() {
           variant={filterStatus === 'published' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setFilterStatus('published')}
+          className="flex-1 min-w-[100px] sm:flex-initial"
         >
           Publicados ({publishedCount})
         </Button>
@@ -395,6 +398,7 @@ export function ModulesManager() {
           variant={filterStatus === 'draft' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setFilterStatus('draft')}
+          className="flex-1 min-w-[100px] sm:flex-initial"
         >
           Rascunhos ({draftCount})
         </Button>

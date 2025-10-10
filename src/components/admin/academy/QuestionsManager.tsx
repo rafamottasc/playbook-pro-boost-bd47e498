@@ -232,7 +232,7 @@ export function QuestionsManager() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="space-y-4 mb-6">
         <div>
           <h3 className="text-xl font-semibold">Central de Perguntas</h3>
           {pendingCount > 0 && (
@@ -242,11 +242,12 @@ export function QuestionsManager() {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={filter === 'all' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter('all')}
+            className="flex-1 min-w-[80px] sm:flex-initial"
           >
             Todas
           </Button>
@@ -254,6 +255,7 @@ export function QuestionsManager() {
             variant={filter === 'pending' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter('pending')}
+            className="flex-1 min-w-[80px] sm:flex-initial"
           >
             Pendentes
           </Button>
@@ -261,6 +263,7 @@ export function QuestionsManager() {
             variant={filter === 'answered' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter('answered')}
+            className="flex-1 min-w-[80px] sm:flex-initial"
           >
             Respondidas
           </Button>

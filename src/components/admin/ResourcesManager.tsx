@@ -260,11 +260,11 @@ export function ResourcesManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-semibold">Recursos Educativos</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Novo Recurso
             </Button>
@@ -432,7 +432,7 @@ export function ResourcesManager() {
                   </span>
                 </div>
                 
-                <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2">
                   {categoryResources.map((resource) => (
                     <Card key={resource.id} className="p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start gap-4">
