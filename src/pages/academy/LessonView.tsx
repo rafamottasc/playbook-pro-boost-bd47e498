@@ -178,19 +178,43 @@ export default function LessonView() {
     if (!user || !lessonId || !lesson) return;
 
     try {
-      // Mark lesson as watched
-      const { error: progressError } = await supabase
+      // Verificar se já existe progresso
+      const { data: existingProgress } = await supabase
         .from('user_lesson_progress')
-        .upsert({
-          user_id: user.id,
-          lesson_id: lessonId,
-          watched: true,
-          watched_at: new Date().toISOString(),
-          completed_percentage: 100,
-          video_progress: videoProgress
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
 
-      if (progressError) throw progressError;
+      if (existingProgress) {
+        // Atualizar registro existente
+        const { error: progressError } = await supabase
+          .from('user_lesson_progress')
+          .update({
+            watched: true,
+            watched_at: new Date().toISOString(),
+            completed_percentage: 100,
+            video_progress: videoProgress
+          })
+          .eq('user_id', user.id)
+          .eq('lesson_id', lessonId);
+
+        if (progressError) throw progressError;
+      } else {
+        // Criar novo registro
+        const { error: progressError } = await supabase
+          .from('user_lesson_progress')
+          .insert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            watched: true,
+            watched_at: new Date().toISOString(),
+            completed_percentage: 100,
+            video_progress: videoProgress
+          });
+
+        if (progressError) throw progressError;
+      }
 
       setIsLessonCompleted(true);
       
@@ -198,10 +222,7 @@ export default function LessonView() {
         description: "Aula marcada como concluída com sucesso!"
       });
       
-      // Recalculate module progress with explicit refetch
       await fetchLessonData();
-
-      // Points are automatically added by database trigger
     } catch (error) {
       console.error('Error updating progress:', error);
       toast.error("Erro ao marcar aula como concluída");
@@ -212,19 +233,17 @@ export default function LessonView() {
     if (!user || !lessonId || !lesson) return;
 
     try {
-      // Unmark lesson and remove points
+      // Atualizar registro existente (sempre existe se está concluído)
       const { error: progressError } = await supabase
         .from('user_lesson_progress')
-        .upsert({
-          user_id: user.id,
-          lesson_id: lessonId,
+        .update({
           watched: false,
           watched_at: null,
           video_progress: 0,
           completed_percentage: 0
-        }, {
-          onConflict: 'user_id,lesson_id'
-        });
+        })
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId);
 
       if (progressError) throw progressError;
 
