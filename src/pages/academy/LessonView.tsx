@@ -10,6 +10,7 @@ import { LessonFeedback } from "@/components/academy/LessonFeedback";
 import { QuestionForm } from "@/components/academy/QuestionForm";
 import { QuestionsList } from "@/components/academy/QuestionsList";
 import { LessonCompletionButton } from "@/components/academy/LessonCompletionButton";
+import { ModuleCompletionCard } from "@/components/academy/ModuleCompletionCard";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,11 @@ interface Attachment {
   file_type: string;
 }
 
+interface NextModule {
+  id: string;
+  title: string;
+}
+
 export default function LessonView() {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
@@ -40,6 +46,9 @@ export default function LessonView() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
+  const [nextModule, setNextModule] = useState<NextModule | null>(null);
+  const [currentModuleTitle, setCurrentModuleTitle] = useState("");
+  const [moduleCompletedPoints, setModuleCompletedPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const [totalLessons, setTotalLessons] = useState(0);
   const [currentLessonNumber, setCurrentLessonNumber] = useState(0);
@@ -90,7 +99,7 @@ export default function LessonView() {
       if (lessonData) {
         const { data: allLessons } = await supabase
           .from('academy_lessons')
-          .select('id, display_order')
+          .select('id, display_order, points')
           .eq('module_id', lessonData.module_id)
           .eq('published', true)
           .order('display_order', { ascending: true });
@@ -125,6 +134,38 @@ export default function LessonView() {
           .single();
 
         setNextLesson(nextLessonData);
+
+        // If no next lesson, fetch next module
+        if (!nextLessonData && allLessons) {
+          // Get current module info
+          const { data: currentModule } = await supabase
+            .from('academy_modules')
+            .select('display_order, title')
+            .eq('id', lessonData.module_id)
+            .single();
+
+          if (currentModule) {
+            setCurrentModuleTitle(currentModule.title);
+            
+            // Calculate total points earned in this module
+            const totalModulePoints = allLessons.reduce((sum, lesson) => {
+              return sum + (lesson.points || 0);
+            }, 0);
+            setModuleCompletedPoints(totalModulePoints);
+
+            // Fetch next module
+            const { data: nextModuleData } = await supabase
+              .from('academy_modules')
+              .select('id, title')
+              .eq('published', true)
+              .gt('display_order', currentModule.display_order)
+              .order('display_order', { ascending: true })
+              .limit(1)
+              .single();
+
+            setNextModule(nextModuleData);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching lesson data:', error);
@@ -343,6 +384,17 @@ export default function LessonView() {
                 </Card>
               )}
 
+              {/* Show Module Completion Card if last lesson and module 100% complete */}
+              {!nextLesson && moduleProgress === 100 && (
+                <ModuleCompletionCard
+                  moduleTitle={currentModuleTitle}
+                  totalPoints={moduleCompletedPoints}
+                  nextModule={nextModule}
+                  onViewModules={() => navigate('/academy/modules')}
+                />
+              )}
+
+              {/* Show Next Lesson button if there's a next lesson */}
               {nextLesson && (
                 <Button
                   onClick={() => navigate(`/academy/modules/${moduleId}/${nextLesson.id}`)}
@@ -392,7 +444,17 @@ export default function LessonView() {
               </Card>
             )}
 
-            {/* Next Lesson */}
+            {/* Show Module Completion Card if last lesson and module 100% complete */}
+            {!nextLesson && moduleProgress === 100 && (
+              <ModuleCompletionCard
+                moduleTitle={currentModuleTitle}
+                totalPoints={moduleCompletedPoints}
+                nextModule={nextModule}
+                onViewModules={() => navigate('/academy/modules')}
+              />
+            )}
+
+            {/* Show Next Lesson button if there's a next lesson */}
             {nextLesson && (
               <Button
                 onClick={() => navigate(`/academy/modules/${moduleId}/${nextLesson.id}`)}
