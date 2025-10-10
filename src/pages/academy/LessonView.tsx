@@ -353,10 +353,8 @@ export default function LessonView() {
               )}
             </div>
 
-            <Separator />
-
-            {/* Feedback Section */}
-            <LessonFeedback lessonId={lesson.id} />
+              {/* Feedback Section */}
+              <LessonFeedback lessonId={lesson.id} />
 
             <Separator />
 

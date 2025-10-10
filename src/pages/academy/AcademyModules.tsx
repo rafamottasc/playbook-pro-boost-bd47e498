@@ -103,9 +103,9 @@ export default function AcademyModules() {
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <GraduationCap className="h-8 w-8 text-primary" />
-                <h1 className="text-4xl font-bold">COMARC Academy</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">COMARC Academy</h1>
               </div>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
                 Cursos e capacitações para você se tornar um especialista
               </p>
             </div>
@@ -135,9 +135,9 @@ export default function AcademyModules() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <GraduationCap className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold">COMARC Academy</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">COMARC Academy</h1>
           </div>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
             Cursos e capacitações para você se tornar um especialista
           </p>
         </div>

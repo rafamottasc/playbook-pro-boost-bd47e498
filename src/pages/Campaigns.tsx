@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { COUNTRIES, BRAZILIAN_STATES, getCountryFlag, getStateName } from "@/lib/locations";
+import { COUNTRIES, BRAZILIAN_STATES, getCountryFlag, getStateName, getCountryName } from "@/lib/locations";
 
 interface Campaign {
   id: string;
@@ -434,15 +434,22 @@ export default function Campaigns() {
         {countries.length > 0 && (
           <span className="flex items-center gap-1">
             <Globe className="h-3 w-3" />
-            {countries.map(code => getCountryFlag(code)).join(" ")}
-            {countries.length > 3 && ` +${countries.length - 3}`}
+            <span className="text-sm">
+              {countries.slice(0, 3).map((code, index) => {
+                const countryName = getCountryName(code).replace(/^🇧🇷\s|^🇺🇸\s|^🇵🇹\s|^🇦🇷\s|^🇺🇾\s|^🇪🇸\s|^🇮🇹\s|^🇫🇷\s|^🇬🇧\s|^🇨🇦\s/g, '');
+                return index === 0 ? countryName : `, ${countryName}`;
+              }).join('')}
+              {countries.length > 3 && ` +${countries.length - 3}`}
+            </span>
           </span>
         )}
         {states.length > 0 && (
           <span className="flex items-center gap-1 mt-0.5">
             <MapPin className="h-3 w-3" />
-            {states.slice(0, 3).map(code => getStateName(code)).join(", ")}
-            {states.length > 3 && ` +${states.length - 3}`}
+            <span className="text-sm">
+              {states.slice(0, 3).map(code => getStateName(code)).join(", ")}
+              {states.length > 3 && ` +${states.length - 3}`}
+            </span>
           </span>
         )}
       </div>

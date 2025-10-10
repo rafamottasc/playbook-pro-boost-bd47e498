@@ -126,9 +126,9 @@ export default function ModuleLessons() {
               <GraduationCap className="h-8 w-8 text-primary" />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{module.title}</h1>
               {module.description && (
-                <p className="text-muted-foreground text-lg">{module.description}</p>
+                <p className="text-muted-foreground text-sm sm:text-base md:text-lg">{module.description}</p>
               )}
             </div>
           </div>
