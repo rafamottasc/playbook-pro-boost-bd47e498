@@ -611,20 +611,20 @@ export function LessonsManager() {
       ) : (
         <div className="space-y-3">
           {filteredLessons.map((lesson, index) => (
-            <Card key={lesson.id} className="p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+          <Card key={lesson.id} className="p-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className="text-xs font-medium bg-primary/10 px-2 py-1 rounded">
                       Aula {index + 1}
                     </span>
-                    <h4 className="font-semibold">{lesson.title}</h4>
+                    <h4 className="font-semibold truncate">{lesson.title}</h4>
                     <Badge variant={lesson.published ? "default" : "secondary"}>
                       {lesson.published ? "Publicada" : "Rascunho"}
                     </Badge>
                   </div>
                   {lesson.description && (
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                       {lesson.description}
                     </p>
                   )}
@@ -635,7 +635,7 @@ export function LessonsManager() {
                     <span>+{lesson.points} pts</span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

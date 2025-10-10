@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, CheckCircle2, Users, MessageCircle, ThumbsUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Metrics {
   totalViews: number;
@@ -35,46 +36,33 @@ export function AcademyMetrics() {
 
   const fetchMetrics = async () => {
     try {
-      // Total views and completions
-      const { count: totalViews } = await supabase
-        .from('user_lesson_progress')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: totalCompletions } = await supabase
-        .from('user_lesson_progress')
-        .select('*', { count: 'exact', head: true })
-        .eq('watched', true);
+      // Executar todas as queries independentes em paralelo
+      const [
+        { count: totalViews },
+        { count: totalCompletions },
+        { count: totalQuestions },
+        { count: pendingQuestions },
+        { data: feedbackData },
+        { data: topUsersData },
+        { data: moduleViewsData }
+      ] = await Promise.all([
+        supabase.from('user_lesson_progress').select('*', { count: 'exact', head: true }),
+        supabase.from('user_lesson_progress').select('*', { count: 'exact', head: true }).eq('watched', true),
+        supabase.from('lesson_questions').select('*', { count: 'exact', head: true }),
+        supabase.from('lesson_questions').select('*', { count: 'exact', head: true }).is('answer', null),
+        supabase.from('lesson_feedback').select('was_useful'),
+        supabase.from('user_lesson_progress').select('user_id, profiles!inner(full_name)').eq('watched', true),
+        supabase.from('user_lesson_progress').select('lesson_id, academy_lessons!inner(module_id, academy_modules!inner(title))')
+      ]);
 
       const completionRate = totalViews ? (totalCompletions! / totalViews) * 100 : 0;
 
-      // Questions stats
-      const { count: totalQuestions } = await supabase
-        .from('lesson_questions')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: pendingQuestions } = await supabase
-        .from('lesson_questions')
-        .select('*', { count: 'exact', head: true })
-        .is('answer', null);
-
-      // Ratings stats
-      const { data: feedbackData } = await supabase
-        .from('lesson_feedback')
-        .select('was_useful');
-
+      // Avaliações
       const totalRatings = feedbackData?.length || 0;
       const positiveCount = feedbackData?.filter(f => f.was_useful).length || 0;
       const positiveRating = totalRatings ? (positiveCount / totalRatings) * 100 : 0;
 
-      // Top users (most completions)
-      const { data: topUsersData } = await supabase
-        .from('user_lesson_progress')
-        .select(`
-          user_id,
-          profiles!inner(full_name)
-        `)
-        .eq('watched', true);
-
+      // Agregar conclusões por usuário
       const userCompletions: { [key: string]: { name: string; count: number } } = {};
       topUsersData?.forEach((record: any) => {
         const userId = record.user_id;
@@ -90,48 +78,32 @@ export function AcademyMetrics() {
         .slice(0, 5)
         .map(u => ({ full_name: u.name, completions: u.count }));
 
-      // Top module (most views)
-      const { data: modulesData } = await supabase
-        .from('academy_lessons')
-        .select(`
-          module_id,
-          academy_modules!inner(title)
-        `);
-
-      if (modulesData && modulesData.length > 0) {
-        const moduleViews: { [key: string]: { title: string; count: number } } = {};
+      // Agregar visualizações por módulo (1 query ao invés de N)
+      const moduleViews: { [key: string]: { title: string; count: number } } = {};
+      moduleViewsData?.forEach((progress: any) => {
+        const moduleId = progress.academy_lessons.module_id;
+        const moduleTitle = progress.academy_lessons.academy_modules.title;
         
-        for (const lesson of modulesData) {
-          const moduleId = lesson.module_id;
-          const moduleTitle = (lesson as any).academy_modules.title;
-          
-          if (!moduleViews[moduleId]) {
-            moduleViews[moduleId] = { title: moduleTitle, count: 0 };
-          }
-
-          const { count } = await supabase
-            .from('user_lesson_progress')
-            .select('*', { count: 'exact', head: true })
-            .eq('lesson_id', (lesson as any).id);
-
-          moduleViews[moduleId].count += count || 0;
+        if (!moduleViews[moduleId]) {
+          moduleViews[moduleId] = { title: moduleTitle, count: 0 };
         }
+        moduleViews[moduleId].count++;
+      });
 
-        const topModuleEntry = Object.values(moduleViews).sort((a, b) => b.count - a.count)[0];
-        const topModule = topModuleEntry ? { title: topModuleEntry.title, views: topModuleEntry.count } : null;
+      const topModuleEntry = Object.values(moduleViews).sort((a, b) => b.count - a.count)[0];
+      const topModule = topModuleEntry ? { title: topModuleEntry.title, views: topModuleEntry.count } : null;
 
-        setMetrics({
-          totalViews: totalViews || 0,
-          totalCompletions: totalCompletions || 0,
-          completionRate: Math.round(completionRate),
-          totalQuestions: totalQuestions || 0,
-          pendingQuestions: pendingQuestions || 0,
-          positiveRating: Math.round(positiveRating),
-          totalRatings,
-          topUsers,
-          topModule
-        });
-      }
+      setMetrics({
+        totalViews: totalViews || 0,
+        totalCompletions: totalCompletions || 0,
+        completionRate: Math.round(completionRate),
+        totalQuestions: totalQuestions || 0,
+        pendingQuestions: pendingQuestions || 0,
+        positiveRating: Math.round(positiveRating),
+        totalRatings,
+        topUsers,
+        topModule
+      });
     } catch (error) {
       console.error('Error fetching metrics:', error);
     } finally {
@@ -140,7 +112,24 @@ export function AcademyMetrics() {
   };
 
   if (loading) {
-    return <p>Carregando métricas...</p>;
+    return (
+      <div>
+        <h3 className="text-xl font-semibold mb-6">Métricas da Academy</h3>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
