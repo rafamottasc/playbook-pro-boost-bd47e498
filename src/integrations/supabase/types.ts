@@ -678,9 +678,11 @@ export type Database = {
       partners: {
         Row: {
           active: boolean | null
-          category_id: string
+          category_id: string | null
+          cidade: string | null
           created_at: string | null
           drive_link: string | null
+          frente_mar: boolean | null
           id: string
           last_updated_at: string | null
           manager_email: string | null
@@ -688,13 +690,16 @@ export type Database = {
           manager_phone: string | null
           name: string
           observations: string | null
+          prioritaria: boolean | null
           updated_at: string | null
         }
         Insert: {
           active?: boolean | null
-          category_id: string
+          category_id?: string | null
+          cidade?: string | null
           created_at?: string | null
           drive_link?: string | null
+          frente_mar?: boolean | null
           id?: string
           last_updated_at?: string | null
           manager_email?: string | null
@@ -702,13 +707,16 @@ export type Database = {
           manager_phone?: string | null
           name: string
           observations?: string | null
+          prioritaria?: boolean | null
           updated_at?: string | null
         }
         Update: {
           active?: boolean | null
-          category_id?: string
+          category_id?: string | null
+          cidade?: string | null
           created_at?: string | null
           drive_link?: string | null
+          frente_mar?: boolean | null
           id?: string
           last_updated_at?: string | null
           manager_email?: string | null
@@ -716,6 +724,7 @@ export type Database = {
           manager_phone?: string | null
           name?: string
           observations?: string | null
+          prioritaria?: boolean | null
           updated_at?: string | null
         }
         Relationships: [

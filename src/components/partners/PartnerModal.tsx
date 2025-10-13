@@ -21,11 +21,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileUpload } from "./FileUpload";
-import { ExternalLink, Trash2, Plus, BookOpen, Building2, FileIcon, Pencil, AlertCircle } from "lucide-react";
+import { ExternalLink, Trash2, Plus, BookOpen, Building2, FileIcon, Pencil, MessageCircle } from "lucide-react";
 import { formatPhone, unformatPhone } from "@/lib/utils";
 
 const normalizeUrl = (url: string): string => {
@@ -39,9 +38,11 @@ const normalizeUrl = (url: string): string => {
 
 const partnerSchema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
+  cidade: z.string().min(1, "Cidade obrigatória"),
   manager_name: z.string().optional(),
   manager_phone: z.string().optional(),
   manager_email: z.string().email("Email inválido").optional().or(z.literal("")),
+  frente_mar: z.boolean(),
   observations: z.string().optional(),
   active: z.boolean(),
 });
@@ -51,7 +52,6 @@ type PartnerFormData = z.infer<typeof partnerSchema>;
 interface PartnerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  categoryId?: string | null;
   partner?: any;
   onSuccess: () => void;
 }
@@ -59,7 +59,6 @@ interface PartnerModalProps {
 export function PartnerModal({
   open,
   onOpenChange,
-  categoryId,
   partner,
   onSuccess,
 }: PartnerModalProps) {
@@ -68,9 +67,6 @@ export function PartnerModal({
   const [newLink, setNewLink] = useState({ title: "", url: "" });
   const [files, setFiles] = useState<any[]>([]);
   const [editingLink, setEditingLink] = useState<any>(null);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [newCategoryName, setNewCategoryName] = useState("");
   const [activeTab, setActiveTab] = useState("dados");
   const [currentPartner, setCurrentPartner] = useState<any>(null);
 
@@ -78,50 +74,26 @@ export function PartnerModal({
     resolver: zodResolver(partnerSchema),
     defaultValues: {
       name: "",
+      cidade: "",
       manager_name: "",
       manager_phone: "",
       manager_email: "",
+      frente_mar: false,
       observations: "",
       active: true,
     },
   });
 
   useEffect(() => {
-    loadCategories();
-    
-    // Setup realtime para categorias
-    const channel = supabase
-      .channel("partner-modal-categories")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "partners_categories" },
-        () => {
-          console.log("Categoria mudou - atualizando select");
-          loadCategories();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (categoryId) {
-      setSelectedCategoryId(categoryId);
-    }
-  }, [categoryId]);
-
-  useEffect(() => {
     if (partner) {
       setCurrentPartner(partner);
-      setSelectedCategoryId(partner.category_id);
       form.reset({
         name: partner.name,
+        cidade: partner.cidade || "",
         manager_name: partner.manager_name || "",
         manager_email: partner.manager_email || "",
         manager_phone: formatPhone(partner.manager_phone || ""),
+        frente_mar: partner.frente_mar || false,
         observations: partner.observations || "",
         active: partner.active ?? true,
       });
@@ -129,20 +101,20 @@ export function PartnerModal({
       loadFiles();
     } else {
       setCurrentPartner(null);
-      form.reset();
+      form.reset({
+        name: "",
+        cidade: "",
+        manager_name: "",
+        manager_phone: "",
+        manager_email: "",
+        frente_mar: false,
+        observations: "",
+        active: true,
+      });
       setLinks([]);
       setFiles([]);
     }
   }, [partner]);
-
-  const loadCategories = async () => {
-    const { data } = await supabase
-      .from("partners_categories")
-      .select("*")
-      .eq("active", true)
-      .order("display_order");
-    setCategories(data || []);
-  };
 
   const loadLinks = async () => {
     if (!currentPartner) return;
@@ -164,28 +136,18 @@ export function PartnerModal({
   };
 
   const onSubmit = async (data: PartnerFormData) => {
-    const finalCategoryId = categoryId || selectedCategoryId;
-    
-    if (!finalCategoryId) {
-      toast.error("Selecione uma categoria");
-      return;
-    }
-
     setLoading(true);
     try {
-      console.log("Salvando construtora:", data);
-      
       if (partner) {
         const { error } = await supabase
           .from("partners")
           .update({
             ...data,
-            category_id: finalCategoryId,
             manager_phone: data.manager_phone ? unformatPhone(data.manager_phone) : null
           })
           .eq("id", partner.id);
         if (error) throw error;
-        toast.success("Construtora atualizada com sucesso!");
+        toast.success("Construtora atualizada!");
         onSuccess();
         onOpenChange(false);
       } else {
@@ -193,68 +155,31 @@ export function PartnerModal({
           .from("partners")
           .insert({ 
             ...data, 
-            category_id: finalCategoryId,
             manager_phone: data.manager_phone ? unformatPhone(data.manager_phone) : null
           })
           .select()
           .single();
         
         if (error) throw error;
-        console.log("Construtora criada:", newPartner);
         toast.success("✅ Construtora criada! Agora adicione materiais na aba ao lado →");
 
-        // Atualizar estado local com a nova construtora
         setCurrentPartner(newPartner);
-
-        // Atualizar form com os dados do novo partner
         form.reset(newPartner);
-
-        // Mudar automaticamente para aba Materiais
         setActiveTab("recursos");
-
         onSuccess();
-        // NÃO fecha o modal para nova construtora
       }
     } catch (error: any) {
-      console.error("Erro ao salvar construtora:", error);
       toast.error(`Erro ao salvar: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateInlineCategory = async () => {
-    if (!newCategoryName.trim()) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("partners_categories")
-        .insert({ 
-          name: newCategoryName, 
-          active: true,
-          display_order: 0 
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      toast.success("Categoria criada!");
-      setSelectedCategoryId(data.id);
-      loadCategories();
-      setNewCategoryName("");
-    } catch (error: any) {
-      toast.error(`Erro ao criar categoria: ${error.message}`);
-    }
-  };
-
   const addLink = async () => {
     if (!currentPartner || !newLink.title || !newLink.url) return;
     
-    // Normalizar URL antes de salvar
     const normalizedUrl = normalizeUrl(newLink.url);
     
-    // Validar se é uma URL válida
     try {
       new URL(normalizedUrl);
     } catch {
@@ -365,62 +290,28 @@ export function PartnerModal({
           <TabsContent value="dados" className="space-y-4 mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {(!categoryId || partner) && (
-                  <div className="space-y-2">
-                    <FormLabel>Categoria *</FormLabel>
-                    
-                    {categories.length === 0 ? (
-                      <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="h-5 w-5 text-amber-500" />
-                          <p className="font-medium">Primeira categoria necessária</p>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Crie a primeira categoria para organizar suas construtoras:
-                        </p>
-                        <Input 
-                          placeholder="Nome da categoria (ex: Alto Padrão, Econômico...)"
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                        />
-                        <Button 
-                          size="sm" 
-                          onClick={handleCreateInlineCategory}
-                          disabled={!newCategoryName.trim()}
-                          className="w-full"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Criar Categoria e Continuar
-                        </Button>
-                      </div>
-                    ) : (
-                      <Select 
-                        value={selectedCategoryId} 
-                        onValueChange={setSelectedCategoryId}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                )}
-
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome da Construtora</FormLabel>
+                      <FormLabel>Nome da Construtora *</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="Ex: Construtora XYZ" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cidade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Itapema, Porto Belo, Bombinhas" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -434,7 +325,7 @@ export function PartnerModal({
                     <FormItem>
                       <FormLabel>Nome do Gerente</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="Ex: João Silva" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -448,16 +339,33 @@ export function PartnerModal({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Telefone</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            placeholder="(47) 99663-3255"
-                            onChange={(e) => {
-                              const formatted = formatPhone(e.target.value);
-                              field.onChange(formatted);
-                            }}
-                          />
-                        </FormControl>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="(47) 99663-3255"
+                              className="flex-1"
+                              onChange={(e) => {
+                                const formatted = formatPhone(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                            />
+                          </FormControl>
+                          {field.value && (
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="outline"
+                              className="flex-shrink-0 text-green-600 hover:bg-green-50"
+                              onClick={() => {
+                                const phoneNumber = unformatPhone(field.value);
+                                window.open(`https://wa.me/55${phoneNumber}`, '_blank');
+                              }}
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -470,7 +378,7 @@ export function PartnerModal({
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" />
+                          <Input {...field} type="email" placeholder="email@exemplo.com" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -480,12 +388,30 @@ export function PartnerModal({
 
                 <FormField
                   control={form.control}
+                  name="frente_mar"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <FormLabel className="text-base">Frente Mar</FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Possui empreendimentos frente mar
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="observations"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Observações</FormLabel>
                       <FormControl>
-                        <Textarea {...field} rows={3} />
+                        <Textarea {...field} rows={3} placeholder="Informações adicionais..." />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -496,8 +422,8 @@ export function PartnerModal({
                   control={form.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel>Construtora Ativa</FormLabel>
+                    <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                      <FormLabel className="text-base">Construtora Ativa</FormLabel>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
@@ -512,8 +438,8 @@ export function PartnerModal({
             </Form>
           </TabsContent>
 
-        <TabsContent value="recursos" className="space-y-6 mt-4">
-          {currentPartner ? (
+          <TabsContent value="recursos" className="space-y-6 mt-4">
+            {currentPartner ? (
               <>
                 {/* Seção de Materiais */}
                 <div>
