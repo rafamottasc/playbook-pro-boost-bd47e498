@@ -185,11 +185,38 @@ export function useFeedbacks() {
     }
   };
 
+  const deleteFeedback = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("anonymous_feedbacks")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Feedback excluído",
+        description: "O feedback foi excluído permanentemente.",
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o feedback.",
+        variant: "destructive",
+      });
+      return { success: false };
+    }
+  };
+
   return {
     submitting,
     submitFeedback,
     fetchFeedbacks,
     updateFeedbackStatus,
     updateFeedbackNotes,
+    deleteFeedback,
   };
 }

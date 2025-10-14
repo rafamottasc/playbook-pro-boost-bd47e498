@@ -18,7 +18,8 @@ import {
   Archive,
   Users,
   TrendingUp,
-  Filter
+  Filter,
+  Trash2,
 } from "lucide-react";
 import { useFeedbacks, Feedback, FeedbackType, FeedbackCategory, FeedbackStatus } from "@/hooks/useFeedbacks";
 import { format } from "date-fns";
@@ -65,7 +66,7 @@ export function FeedbacksManager() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState<string>("30");
 
-  const { fetchFeedbacks, updateFeedbackStatus, updateFeedbackNotes } = useFeedbacks();
+  const { fetchFeedbacks, updateFeedbackStatus, updateFeedbackNotes, deleteFeedback } = useFeedbacks();
 
   useEffect(() => {
     loadFeedbacks();
@@ -96,6 +97,17 @@ export function FeedbacksManager() {
     const result = await updateFeedbackNotes(id, notesValue);
     if (result.success) {
       setEditingNotes(null);
+      loadFeedbacks();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este feedback? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+    
+    const result = await deleteFeedback(id);
+    if (result.success) {
       loadFeedbacks();
     }
   };
@@ -386,6 +398,14 @@ export function FeedbacksManager() {
                   >
                     <Archive className="h-3 w-3 mr-1" />
                     Arquivar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(feedback.id)}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Excluir
                   </Button>
                 </div>
               </CardContent>
