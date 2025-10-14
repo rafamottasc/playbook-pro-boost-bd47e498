@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DraggableDialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, X, MousePointerClick, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
@@ -47,6 +48,7 @@ interface AnnouncementStats {
 }
 
 interface ConfirmationDetail {
+  announcement_id: string;
   user_id: string;
   confirmed_at: string;
   profiles: {
@@ -125,9 +127,7 @@ export function AnnouncementsManager() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [confirmationDetailsOpen, setConfirmationDetailsOpen] = useState(false);
   const [confirmationDetails, setConfirmationDetails] = useState<ConfirmationDetail[]>([]);
-  const [selectedAnnouncementTitle, setSelectedAnnouncementTitle] = useState("");
   
   const [formData, setFormData] = useState({
     title: "",
@@ -146,6 +146,7 @@ export function AnnouncementsManager() {
   useEffect(() => {
     fetchAnnouncements();
     fetchStats();
+    fetchAllConfirmationDetails();
   }, []);
 
   const fetchAnnouncements = async () => {
@@ -203,31 +204,24 @@ export function AnnouncementsManager() {
     }
   };
 
-  const fetchConfirmationDetails = async (announcementId: string, title: string) => {
+  const fetchAllConfirmationDetails = async () => {
     try {
       const { data, error } = await supabase
         .from("announcement_views")
         .select(`
+          announcement_id,
           user_id,
           confirmed_at,
           profiles!announcement_views_user_id_fkey(full_name)
         `)
-        .eq("announcement_id", announcementId)
         .eq("confirmed", true)
         .order("confirmed_at", { ascending: false });
 
       if (error) throw error;
 
       setConfirmationDetails(data as any);
-      setSelectedAnnouncementTitle(title);
-      setConfirmationDetailsOpen(true);
     } catch (error) {
       console.error("Error fetching confirmation details:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os detalhes de confirmação.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -749,70 +743,104 @@ export function AnnouncementsManager() {
           <CardDescription>Estatísticas de visualização e confirmação dos avisos</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Aviso</TableHead>
-                <TableHead className="text-right">Visualizações</TableHead>
-                <TableHead className="text-right">Dispensas</TableHead>
-                <TableHead className="text-right">Taxa Dispensa</TableHead>
-                <TableHead className="text-right">Cliques CTA</TableHead>
-                <TableHead className="text-right">Confirmaram</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <div className="border rounded-lg overflow-hidden">
+            {/* Table Header */}
+            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-3 bg-muted/50 text-sm font-medium">
+              <div>Aviso</div>
+              <div className="text-right">Visualizações</div>
+              <div className="text-right">Dispensas</div>
+              <div className="text-right">Taxa Dispensa</div>
+              <div className="text-right">Cliques CTA</div>
+              <div className="text-right">Confirmaram</div>
+            </div>
+
+            {/* Accordion Rows */}
+            <Accordion type="multiple" className="w-full">
               {announcements.map((announcement) => {
                 const stat = stats.find((s) => s.announcement_id === announcement.id);
                 const dismissRate = stat ? ((stat.dismissals / stat.views) * 100).toFixed(1) : "0.0";
                 const confirmRate = announcement.requires_confirmation && stat?.views 
                   ? ((stat.confirmed / stat.views) * 100).toFixed(0) 
                   : "-";
+                const hasConfirmations = announcement.requires_confirmation && stat && stat.confirmed > 0;
+                const announcementDetails = confirmationDetails.filter(d => d.announcement_id === announcement.id);
                 
                 return (
-                  <TableRow key={announcement.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {announcement.title}
-                        {announcement.requires_confirmation && (
-                          <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                            ✔️
-                          </Badge>
-                        )}
+                  <AccordionItem key={announcement.id} value={announcement.id} className="border-b last:border-b-0">
+                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-3 items-center hover:bg-muted/30 transition-colors">
+                      {/* Coluna 1: Título */}
+                      <div className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {hasConfirmations && (
+                            <AccordionTrigger className="hover:no-underline p-0 h-auto [&>svg]:hidden">
+                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                            </AccordionTrigger>
+                          )}
+                          <span>{announcement.title}</span>
+                          {announcement.requires_confirmation && (
+                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                              ✔️
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">{stat?.views || 0}</TableCell>
-                    <TableCell className="text-right">{stat?.dismissals || 0}</TableCell>
-                    <TableCell className="text-right">{dismissRate}%</TableCell>
-                    <TableCell className="text-right">{stat?.cta_clicks || 0}</TableCell>
-                    <TableCell className="text-right">
-                      {announcement.requires_confirmation ? (
-                        stat && stat.confirmed > 0 ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => fetchConfirmationDetails(announcement.id, announcement.title)}
-                            className="h-auto py-1 px-2"
-                          >
-                            <div className="flex items-center gap-2">
+                      
+                      {/* Demais colunas */}
+                      <div className="text-right">{stat?.views || 0}</div>
+                      <div className="text-right">{stat?.dismissals || 0}</div>
+                      <div className="text-right">{dismissRate}%</div>
+                      <div className="text-right">{stat?.cta_clicks || 0}</div>
+                      <div className="text-right">
+                        {announcement.requires_confirmation ? (
+                          stat && stat.confirmed > 0 ? (
+                            <div className="flex items-center justify-end gap-2">
                               <span>{stat.confirmed}</span>
                               <Badge variant={Number(confirmRate) >= 80 ? "default" : "secondary"}>
                                 {confirmRate}%
                               </Badge>
-                              <ChevronDown className="h-3 w-3" />
                             </div>
-                          </Button>
+                          ) : (
+                            <span className="text-muted-foreground">0</span>
+                          )
                         ) : (
-                          <span className="text-muted-foreground">0</span>
-                        )
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Conteúdo Expansível */}
+                    {hasConfirmations && (
+                      <AccordionContent>
+                        <div className="px-4 pb-4 bg-muted/30">
+                          <div className="text-sm font-medium mb-3 text-muted-foreground">
+                            Usuários que confirmaram leitura:
+                          </div>
+                          <div className="space-y-2">
+                            {announcementDetails.map((detail) => (
+                              <div 
+                                key={detail.user_id} 
+                                className="flex items-center justify-between bg-background rounded-md p-3 border"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                  <span className="font-medium">
+                                    {detail.profiles?.full_name || "Usuário desconhecido"}
+                                  </span>
+                                </div>
+                                <span className="text-sm text-muted-foreground">
+                                  {format(new Date(detail.confirmed_at), "dd/MM/yyyy 'às' HH:mm")}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    )}
+                  </AccordionItem>
                 );
               })}
-            </TableBody>
-          </Table>
+            </Accordion>
+          </div>
         </CardContent>
       </Card>
 
@@ -832,31 +860,6 @@ export function AnnouncementsManager() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Confirmation Details Dialog */}
-      <Dialog open={confirmationDetailsOpen} onOpenChange={setConfirmationDetailsOpen}>
-        <DraggableDialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Confirmações de Leitura - {selectedAnnouncementTitle}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {confirmationDetails.length > 0 ? (
-              confirmationDetails.map((detail) => (
-                <div key={detail.user_id} className="flex justify-between items-center border-b pb-2 last:border-0">
-                  <div>
-                    <p className="font-medium">{detail.profiles?.full_name || "Usuário desconhecido"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(detail.confirmed_at), "dd/MM/yyyy 'às' HH:mm")}
-                    </p>
-                  </div>
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground py-4">Nenhuma confirmação registrada</p>
-            )}
-          </div>
-        </DraggableDialogContent>
-      </Dialog>
     </div>
   );
 }
