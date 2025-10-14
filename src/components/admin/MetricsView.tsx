@@ -36,6 +36,28 @@ export function MetricsView() {
 
   useEffect(() => {
     loadMetrics();
+
+    // Configurar subscription em tempo real para a tabela messages
+    const channel = supabase
+      .channel('messages-metrics-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuta INSERT, UPDATE e DELETE
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          // Recarrega as métricas quando houver mudanças na tabela messages
+          loadMetrics();
+        }
+      )
+      .subscribe();
+
+    // Cleanup da subscription quando o componente desmontar
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadMetrics = async () => {
