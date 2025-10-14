@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DraggableDialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, X, MousePointerClick } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, X, MousePointerClick, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import ReactQuill from 'react-quill';
@@ -44,6 +44,14 @@ interface AnnouncementStats {
   dismissals: number;
   cta_clicks: number;
   confirmed: number;
+}
+
+interface ConfirmationDetail {
+  user_id: string;
+  confirmed_at: string;
+  profiles: {
+    full_name: string;
+  };
 }
 
 const quillModules = {
@@ -117,6 +125,9 @@ export function AnnouncementsManager() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmationDetailsOpen, setConfirmationDetailsOpen] = useState(false);
+  const [confirmationDetails, setConfirmationDetails] = useState<ConfirmationDetail[]>([]);
+  const [selectedAnnouncementTitle, setSelectedAnnouncementTitle] = useState("");
   
   const [formData, setFormData] = useState({
     title: "",
@@ -189,6 +200,34 @@ export function AnnouncementsManager() {
       setStats(Array.from(statsMap.values()));
     } catch (error) {
       console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchConfirmationDetails = async (announcementId: string, title: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("announcement_views")
+        .select(`
+          user_id,
+          confirmed_at,
+          profiles!announcement_views_user_id_fkey(full_name)
+        `)
+        .eq("announcement_id", announcementId)
+        .eq("confirmed", true)
+        .order("confirmed_at", { ascending: false });
+
+      if (error) throw error;
+
+      setConfirmationDetails(data as any);
+      setSelectedAnnouncementTitle(title);
+      setConfirmationDetailsOpen(true);
+    } catch (error) {
+      console.error("Error fetching confirmation details:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os detalhes de confirmação.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -549,22 +588,28 @@ export function AnnouncementsManager() {
                           className="text-base text-foreground/90 leading-relaxed prose prose-sm max-w-none [&>p]:m-0 [&>p]:mb-2 [&>ul]:my-2 [&>ol]:my-2"
                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.message) || "<p>Mensagem do aviso aparecerá aqui...</p>" }}
                         />
-                        {formData.requires_confirmation ? (
-                          <Button
-                            size="default"
-                            className="mt-4 font-medium shadow-sm gap-2 px-6 text-base bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            ✔️ Li e estou ciente
-                          </Button>
-                        ) : formData.cta_text && (
-                          <Button
-                            size="default"
-                            className={cn("mt-4 font-medium shadow-sm gap-2 px-6 text-base", priorityStyles[formData.priority as keyof typeof priorityStyles].button)}
-                          >
-                            {formData.cta_text}
-                            <MousePointerClick className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <div className="flex gap-2 mt-4 flex-wrap">
+                          {formData.requires_confirmation && (
+                            <Button
+                              size="default"
+                              className="font-medium shadow-sm gap-2 px-6 text-base bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              ✔️ Li e estou ciente
+                            </Button>
+                          )}
+                          {formData.cta_text && formData.cta_link && (
+                            <Button
+                              size="default"
+                              className={cn(
+                                "font-medium shadow-sm gap-2 px-6 text-base",
+                                priorityStyles[formData.priority as keyof typeof priorityStyles].button
+                              )}
+                            >
+                              {formData.cta_text}
+                              <MousePointerClick className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Close Button */}
@@ -697,11 +742,11 @@ export function AnnouncementsManager() {
         </CardContent>
       </Card>
 
-      {/* Metrics */}
+      {/* Unified Metrics */}
       <Card>
         <CardHeader>
           <CardTitle>Métricas Gerais</CardTitle>
-          <CardDescription>Estatísticas de visualização dos avisos</CardDescription>
+          <CardDescription>Estatísticas de visualização e confirmação dos avisos</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -712,75 +757,60 @@ export function AnnouncementsManager() {
                 <TableHead className="text-right">Dispensas</TableHead>
                 <TableHead className="text-right">Taxa Dispensa</TableHead>
                 <TableHead className="text-right">Cliques CTA</TableHead>
+                <TableHead className="text-right">Confirmaram</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {announcements.map((announcement) => {
                 const stat = stats.find((s) => s.announcement_id === announcement.id);
                 const dismissRate = stat ? ((stat.dismissals / stat.views) * 100).toFixed(1) : "0.0";
+                const confirmRate = announcement.requires_confirmation && stat?.views 
+                  ? ((stat.confirmed / stat.views) * 100).toFixed(0) 
+                  : "-";
                 
                 return (
                   <TableRow key={announcement.id}>
-                    <TableCell className="font-medium">{announcement.title}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {announcement.title}
+                        {announcement.requires_confirmation && (
+                          <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                            ✔️
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">{stat?.views || 0}</TableCell>
                     <TableCell className="text-right">{stat?.dismissals || 0}</TableCell>
                     <TableCell className="text-right">{dismissRate}%</TableCell>
                     <TableCell className="text-right">{stat?.cta_clicks || 0}</TableCell>
+                    <TableCell className="text-right">
+                      {announcement.requires_confirmation ? (
+                        stat && stat.confirmed > 0 ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => fetchConfirmationDetails(announcement.id, announcement.title)}
+                            className="h-auto py-1 px-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{stat.confirmed}</span>
+                              <Badge variant={Number(confirmRate) >= 80 ? "default" : "secondary"}>
+                                {confirmRate}%
+                              </Badge>
+                              <ChevronDown className="h-3 w-3" />
+                            </div>
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Confirmation Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Confirmações de Leitura</CardTitle>
-          <CardDescription>
-            Status de confirmação dos avisos que exigem leitura obrigatória
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Aviso</TableHead>
-                <TableHead className="text-right">Visualizações</TableHead>
-                <TableHead className="text-right">Confirmaram</TableHead>
-                <TableHead className="text-right">Taxa</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {announcements
-                .filter(a => a.requires_confirmation)
-                .map((announcement) => {
-                  const stat = stats.find(s => s.announcement_id === announcement.id);
-                  const views = stat?.views || 0;
-                  const confirmed = stat?.confirmed || 0;
-                  const rate = views > 0 ? ((confirmed / views) * 100).toFixed(0) : "0";
-
-                  return (
-                    <TableRow key={announcement.id}>
-                      <TableCell className="font-medium">{announcement.title}</TableCell>
-                      <TableCell className="text-right">{views}</TableCell>
-                      <TableCell className="text-right">{confirmed}</TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={Number(rate) >= 80 ? "default" : "secondary"}>
-                          {rate}%
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              {announcements.filter(a => a.requires_confirmation).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Nenhum aviso com confirmação obrigatória
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -801,6 +831,32 @@ export function AnnouncementsManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Confirmation Details Dialog */}
+      <Dialog open={confirmationDetailsOpen} onOpenChange={setConfirmationDetailsOpen}>
+        <DraggableDialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Confirmações de Leitura - {selectedAnnouncementTitle}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {confirmationDetails.length > 0 ? (
+              confirmationDetails.map((detail) => (
+                <div key={detail.user_id} className="flex justify-between items-center border-b pb-2 last:border-0">
+                  <div>
+                    <p className="font-medium">{detail.profiles?.full_name || "Usuário desconhecido"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(detail.confirmed_at), "dd/MM/yyyy 'às' HH:mm")}
+                    </p>
+                  </div>
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-4">Nenhuma confirmação registrada</p>
+            )}
+          </div>
+        </DraggableDialogContent>
+      </Dialog>
     </div>
   );
 }

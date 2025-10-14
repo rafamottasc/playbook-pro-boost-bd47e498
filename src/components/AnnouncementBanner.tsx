@@ -185,48 +185,49 @@ export function AnnouncementBanner() {
               <h3 className={cn("font-bold mb-1", isMobile ? "text-xl" : "text-2xl", styles.icon)}>
                 {announcement.title}
               </h3>
+              <div 
+                className={cn(
+                  "leading-relaxed prose prose-sm max-w-none",
+                  "[&>p]:m-0 [&>p]:mb-2 [&>p:last-child]:mb-0",
+                  "[&>ul]:my-2 [&>ol]:my-2 [&>li]:ml-4",
+                  "[&>strong]:font-bold [&>a]:text-primary [&>a]:underline",
+                  isMobile ? "text-sm" : "text-base",
+                  "text-foreground/90"
+                )}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(announcement.message) }}
+              />
+
+              {/* Actions */}
               <div className={cn(
-                "flex gap-4",
-                isMobile ? "flex-col items-start" : "flex-row items-center justify-between"
+                "flex gap-2",
+                isMobile ? "flex-col w-full mt-3" : "flex-row flex-wrap mt-4"
               )}>
-                <div 
-                  className={cn(
-                    "leading-relaxed flex-1 prose prose-sm max-w-none",
-                    "[&>p]:m-0 [&>p]:mb-2 [&>p:last-child]:mb-0",
-                    "[&>ul]:my-2 [&>ol]:my-2 [&>li]:ml-4",
-                    "[&>strong]:font-bold [&>a]:text-primary [&>a]:underline",
-                    isMobile ? "text-sm" : "text-base",
-                    "text-foreground/90"
-                  )}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(announcement.message) }}
-                />
-                {announcement.requires_confirmation ? (
+                {announcement.requires_confirmation && (
                   <Button
                     onClick={handleConfirm}
                     disabled={isConfirming}
                     size={isMobile ? "sm" : "default"}
                     className={cn(
                       "font-medium shadow-sm flex-shrink-0 gap-2 bg-green-600 hover:bg-green-700 text-white",
-                      isMobile ? "mt-2 w-full text-sm px-3" : "px-6 text-base"
+                      isMobile ? "w-full text-sm px-3" : "px-6 text-base"
                     )}
                   >
                     {isConfirming ? "Confirmando..." : "✔️ Li e estou ciente"}
                   </Button>
-                ) : (
-                  announcement.cta_text && announcement.cta_link && (
-                    <Button
-                      onClick={handleCtaClick}
-                      size={isMobile ? "sm" : "default"}
-                      className={cn(
-                        "font-medium shadow-sm flex-shrink-0 gap-2",
-                        styles.button,
-                        isMobile ? "mt-2 w-fit text-sm px-3" : "px-6 text-base"
-                      )}
-                    >
-                      {announcement.cta_text}
-                      <MousePointerClick className="h-4 w-4" />
-                    </Button>
-                  )
+                )}
+                {announcement.cta_text && announcement.cta_link && (
+                  <Button
+                    onClick={handleCtaClick}
+                    size={isMobile ? "sm" : "default"}
+                    className={cn(
+                      "font-medium shadow-sm flex-shrink-0 gap-2",
+                      styles.button,
+                      isMobile ? "w-full text-sm px-3" : "px-6 text-base"
+                    )}
+                  >
+                    {announcement.cta_text}
+                    <MousePointerClick className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
             </div>
@@ -238,7 +239,7 @@ export function AnnouncementBanner() {
               className="absolute top-3 right-3 h-8 w-8 rounded-full text-foreground/60 hover:text-foreground hover:bg-background/90 hover:shadow-sm"
               onClick={announcement.requires_confirmation ? undefined : handleDismiss}
               disabled={announcement.requires_confirmation}
-              title={announcement.requires_confirmation ? "Este aviso requer confirmação de leitura" : "Fechar"}
+              title={announcement.requires_confirmation ? "Confirme a leitura para fechar" : "Fechar"}
             >
               <X className={cn("h-4 w-4", announcement.requires_confirmation && "opacity-30")} />
             </Button>
