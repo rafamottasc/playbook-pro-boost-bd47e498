@@ -189,7 +189,7 @@ export function AnnouncementBanner() {
                 className={cn(
                   "leading-relaxed prose prose-sm max-w-none",
                   "[&>p]:m-0 [&>p]:mb-2 [&>p:last-child]:mb-0",
-                  "[&>ul]:my-2 [&>ol]:my-2 [&>li]:ml-4",
+                  "[&>ul]:my-2 [&>ul]:pl-0 [&>ol]:my-2 [&>ol]:pl-0",
                   "[&>strong]:font-bold [&>a]:text-primary [&>a]:underline",
                   isMobile ? "text-sm" : "text-base",
                   "text-foreground/90"

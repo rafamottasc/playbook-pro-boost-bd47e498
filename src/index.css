@@ -154,7 +154,22 @@ All colors MUST be HSL.
 
   .announcement-content li,
   .prose li {
-    @apply list-disc list-inside;
+    @apply list-disc list-outside ml-5;
+  }
+
+  .announcement-content ul,
+  .announcement-content ol,
+  .prose ul,
+  .prose ol {
+    @apply ml-0 pl-5 space-y-1;
+  }
+
+  /* Ajuste específico para mobile */
+  @media (max-width: 768px) {
+    .announcement-content li,
+    .prose li {
+      @apply ml-4 leading-relaxed;
+    }
   }
 
   .announcement-content strong,
