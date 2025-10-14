@@ -14,6 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, X, MousePointerClick, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -128,6 +129,7 @@ export function AnnouncementsManager() {
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmationDetails, setConfirmationDetails] = useState<ConfirmationDetail[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -205,6 +207,7 @@ export function AnnouncementsManager() {
   };
 
   const fetchAllConfirmationDetails = async () => {
+    setLoadingDetails(true);
     try {
       const { data, error } = await supabase
         .from("announcement_views")
@@ -219,9 +222,12 @@ export function AnnouncementsManager() {
 
       if (error) throw error;
 
+      console.log("✅ Fetched confirmation details:", data);
       setConfirmationDetails(data as any);
     } catch (error) {
       console.error("Error fetching confirmation details:", error);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -764,26 +770,42 @@ export function AnnouncementsManager() {
                   : "-";
                 const hasConfirmations = announcement.requires_confirmation && stat && stat.confirmed > 0;
                 const announcementDetails = confirmationDetails.filter(d => d.announcement_id === announcement.id);
+
+                // Debug log
+                if (announcement.requires_confirmation && stat && stat.confirmed > 0) {
+                  console.log("🔍 Announcement:", announcement.title);
+                  console.log("   - ID:", announcement.id);
+                  console.log("   - Confirmations in state:", confirmationDetails.length);
+                  console.log("   - Filtered details:", announcementDetails.length);
+                  console.log("   - Details:", announcementDetails);
+                }
                 
                 return (
                   <AccordionItem key={announcement.id} value={announcement.id} className="border-b last:border-b-0">
                     <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-3 items-center hover:bg-muted/30 transition-colors">
                       {/* Coluna 1: Título */}
-                      <div className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {hasConfirmations && (
-                            <AccordionTrigger className="hover:no-underline p-0 h-auto [&>svg]:hidden">
-                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                            </AccordionTrigger>
-                          )}
-                          <span>{announcement.title}</span>
-                          {announcement.requires_confirmation && (
-                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                              ✔️
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+                <div className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {hasConfirmations ? (
+                      <AccordionTrigger className="hover:no-underline p-0 h-auto flex items-center gap-2 w-full [&[data-state=open]>svg]:rotate-180">
+                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 text-primary" />
+                        <span>{announcement.title}</span>
+                        <Badge variant="outline" className="text-green-600 border-green-600 text-xs ml-2">
+                          ✔️ {announcementDetails.length}
+                        </Badge>
+                      </AccordionTrigger>
+                    ) : (
+                      <>
+                        <span>{announcement.title}</span>
+                        {announcement.requires_confirmation && (
+                          <Badge variant="outline" className="text-muted-foreground border-muted text-xs">
+                            ✔️ 0
+                          </Badge>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
                       
                       {/* Demais colunas */}
                       <div className="text-right">{stat?.views || 0}</div>
@@ -816,22 +838,28 @@ export function AnnouncementsManager() {
                             Usuários que confirmaram leitura:
                           </div>
                           <div className="space-y-2">
-                            {announcementDetails.map((detail) => (
-                              <div 
-                                key={detail.user_id} 
-                                className="flex items-center justify-between bg-background rounded-md p-3 border"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                                  <span className="font-medium">
-                                    {detail.profiles?.full_name || "Usuário desconhecido"}
+                            {announcementDetails.length === 0 ? (
+                              <div className="text-sm text-muted-foreground italic p-3 bg-background rounded-md border border-dashed">
+                                Nenhum detalhe de confirmação encontrado
+                              </div>
+                            ) : (
+                              announcementDetails.map((detail) => (
+                                <div 
+                                  key={detail.user_id} 
+                                  className="flex items-center justify-between bg-background rounded-md p-3 border"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                    <span className="font-medium">
+                                      {detail.profiles?.full_name || "Usuário desconhecido"}
+                                    </span>
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">
+                                    {format(new Date(detail.confirmed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                                   </span>
                                 </div>
-                                <span className="text-sm text-muted-foreground">
-                                  {format(new Date(detail.confirmed_at), "dd/MM/yyyy 'às' HH:mm")}
-                                </span>
-                              </div>
-                            ))}
+                              ))
+                            )}
                           </div>
                         </div>
                       </AccordionContent>
