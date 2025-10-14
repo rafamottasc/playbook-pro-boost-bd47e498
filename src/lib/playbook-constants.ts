@@ -23,7 +23,15 @@ export const STAGES_BY_FUNNEL: Record<string, string[]> = {
     "Fechamento",
   ],
   repescagem: [
-    "Reativação",
+    "1ª Abordagem",
+    "2ª Abordagem",
+    "3ª Abordagem",
+    "4ª Abordagem",
+    "5ª Abordagem",
+    "6ª Abordagem",
+    "7ª Abordagem",
+    "8ª Abordagem",
+    "9ª Abordagem",
   ],
   nutricao: [
     "Educação",
