@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { X, Megaphone, Bell, AlertTriangle, CheckCircle, Info, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import DOMPurify from 'dompurify';
 
 interface Announcement {
   id: string;
@@ -15,7 +16,15 @@ interface Announcement {
   cta_text: string | null;
   cta_link: string | null;
   dismissed: boolean;
+  requires_confirmation: boolean;
 }
+
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'h3', 'a'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+  });
+};
 
 const iconMap = {
   megaphone: Megaphone,
@@ -51,6 +60,7 @@ const priorityStyles = {
 export function AnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -122,6 +132,34 @@ export function AnnouncementBanner() {
     }
   };
 
+  const handleConfirm = async () => {
+    if (!announcement) return;
+    setIsConfirming(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from("announcement_views")
+        .upsert({
+          announcement_id: announcement.id,
+          user_id: user.id,
+          confirmed: true,
+          confirmed_at: new Date().toISOString(),
+          dismissed: true,
+        }, {
+          onConflict: "announcement_id,user_id",
+        });
+
+      setIsVisible(false);
+    } catch (error) {
+      console.error("Error confirming announcement:", error);
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
   if (!announcement || !isVisible) return null;
 
   const Icon = iconMap[announcement.icon as keyof typeof iconMap] || Megaphone;
@@ -151,22 +189,44 @@ export function AnnouncementBanner() {
                 "flex gap-4",
                 isMobile ? "flex-col items-start" : "flex-row items-center justify-between"
               )}>
-                <p className="text-base text-foreground/90 leading-relaxed flex-1">
-                  {announcement.message}
-                </p>
-                {announcement.cta_text && announcement.cta_link && (
+                <div 
+                  className={cn(
+                    "leading-relaxed flex-1 prose prose-sm max-w-none",
+                    "[&>p]:m-0 [&>p]:mb-2 [&>p:last-child]:mb-0",
+                    "[&>ul]:my-2 [&>ol]:my-2 [&>li]:ml-4",
+                    "[&>strong]:font-bold [&>a]:text-primary [&>a]:underline",
+                    isMobile ? "text-sm" : "text-base",
+                    "text-foreground/90"
+                  )}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(announcement.message) }}
+                />
+                {announcement.requires_confirmation ? (
                   <Button
-                    onClick={handleCtaClick}
+                    onClick={handleConfirm}
+                    disabled={isConfirming}
                     size={isMobile ? "sm" : "default"}
                     className={cn(
-                      "font-medium shadow-sm flex-shrink-0 gap-2",
-                      styles.button,
-                      isMobile ? "mt-2 w-fit text-sm px-3" : "px-6 text-base"
+                      "font-medium shadow-sm flex-shrink-0 gap-2 bg-green-600 hover:bg-green-700 text-white",
+                      isMobile ? "mt-2 w-full text-sm px-3" : "px-6 text-base"
                     )}
                   >
-                    {announcement.cta_text}
-                    <MousePointerClick className="h-4 w-4" />
+                    {isConfirming ? "Confirmando..." : "✔️ Li e estou ciente"}
                   </Button>
+                ) : (
+                  announcement.cta_text && announcement.cta_link && (
+                    <Button
+                      onClick={handleCtaClick}
+                      size={isMobile ? "sm" : "default"}
+                      className={cn(
+                        "font-medium shadow-sm flex-shrink-0 gap-2",
+                        styles.button,
+                        isMobile ? "mt-2 w-fit text-sm px-3" : "px-6 text-base"
+                      )}
+                    >
+                      {announcement.cta_text}
+                      <MousePointerClick className="h-4 w-4" />
+                    </Button>
+                  )
                 )}
               </div>
             </div>
@@ -176,9 +236,11 @@ export function AnnouncementBanner() {
               variant="ghost"
               size="icon"
               className="absolute top-3 right-3 h-8 w-8 rounded-full text-foreground/60 hover:text-foreground hover:bg-background/90 hover:shadow-sm"
-              onClick={handleDismiss}
+              onClick={announcement.requires_confirmation ? undefined : handleDismiss}
+              disabled={announcement.requires_confirmation}
+              title={announcement.requires_confirmation ? "Este aviso requer confirmação de leitura" : "Fechar"}
             >
-              <X className="h-4 w-4" />
+              <X className={cn("h-4 w-4", announcement.requires_confirmation && "opacity-30")} />
             </Button>
           </div>
         </CardContent>

@@ -100,6 +100,8 @@ export type Database = {
       announcement_views: {
         Row: {
           announcement_id: string | null
+          confirmed: boolean | null
+          confirmed_at: string | null
           cta_clicked: boolean | null
           dismissed: boolean | null
           id: string
@@ -108,6 +110,8 @@ export type Database = {
         }
         Insert: {
           announcement_id?: string | null
+          confirmed?: boolean | null
+          confirmed_at?: string | null
           cta_clicked?: boolean | null
           dismissed?: boolean | null
           id?: string
@@ -116,6 +120,8 @@ export type Database = {
         }
         Update: {
           announcement_id?: string | null
+          confirmed?: boolean | null
+          confirmed_at?: string | null
           cta_clicked?: boolean | null
           dismissed?: boolean | null
           id?: string
@@ -151,6 +157,7 @@ export type Database = {
           id: string
           message: string
           priority: string
+          requires_confirmation: boolean | null
           start_date: string
           target_audience: string
           title: string
@@ -167,6 +174,7 @@ export type Database = {
           id?: string
           message: string
           priority: string
+          requires_confirmation?: boolean | null
           start_date?: string
           target_audience?: string
           title: string
@@ -183,6 +191,7 @@ export type Database = {
           id?: string
           message?: string
           priority?: string
+          requires_confirmation?: boolean | null
           start_date?: string
           target_audience?: string
           title?: string
@@ -1104,6 +1113,7 @@ export type Database = {
           id: string
           message: string
           priority: string
+          requires_confirmation: boolean
           title: string
         }[]
       }

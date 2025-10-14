@@ -138,4 +138,50 @@ All colors MUST be HSL.
   .hover-highlight {
     @apply hover:bg-accent/50 hover:border-primary/50;
   }
+
+  /* Estilos para conteúdo formatado de avisos */
+  .announcement-content h3,
+  .prose h3 {
+    @apply text-lg font-semibold mb-2;
+  }
+
+  .announcement-content ul,
+  .announcement-content ol,
+  .prose ul,
+  .prose ol {
+    @apply ml-4 space-y-1;
+  }
+
+  .announcement-content li,
+  .prose li {
+    @apply list-disc list-inside;
+  }
+
+  .announcement-content strong,
+  .prose strong {
+    @apply font-bold;
+  }
+
+  .announcement-content a,
+  .prose a {
+    @apply text-primary underline hover:text-primary/80;
+  }
+
+  /* Estilos para o editor Quill */
+  .ql-container {
+    @apply rounded-b-lg border-input;
+    font-family: inherit;
+  }
+
+  .ql-toolbar {
+    @apply rounded-t-lg border-input bg-muted/30;
+  }
+
+  .ql-editor {
+    @apply min-h-[120px] text-base;
+  }
+
+  .ql-editor.ql-blank::before {
+    @apply text-muted-foreground italic;
+  }
 }

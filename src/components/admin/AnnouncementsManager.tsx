@@ -2,20 +2,21 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DraggableDialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, Eye, X, ExternalLink, MousePointerClick } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, Megaphone, Bell, AlertTriangle, CheckCircle, Info, X, MousePointerClick } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
 
 interface Announcement {
   id: string;
@@ -29,6 +30,7 @@ interface Announcement {
   cta_link: string | null;
   target_audience: string;
   active: boolean;
+  requires_confirmation: boolean;
   created_at: string;
   created_by: string | null;
   profiles?: {
@@ -41,7 +43,31 @@ interface AnnouncementStats {
   views: number;
   dismissals: number;
   cta_clicks: number;
+  confirmed: number;
 }
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [3, false] }],
+    ['bold', 'italic', 'underline'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    ['link'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header', 'bold', 'italic', 'underline',
+  'list', 'bullet', 'align', 'link'
+];
+
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'h3', 'a'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+  });
+};
 
 const iconOptions = [
   { value: "megaphone", label: "Megafone", Icon: Megaphone },
@@ -103,6 +129,7 @@ export function AnnouncementsManager() {
     cta_link: "",
     target_audience: "all",
     active: true,
+    requires_confirmation: false,
   });
 
   useEffect(() => {
@@ -136,7 +163,7 @@ export function AnnouncementsManager() {
     try {
       const { data, error } = await supabase
         .from("announcement_views")
-        .select("announcement_id, dismissed, cta_clicked");
+        .select("announcement_id, dismissed, cta_clicked, confirmed");
 
       if (error) throw error;
 
@@ -148,11 +175,13 @@ export function AnnouncementsManager() {
           views: 0,
           dismissals: 0,
           cta_clicks: 0,
+          confirmed: 0,
         };
         
         current.views += 1;
         if (view.dismissed) current.dismissals += 1;
         if (view.cta_clicked) current.cta_clicks += 1;
+        if (view.confirmed) current.confirmed += 1;
         
         statsMap.set(view.announcement_id, current);
       });
@@ -229,6 +258,7 @@ export function AnnouncementsManager() {
       cta_link: announcement.cta_link || "",
       target_audience: announcement.target_audience,
       active: announcement.active,
+      requires_confirmation: announcement.requires_confirmation || false,
     });
     setIsDialogOpen(true);
   };
@@ -246,6 +276,7 @@ export function AnnouncementsManager() {
       cta_link: announcement.cta_link || "",
       target_audience: announcement.target_audience,
       active: false,
+      requires_confirmation: false,
     });
     setIsDialogOpen(true);
   };
@@ -299,6 +330,7 @@ export function AnnouncementsManager() {
       cta_link: "",
       target_audience: "all",
       active: true,
+      requires_confirmation: false,
     });
   };
 
@@ -355,16 +387,17 @@ export function AnnouncementsManager() {
 
               <div className="space-y-2">
                 <Label htmlFor="message">Mensagem *</Label>
-                <Textarea
-                  id="message"
+                <ReactQuill
+                  theme="snow"
                   value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  rows={3}
-                  maxLength={500}
-                  required
+                  onChange={(value) => setFormData({ ...formData, message: value })}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  className="bg-background"
+                  placeholder="Digite a mensagem do aviso..."
                 />
                 <p className="text-xs text-muted-foreground">
-                  {formData.message.length}/500 caracteres
+                  Use a barra de ferramentas para formatar o texto
                 </p>
               </div>
 
@@ -482,6 +515,15 @@ export function AnnouncementsManager() {
                 <Label htmlFor="active">Ativo</Label>
               </div>
 
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="requires_confirmation"
+                  checked={formData.requires_confirmation}
+                  onCheckedChange={(checked) => setFormData({ ...formData, requires_confirmation: checked })}
+                />
+                <Label htmlFor="requires_confirmation">Requer confirmação de leitura</Label>
+              </div>
+
               {/* Preview */}
               <div className="space-y-2">
                 <Label>Preview</Label>
@@ -503,10 +545,18 @@ export function AnnouncementsManager() {
                         <h3 className={cn("text-2xl font-bold mb-1", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
                           {formData.title || "Título do aviso"}
                         </h3>
-                        <p className="text-base text-foreground/90 leading-relaxed">
-                          {formData.message || "Mensagem do aviso aparecerá aqui..."}
-                        </p>
-                        {formData.cta_text && (
+                        <div 
+                          className="text-base text-foreground/90 leading-relaxed prose prose-sm max-w-none [&>p]:m-0 [&>p]:mb-2 [&>ul]:my-2 [&>ol]:my-2"
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.message) || "<p>Mensagem do aviso aparecerá aqui...</p>" }}
+                        />
+                        {formData.requires_confirmation ? (
+                          <Button
+                            size="default"
+                            className="mt-4 font-medium shadow-sm gap-2 px-6 text-base bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            ✔️ Li e estou ciente
+                          </Button>
+                        ) : formData.cta_text && (
                           <Button
                             size="default"
                             className={cn("mt-4 font-medium shadow-sm gap-2 px-6 text-base", priorityStyles[formData.priority as keyof typeof priorityStyles].button)}
@@ -650,7 +700,7 @@ export function AnnouncementsManager() {
       {/* Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle>Métricas</CardTitle>
+          <CardTitle>Métricas Gerais</CardTitle>
           <CardDescription>Estatísticas de visualização dos avisos</CardDescription>
         </CardHeader>
         <CardContent>
@@ -679,6 +729,58 @@ export function AnnouncementsManager() {
                   </TableRow>
                 );
               })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Confirmações de Leitura</CardTitle>
+          <CardDescription>
+            Status de confirmação dos avisos que exigem leitura obrigatória
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Aviso</TableHead>
+                <TableHead className="text-right">Visualizações</TableHead>
+                <TableHead className="text-right">Confirmaram</TableHead>
+                <TableHead className="text-right">Taxa</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {announcements
+                .filter(a => a.requires_confirmation)
+                .map((announcement) => {
+                  const stat = stats.find(s => s.announcement_id === announcement.id);
+                  const views = stat?.views || 0;
+                  const confirmed = stat?.confirmed || 0;
+                  const rate = views > 0 ? ((confirmed / views) * 100).toFixed(0) : "0";
+
+                  return (
+                    <TableRow key={announcement.id}>
+                      <TableCell className="font-medium">{announcement.title}</TableCell>
+                      <TableCell className="text-right">{views}</TableCell>
+                      <TableCell className="text-right">{confirmed}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={Number(rate) >= 80 ? "default" : "secondary"}>
+                          {rate}%
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              {announcements.filter(a => a.requires_confirmation).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    Nenhum aviso com confirmação obrigatória
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
