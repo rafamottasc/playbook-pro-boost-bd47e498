@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,7 +17,7 @@ export function useStages(funnelId?: string) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchStages = async () => {
+  const fetchStages = useCallback(async () => {
     if (!funnelId) {
       setStages([]);
       setLoading(false);
@@ -43,7 +43,7 @@ export function useStages(funnelId?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [funnelId, toast]);
 
   useEffect(() => {
     fetchStages();
@@ -70,7 +70,7 @@ export function useStages(funnelId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [funnelId]);
+  }, [funnelId, fetchStages]);
 
   const createStage = async (data: { name: string; funnel_id: string }) => {
     try {

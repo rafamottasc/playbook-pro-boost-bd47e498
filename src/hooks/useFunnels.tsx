@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,7 +19,7 @@ export function useFunnels() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchFunnels = async () => {
+  const fetchFunnels = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("playbook_funnels")
@@ -38,7 +38,7 @@ export function useFunnels() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchFunnels();
@@ -62,7 +62,7 @@ export function useFunnels() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchFunnels]);
 
   const createFunnel = async (data: {
     name: string;
