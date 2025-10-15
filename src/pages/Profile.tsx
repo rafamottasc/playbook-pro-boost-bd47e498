@@ -175,6 +175,9 @@ export default function Profile() {
           variant: "destructive",
         });
       } else {
+        // Limpar a flag de aviso quando perfil for atualizado
+        sessionStorage.removeItem(`profile_warning_${user.id}`);
+        
         toast({
           title: "Perfil atualizado!",
           description: "Suas informações foram atualizadas com sucesso",
