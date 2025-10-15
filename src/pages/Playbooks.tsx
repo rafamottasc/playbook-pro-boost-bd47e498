@@ -273,6 +273,9 @@ export default function Index() {
 
   const currentStages = stages;
 
+  // Convert active funnel UUID to slug for message filtering
+  const activeFunnelSlug = funnels.find(f => f.id === activeFunnel)?.slug || "";
+
   if (loading || funnelsLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -310,13 +313,13 @@ export default function Index() {
               {/* Kanban Board */}
               <ScrollArea className="w-full">
                 <div className={`grid gap-4 pb-4 ${
-                  activeFunnel === 'atendimento' 
+                  activeFunnelSlug === 'atendimento' 
                     ? 'grid-cols-1 lg:grid-cols-5' 
                     : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                 }`}>
                   {currentStages.map((stage) => {
                     const stageMessages = messages.filter(
-                      (msg) => msg.funnel_slug === activeFunnel && msg.stage_name === stage.name
+                      (msg) => msg.funnel_slug === activeFunnelSlug && msg.stage_name === stage.name
                     );
                     return (
                       <KanbanColumn
