@@ -12,7 +12,8 @@ import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import PartnersManager from "@/pages/admin/PartnersManager";
 import { MoodMetrics } from "@/components/admin/MoodMetrics";
 import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
-import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle, ListOrdered } from "lucide-react";
+import { PollsManager } from "@/components/admin/PollsManager";
+import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle, ListOrdered, PieChart } from "lucide-react";
 
 export default function Admin() {
   return (
@@ -68,6 +69,10 @@ export default function Admin() {
               <MessageCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Feedbacks</span>
             </TabsTrigger>
+            <TabsTrigger value="polls" className="gap-2">
+              <PieChart className="h-4 w-4" />
+              <span className="hidden sm:inline">Enquetes</span>
+            </TabsTrigger>
           </TabsList>
 
         <TabsContent value="funnels">
@@ -112,6 +117,10 @@ export default function Admin() {
 
           <TabsContent value="feedbacks">
             <FeedbacksManager />
+          </TabsContent>
+
+          <TabsContent value="polls">
+            <PollsManager />
           </TabsContent>
         </Tabs>
       </main>

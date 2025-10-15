@@ -9,6 +9,7 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DailyMoodCard } from "@/components/DailyMoodCard";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import { FeedbackModal } from "@/components/FeedbackModal";
+import { PollPopup } from "@/components/PollPopup";
 
 interface NavCard {
   title: string;
@@ -116,6 +117,9 @@ export default function Home() {
             open={feedbackModalOpen} 
             onOpenChange={setFeedbackModalOpen} 
           />
+
+          {/* Poll Popup */}
+          <PollPopup />
         </main>
       </PageTransition>
     </div>
