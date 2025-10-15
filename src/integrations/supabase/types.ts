@@ -525,6 +525,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          delivery_type: string | null
           dislikes: number | null
           display_order: number | null
           funnel: string
@@ -537,6 +538,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string | null
+          delivery_type?: string | null
           dislikes?: number | null
           display_order?: number | null
           funnel: string
@@ -549,6 +551,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string | null
+          delivery_type?: string | null
           dislikes?: number | null
           display_order?: number | null
           funnel?: string

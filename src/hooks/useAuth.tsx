@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profileResult, roleResult] = await Promise.all([
       supabase
         .from("profiles")
-        .select("blocked, approved")
+        .select("blocked, approved, avatar_url, whatsapp, team")
         .eq("id", userId)
         .maybeSingle(),
       supabase
@@ -100,6 +100,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setIsAdmin(!!role);
+    
+    // Verificar se perfil está incompleto e redirecionar para /profile
+    const isProfileIncomplete = !profile?.avatar_url || !profile?.whatsapp || !profile?.team;
+    if (isProfileIncomplete && window.location.pathname !== '/profile') {
+      console.log('[useAuth] Profile incomplete, redirecting to /profile');
+      setTimeout(() => {
+        navigate('/profile');
+        toast({
+          title: "Complete seu perfil",
+          description: "Por favor, atualize suas informações de perfil para continuar.",
+        });
+      }, 500);
+    }
   };
 
   useEffect(() => {

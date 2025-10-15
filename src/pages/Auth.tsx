@@ -262,7 +262,6 @@ export default function Auth() {
               className="h-24 w-auto object-contain"
             />
           </div>
-          <CardDescription>Dashboard de Playbooks de Mensagens</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">

@@ -27,8 +27,15 @@ export function LessonCard({ lesson, moduleId, lessonNumber, isWatched = false, 
   const navigate = useNavigate();
   const thumbnail = getYouTubeThumbnail(lesson.video_url);
 
+  const handleCardClick = () => {
+    navigate(`/academy/modules/${moduleId}/${lesson.id}`);
+  };
+
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+    <Card 
+      className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative aspect-video overflow-hidden bg-muted">
         {thumbnail ? (
           <img
@@ -99,7 +106,10 @@ export function LessonCard({ lesson, moduleId, lessonNumber, isWatched = false, 
         )}
 
         <Button
-          onClick={() => navigate(`/academy/modules/${moduleId}/${lesson.id}`)}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/academy/modules/${moduleId}/${lesson.id}`);
+          }}
           className="w-full"
           variant={isWatched ? "secondary" : "default"}
         >

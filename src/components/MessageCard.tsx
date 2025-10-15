@@ -3,6 +3,7 @@ import { Copy, ThumbsUp, ThumbsDown, MessageSquarePlus, Check } from "lucide-rea
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ interface MessageCardProps {
   likes: number;
   dislikes: number;
   userFeedback?: 'like' | 'dislike' | null;
+  deliveryType?: 'audio' | 'call' | 'text';
   onCopy: () => void;
   onLike: () => void;
   onDislike: () => void;
@@ -31,6 +33,7 @@ export function MessageCard({
   likes,
   dislikes,
   userFeedback = null,
+  deliveryType = 'text',
   onCopy,
   onLike,
   onDislike,
@@ -70,7 +73,7 @@ export function MessageCard({
     <Card className="group relative overflow-hidden border bg-gradient-card transition-smooth hover:shadow-lg hover:border-primary/50">
       <div className="p-4">
         {/* WhatsApp Icon + Title */}
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-whatsapp shrink-0">
             <svg
               viewBox="0 0 24 24"
@@ -82,6 +85,20 @@ export function MessageCard({
           </div>
           <h3 className="text-base font-semibold text-foreground">{title}</h3>
         </div>
+        
+        {/* Delivery Type Badge */}
+        <Badge 
+          variant={
+            deliveryType === 'audio' ? 'default' :
+            deliveryType === 'call' ? 'destructive' :
+            'secondary'
+          }
+          className="mb-3"
+        >
+          {deliveryType === 'audio' ? '🎤 Áudio' :
+           deliveryType === 'call' ? '📱 Ligação' :
+           '💬 Texto'}
+        </Badge>
 
         {/* Content */}
         <p className="mb-4 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">

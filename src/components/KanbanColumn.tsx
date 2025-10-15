@@ -7,6 +7,7 @@ interface Message {
   content: string;
   likes: number;
   dislikes: number;
+  delivery_type?: 'audio' | 'call' | 'text';
 }
 
 interface KanbanColumnProps {
@@ -31,10 +32,10 @@ export function KanbanColumn({
   return (
     <div className="flex w-full flex-col">
       {/* Column Header */}
-      <div className="mb-4 rounded-lg border bg-primary/5 p-3">
+      <div className="mb-4 rounded-lg bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/30 p-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-foreground text-sm">{stage}</h3>
-          <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+          <h3 className="font-bold text-base text-primary">{stage}</h3>
+          <span className="rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-bold shadow-sm">
             {messages.length}
           </span>
         </div>
@@ -51,6 +52,7 @@ export function KanbanColumn({
             likes={message.likes}
             dislikes={message.dislikes}
             userFeedback={userFeedbacks[message.id] || null}
+            deliveryType={message.delivery_type}
             onCopy={() => onMessageCopy(message.id)}
             onLike={() => onMessageLike(message.id)}
             onDislike={() => onMessageDislike(message.id)}

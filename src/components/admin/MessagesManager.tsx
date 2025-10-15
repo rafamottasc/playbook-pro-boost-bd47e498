@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Copy, Plus, GripVertical } from "lucide-react";
 import {
@@ -66,6 +67,7 @@ interface Message {
   display_order: number;
   likes: number;
   dislikes: number;
+  delivery_type?: 'audio' | 'call' | 'text';
 }
 
 function SortableMessageCard({
@@ -113,8 +115,21 @@ function SortableMessageCard({
         </TooltipProvider>
         <div className="flex-1">
           <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold">{message.title}</h3>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{message.title}</h3>
+                <Badge 
+                  variant={
+                    message.delivery_type === 'audio' ? 'default' :
+                    message.delivery_type === 'call' ? 'destructive' :
+                    'secondary'
+                  }
+                >
+                  {message.delivery_type === 'audio' ? '🎤 Áudio' :
+                   message.delivery_type === 'call' ? '📱 Ligação' :
+                   '💬 Texto'}
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">
                 {FUNNELS.find((f) => f.id === message.funnel)?.name} - {message.stage}
               </p>
@@ -187,6 +202,7 @@ export function MessagesManager() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [selectedFunnel, setSelectedFunnel] = useState<string>("todos");
+  const [selectedStage, setSelectedStage] = useState<string>("todas");
   const [loading, setLoading] = useState(true);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -199,6 +215,7 @@ export function MessagesManager() {
     content: "",
     funnel: "lead-novo",
     stage: "",
+    delivery_type: "text" as 'audio' | 'call' | 'text',
   });
 
   const sensors = useSensors(
@@ -213,12 +230,18 @@ export function MessagesManager() {
   }, []);
 
   useEffect(() => {
-    if (selectedFunnel === "todos") {
-      setFilteredMessages(messages);
-    } else {
-      setFilteredMessages(messages.filter(msg => msg.funnel === selectedFunnel));
+    let filtered = messages;
+    
+    if (selectedFunnel !== "todos") {
+      filtered = filtered.filter(msg => msg.funnel === selectedFunnel);
     }
-  }, [selectedFunnel, messages]);
+    
+    if (selectedStage !== "todas") {
+      filtered = filtered.filter(msg => msg.stage === selectedStage);
+    }
+    
+    setFilteredMessages(filtered);
+  }, [selectedFunnel, selectedStage, messages]);
 
   const loadMessages = async () => {
     try {
@@ -228,7 +251,7 @@ export function MessagesManager() {
         .order("display_order");
 
       if (error) throw error;
-      setMessages(data || []);
+      setMessages((data || []) as Message[]);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar mensagens",
@@ -306,6 +329,7 @@ export function MessagesManager() {
             content: formData.content,
             funnel: formData.funnel,
             stage: formData.stage,
+            delivery_type: formData.delivery_type,
           })
           .eq("id", editingMessage.id);
 
@@ -318,6 +342,7 @@ export function MessagesManager() {
             content: formData.content,
             funnel: formData.funnel,
             stage: formData.stage,
+            delivery_type: formData.delivery_type,
             display_order: messages.length,
           },
         ]);
@@ -396,6 +421,7 @@ export function MessagesManager() {
           content: message.content,
           funnel: message.funnel,
           stage: message.stage,
+          delivery_type: message.delivery_type || 'text',
           display_order: newDisplayOrder,
         },
       ]);
@@ -420,6 +446,7 @@ export function MessagesManager() {
       content: message.content,
       funnel: message.funnel,
       stage: message.stage,
+      delivery_type: message.delivery_type || 'text',
     });
     setIsDialogOpen(true);
   };
@@ -431,10 +458,17 @@ export function MessagesManager() {
       content: "",
       funnel: "lead-novo",
       stage: "",
+      delivery_type: "text",
     });
   };
 
   const availableStages = STAGES_BY_FUNNEL[formData.funnel] || [];
+  const filterStages = selectedFunnel !== "todos" ? STAGES_BY_FUNNEL[selectedFunnel] || [] : [];
+
+  const handleFunnelChange = (value: string) => {
+    setSelectedFunnel(value);
+    setSelectedStage("todas");
+  };
 
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>;
@@ -446,7 +480,7 @@ export function MessagesManager() {
         <h2 className="text-xl font-semibold">Mensagens do Playbook</h2>
         
         <div className="flex flex-col sm:flex-row gap-3">
-          <Select value={selectedFunnel} onValueChange={setSelectedFunnel}>
+          <Select value={selectedFunnel} onValueChange={handleFunnelChange}>
             <SelectTrigger className="w-full sm:w-[250px]">
               <SelectValue placeholder="Filtrar por funil" />
             </SelectTrigger>
@@ -455,6 +489,24 @@ export function MessagesManager() {
               {FUNNELS.map((funnel) => (
                 <SelectItem key={funnel.id} value={funnel.id}>
                   {funnel.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select 
+            value={selectedStage} 
+            onValueChange={setSelectedStage}
+            disabled={selectedFunnel === "todos"}
+          >
+            <SelectTrigger className="w-full sm:w-[250px]">
+              <SelectValue placeholder="Filtrar por etapa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas as Etapas</SelectItem>
+              {filterStages.map((stage) => (
+                <SelectItem key={stage} value={stage}>
+                  {stage}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -527,6 +579,24 @@ export function MessagesManager() {
                         {stage}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="delivery_type">Tipo de Envio</Label>
+                <Select
+                  value={formData.delivery_type}
+                  onValueChange={(value: 'audio' | 'call' | 'text') =>
+                    setFormData({ ...formData, delivery_type: value })
+                  }
+                >
+                  <SelectTrigger id="delivery_type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">💬 Texto</SelectItem>
+                    <SelectItem value="audio">🎤 Áudio</SelectItem>
+                    <SelectItem value="call">📱 Ligação</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

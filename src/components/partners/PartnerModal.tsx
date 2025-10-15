@@ -116,6 +116,28 @@ export function PartnerModal({
     }
   }, [partner]);
 
+  // Limpar tudo quando o modal fechar
+  useEffect(() => {
+    if (!open) {
+      setCurrentPartner(null);
+      setLinks([]);
+      setFiles([]);
+      setEditingLink(null);
+      setNewLink({ title: "", url: "" });
+      setActiveTab("dados");
+      form.reset({
+        name: "",
+        cidade: "",
+        manager_name: "",
+        manager_phone: "",
+        manager_email: "",
+        frente_mar: false,
+        observations: "",
+        active: true,
+      });
+    }
+  }, [open, form]);
+
   const loadLinks = async () => {
     if (!currentPartner) return;
     const { data } = await supabase

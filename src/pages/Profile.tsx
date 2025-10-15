@@ -296,7 +296,7 @@ export default function Profile() {
                 <Label htmlFor="whatsapp">WhatsApp</Label>
                 <Input
                   id="whatsapp"
-                  placeholder="(47) 99601-5008"
+                  placeholder="(47) 9 9999-9999"
                   value={profile.whatsapp}
                   onChange={(e) => {
                     const formatted = formatPhone(e.target.value);
