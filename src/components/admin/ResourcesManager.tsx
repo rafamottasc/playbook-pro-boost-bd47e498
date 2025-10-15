@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload } from "lucide-react";
+import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload, FolderOpen } from "lucide-react";
+import { CategoriesManager } from "./resources/CategoriesManager";
 import {
   Dialog,
   DraggableDialogContent,
@@ -45,11 +47,20 @@ interface Resource {
   description: string | null;
   url: string;
   resource_type: string;
-  category: string;
+  category?: string; // Manter para compatibilidade
+  category_id: string | null;
   display_order: number;
   created_at: string;
   file_name?: string;
   file_size?: number;
+}
+
+interface ResourceCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  display_order: number;
+  active: boolean;
 }
 
 const RESOURCE_TYPES = [
@@ -59,13 +70,9 @@ const RESOURCE_TYPES = [
   { id: "image", name: "Imagem", icon: FileText },
 ];
 
-const CATEGORIES = [
-  { id: "administrativo", name: "Materiais Administrativos" },
-  { id: "digital", name: "Material Digital" },
-];
-
 export function ResourcesManager() {
   const [resources, setResources] = useState<Resource[]>([]);
+  const [categories, setCategories] = useState<ResourceCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -78,13 +85,14 @@ export function ResourcesManager() {
     description: "",
     url: "",
     resource_type: "pdf",
-    category: "administrativo" as "administrativo" | "digital",
+    category_id: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadResources();
+    loadCategories();
   }, []);
 
   const loadResources = async () => {
@@ -107,8 +115,27 @@ export function ResourcesManager() {
     }
   };
 
-  const getResourcesByCategory = (category: string) => {
-    return resources.filter(r => r.category === category);
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("resource_categories")
+        .select("*")
+        .eq("active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao carregar categorias",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getResourcesByCategory = (categoryId: string) => {
+    return resources.filter(r => r.category_id === categoryId);
   };
 
   const handleFileUpload = async (): Promise<{ url: string; fileName: string; fileSize: number } | null> => {
@@ -184,7 +211,7 @@ export function ResourcesManager() {
             description: formData.description,
             url: finalUrl,
             resource_type: formData.resource_type,
-            category: formData.category,
+            category_id: formData.category_id,
             file_name: fileName,
             file_size: fileSize,
           })
@@ -199,7 +226,7 @@ export function ResourcesManager() {
             description: formData.description,
             url: finalUrl,
             resource_type: formData.resource_type,
-            category: formData.category,
+            category_id: formData.category_id,
             display_order: resources.length,
             file_name: fileName,
             file_size: fileSize,
@@ -255,7 +282,7 @@ export function ResourcesManager() {
       description: resource.description || "",
       url: resource.url,
       resource_type: resource.resource_type,
-      category: resource.category as "administrativo" | "digital",
+      category_id: resource.category_id || "",
     });
     setIsDialogOpen(true);
   };
@@ -268,7 +295,7 @@ export function ResourcesManager() {
       description: "",
       url: "",
       resource_type: "pdf",
-      category: "administrativo",
+      category_id: categories.length > 0 ? categories[0].id : "",
     });
   };
 
@@ -287,9 +314,23 @@ export function ResourcesManager() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h2 className="text-xl font-semibold">Recursos Educativos</h2>
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Gerenciar Recursos</h2>
+      <Tabs defaultValue="resources" className="w-full">
+        <TabsList>
+          <TabsTrigger value="resources">Recursos</TabsTrigger>
+          <TabsTrigger value="categories">Categorias</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="resources" className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="text-xl font-semibold">Recursos Educativos</h3>
+              <p className="text-sm text-muted-foreground">
+                {resources.length} {resources.length === 1 ? "recurso" : "recursos"} cadastrado
+                {resources.length !== 1 ? "s" : ""}
+              </p>
+            </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm} className="w-full sm:w-auto">
@@ -323,16 +364,16 @@ export function ResourcesManager() {
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
                 <Select
-                  value={formData.category}
+                  value={formData.category_id}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, category: value as "administrativo" | "digital" })
+                    setFormData({ ...formData, category_id: value })
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
                       </SelectItem>
@@ -444,16 +485,23 @@ export function ResourcesManager() {
             Nenhum recurso cadastrado ainda
           </p>
         </div>
+      ) : categories.length === 0 ? (
+        <div className="text-center py-12">
+          <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            Nenhuma categoria disponível. Crie categorias na aba "Categorias" primeiro.
+          </p>
+        </div>
       ) : (
         <div className="space-y-6">
-          {CATEGORIES.map((category) => {
+          {categories.map((category) => {
             const categoryResources = getResourcesByCategory(category.id);
             if (categoryResources.length === 0) return null;
             
             return (
               <div key={category.id} className="space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b">
-                  <FileText className="h-5 w-5 text-primary" />
+                  <FolderOpen className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold">{category.name}</h3>
                   <span className="text-sm text-muted-foreground">
                     ({categoryResources.length})
@@ -564,6 +612,12 @@ export function ResourcesManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        </TabsContent>
+
+        <TabsContent value="categories">
+          <CategoriesManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

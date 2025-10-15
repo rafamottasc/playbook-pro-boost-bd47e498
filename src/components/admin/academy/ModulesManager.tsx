@@ -304,7 +304,7 @@ export function ModulesManager() {
 
   return (
     <div>
-      <div className="space-y-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
         <div>
           <h3 className="text-xl font-semibold">Módulos de Treinamento</h3>
           <p className="text-sm text-muted-foreground">
@@ -319,7 +319,7 @@ export function ModulesManager() {
               setFormData({ title: "", description: "", cover_url: "", display_order: modules.length, published: false });
               setCoverFile(null);
               setCoverPreview(null);
-            }} className="w-full sm:w-auto">
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Módulo
             </Button>

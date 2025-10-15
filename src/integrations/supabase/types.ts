@@ -1107,9 +1107,40 @@ export type Database = {
           },
         ]
       }
+      resource_categories: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       resources: {
         Row: {
           category: Database["public"]["Enums"]["resource_category"] | null
+          category_id: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -1123,6 +1154,7 @@ export type Database = {
         }
         Insert: {
           category?: Database["public"]["Enums"]["resource_category"] | null
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -1136,6 +1168,7 @@ export type Database = {
         }
         Update: {
           category?: Database["public"]["Enums"]["resource_category"] | null
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -1147,7 +1180,15 @@ export type Database = {
           updated_at?: string | null
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "resources_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "resource_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suggestions: {
         Row: {
