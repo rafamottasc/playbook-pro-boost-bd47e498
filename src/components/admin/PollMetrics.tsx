@@ -48,12 +48,19 @@ export function PollMetrics({ poll, isOpen, onClose }: PollMetricsProps) {
   const [responses, setResponses] = useState<Response[]>([]);
   const [totalVoters, setTotalVoters] = useState(0);
   const [isLoadingResponses, setIsLoadingResponses] = useState(false);
+  const [activeTab, setActiveTab] = useState("aggregate");
 
   useEffect(() => {
     if (isOpen && poll) {
       fetchPollData();
     }
   }, [isOpen, poll]);
+
+  useEffect(() => {
+    if (activeTab === "individual" && responses.length === 0 && isAdmin) {
+      fetchIndividualResponses();
+    }
+  }, [activeTab, isAdmin]);
 
   const fetchPollData = async () => {
     // Buscar opções
@@ -160,18 +167,11 @@ export function PollMetrics({ poll, isOpen, onClose }: PollMetricsProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="aggregate" className="mt-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="aggregate">Resultados Agregados</TabsTrigger>
             {isAdmin && (
-              <TabsTrigger 
-                value="individual" 
-                onClick={() => {
-                  if (responses.length === 0) {
-                    fetchIndividualResponses();
-                  }
-                }}
-              >
+              <TabsTrigger value="individual">
                 Respostas Individuais
               </TabsTrigger>
             )}
