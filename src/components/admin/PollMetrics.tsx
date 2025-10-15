@@ -137,10 +137,21 @@ export function PollMetrics({ poll, isOpen, onClose }: PollMetricsProps) {
 
   const generateCSV = () => {
     const headers = ["Nome", "Opção", "Data/Hora"];
+    
+    // Função para escapar valores CSV corretamente
+    const escapeCSV = (value: string) => {
+      // Se contém vírgula, aspas ou quebra de linha, envolver em aspas duplas
+      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        // Escapar aspas duplas duplicando-as
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+    
     const rows = responses.map(r => [
-      r.profiles?.full_name || "Usuário desconhecido",
-      r.poll_options?.option_text || "Opção desconhecida",
-      format(new Date(r.created_at), "dd/MM/yyyy HH:mm"),
+      escapeCSV(r.profiles?.full_name || "Usuário desconhecido"),
+      escapeCSV(r.poll_options?.option_text || "Opção desconhecida"),
+      escapeCSV(format(new Date(r.created_at), "dd/MM/yyyy HH:mm")),
     ]);
 
     const csvContent = [
@@ -148,10 +159,12 @@ export function PollMetrics({ poll, isOpen, onClose }: PollMetricsProps) {
       ...rows.map(row => row.join(",")),
     ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    // Adicionar BOM UTF-8 para Excel reconhecer encoding
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `enquete_${poll.id}_${Date.now()}.csv`;
+    link.download = `enquete_${poll.title.replace(/[^a-z0-9]/gi, '_')}_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
     link.click();
   };
 
@@ -250,7 +263,7 @@ export function PollMetrics({ poll, isOpen, onClose }: PollMetricsProps) {
 
           <TabsContent value="individual" className="space-y-4 mt-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Lista completa de respostas individuais (visível apenas para administradores)
               </p>
               <Button
@@ -274,31 +287,33 @@ export function PollMetrics({ poll, isOpen, onClose }: PollMetricsProps) {
                 Nenhuma resposta registrada ainda.
               </div>
             ) : (
-              <div className="border rounded-lg overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[120px]">Usuário</TableHead>
-                      <TableHead className="min-w-[150px]">Opção Selecionada</TableHead>
-                      <TableHead className="min-w-[120px]">Data/Hora</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {responses.map((response) => (
-                      <TableRow key={response.id}>
-                        <TableCell className="text-xs sm:text-sm">
-                          {response.profiles?.full_name || "Usuário desconhecido"}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          {response.poll_options?.option_text || "Opção desconhecida"}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">
-                          {format(new Date(response.created_at), "dd/MM/yyyy HH:mm")}
-                        </TableCell>
+              <div className="border rounded-lg overflow-x-auto -mx-2 sm:mx-0">
+                <div className="min-w-full inline-block align-middle">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[35%] min-w-[100px]">Usuário</TableHead>
+                        <TableHead className="w-[40%] min-w-[120px]">Opção Selecionada</TableHead>
+                        <TableHead className="w-[25%] min-w-[90px] whitespace-nowrap">Data/Hora</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {responses.map((response) => (
+                        <TableRow key={response.id}>
+                          <TableCell className="text-xs sm:text-sm break-words">
+                            {response.profiles?.full_name || "Usuário desconhecido"}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm break-words">
+                            {response.poll_options?.option_text || "Opção desconhecida"}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm whitespace-nowrap">
+                            {format(new Date(response.created_at), "dd/MM/yyyy HH:mm")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             )}
           </TabsContent>
