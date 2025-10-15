@@ -45,6 +45,10 @@ interface Lesson {
   points: number;
   display_order: number;
   published: boolean;
+  academy_modules?: {
+    title: string;
+    published: boolean;
+  };
 }
 
 interface Attachment {
@@ -57,8 +61,7 @@ interface Attachment {
 export function LessonsManager() {
   const { toast } = useToast();
   const [modules, setModules] = useState<Module[]>([]);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [selectedModule, setSelectedModule] = useState<string>("");
+  const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
@@ -83,10 +86,10 @@ export function LessonsManager() {
   }, []);
 
   useEffect(() => {
-    if (selectedModule) {
-      fetchLessons();
+    if (modules.length > 0) {
+      fetchAllLessons();
     }
-  }, [selectedModule]);
+  }, [modules]);
 
   const fetchModules = async () => {
     try {
@@ -97,9 +100,6 @@ export function LessonsManager() {
 
       if (error) throw error;
       setModules(data || []);
-      if (data && data.length > 0 && !selectedModule) {
-        setSelectedModule(data[0].id);
-      }
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -109,18 +109,19 @@ export function LessonsManager() {
     }
   };
 
-  const fetchLessons = async () => {
-    if (!selectedModule) return;
-
+  const fetchAllLessons = async () => {
     try {
       const { data, error } = await supabase
         .from('academy_lessons')
-        .select('*')
-        .eq('module_id', selectedModule)
+        .select(`
+          *,
+          academy_modules!inner(title, published)
+        `)
+        .order('module_id', { ascending: true })
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setLessons(data || []);
+      setAllLessons(data || []);
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -134,6 +135,15 @@ export function LessonsManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.module_id) {
+      toast({
+        title: "Erro",
+        description: "Selecione um módulo para a aula",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const embedUrl = convertYouTubeUrl(formData.video_url);
 
@@ -150,7 +160,7 @@ export function LessonsManager() {
       } else {
         const { data, error } = await supabase
           .from('academy_lessons')
-          .insert({ ...formData, video_url: embedUrl, module_id: selectedModule })
+          .insert({ ...formData, video_url: embedUrl })
           .select()
           .single();
 
@@ -198,7 +208,7 @@ export function LessonsManager() {
         published: false
       });
       setAttachments([]);
-      fetchLessons();
+      fetchAllLessons();
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -301,7 +311,7 @@ export function LessonsManager() {
           : "Os usuários agora podem ver esta aula"
       });
       
-      fetchLessons();
+      fetchAllLessons();
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -327,7 +337,7 @@ export function LessonsManager() {
 
       if (error) throw error;
       toast({ title: "Aula excluída!" });
-      fetchLessons();
+      fetchAllLessons();
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -340,45 +350,25 @@ export function LessonsManager() {
     }
   };
 
-  const selectedModuleData = modules.find(m => m.id === selectedModule);
-  const filteredLessons = lessons.filter(l => {
+  const filteredLessons = allLessons.filter(l => {
     if (filterStatus === 'published') return l.published;
     if (filterStatus === 'draft') return !l.published;
     return true;
   });
 
-  const publishedCount = lessons.filter(l => l.published).length;
-  const draftCount = lessons.filter(l => !l.published).length;
+  const publishedCount = allLessons.filter(l => l.published).length;
+  const draftCount = allLessons.filter(l => !l.published).length;
 
   return (
     <div>
       <div className="space-y-4 mb-4">
         <div>
           <h3 className="text-xl font-semibold">Aulas</h3>
-          {selectedModule && (
-            <p className="text-sm text-muted-foreground">
-              {lessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            {allLessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
+            {modules.length > 0 && ` • ${modules.length} módulos`}
+          </p>
         </div>
-
-        {modules.length > 0 && (
-          <Select value={selectedModule} onValueChange={setSelectedModule}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione um módulo" />
-            </SelectTrigger>
-            <SelectContent>
-              {modules.map((module) => (
-                <SelectItem key={module.id} value={module.id}>
-                  {module.title}
-                  {!module.published && (
-                    <Badge variant="secondary" className="ml-2">Não publicado</Badge>
-                  )}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -386,17 +376,18 @@ export function LessonsManager() {
               onClick={() => {
                 setEditingLesson(null);
                 setFormData({
-                  module_id: selectedModule,
+                  module_id: "",
                   title: "",
                   description: "",
                   video_url: "",
                   duration_minutes: 0,
                   points: 10,
-                  display_order: lessons.length,
+                  display_order: 0,
                   published: false
                 });
+                setAttachments([]);
               }}
-              disabled={!selectedModule}
+              disabled={modules.length === 0}
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -410,6 +401,44 @@ export function LessonsManager() {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="module_select">Módulo *</Label>
+                <Select 
+                  value={formData.module_id} 
+                  onValueChange={async (value) => {
+                    // Calcular display_order baseado no módulo selecionado
+                    if (!editingLesson) {
+                      const { data: moduleLessons } = await supabase
+                        .from('academy_lessons')
+                        .select('id')
+                        .eq('module_id', value);
+                      
+                      setFormData({ 
+                        ...formData, 
+                        module_id: value,
+                        display_order: moduleLessons?.length || 0
+                      });
+                    } else {
+                      setFormData({ ...formData, module_id: value });
+                    }
+                  }}
+                  required
+                >
+                  <SelectTrigger id="module_select">
+                    <SelectValue placeholder="Selecione o módulo da aula" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modules.map((module) => (
+                      <SelectItem key={module.id} value={module.id}>
+                        {module.title}
+                        {!module.published && (
+                          <Badge variant="secondary" className="ml-2 text-xs">Não publicado</Badge>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label htmlFor="title">Título</Label>
                 <Input
@@ -578,15 +607,7 @@ export function LessonsManager() {
         </Dialog>
       </div>
 
-      {selectedModuleData && !selectedModuleData.published && (
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4">
-          <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            ⚠️ Este módulo não está publicado. As aulas não estarão visíveis para os usuários.
-          </p>
-        </div>
-      )}
-
-      {selectedModule && lessons.length > 0 && (
+      {allLessons.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           <Button
             variant={filterStatus === 'all' ? 'default' : 'outline'}
@@ -594,7 +615,7 @@ export function LessonsManager() {
             onClick={() => setFilterStatus('all')}
             className="flex-1 min-w-[100px] sm:flex-initial"
           >
-            Todas ({lessons.length})
+            Todas ({allLessons.length})
           </Button>
           <Button
             variant={filterStatus === 'published' ? 'default' : 'outline'}
@@ -615,9 +636,9 @@ export function LessonsManager() {
         </div>
       )}
 
-      {!selectedModule ? (
+      {modules.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-muted-foreground">Crie um módulo primeiro</p>
+          <p className="text-muted-foreground">Crie um módulo primeiro para adicionar aulas</p>
         </Card>
       ) : loading ? (
         <p>Carregando...</p>
@@ -635,6 +656,9 @@ export function LessonsManager() {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <Badge variant="outline" className="text-xs">
+                      {lesson.academy_modules?.title || 'Módulo'}
+                    </Badge>
                     <span className="text-xs font-medium bg-primary/10 px-2 py-1 rounded">
                       Aula {index + 1}
                     </span>
