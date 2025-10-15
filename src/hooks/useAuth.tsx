@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profileResult, roleResult] = await Promise.all([
       supabase
         .from("profiles")
-        .select("blocked, approved, avatar_url, whatsapp, team")
+        .select("blocked, approved, avatar_url, whatsapp, team, profile_onboarding_completed")
         .eq("id", userId)
         .maybeSingle(),
       supabase
@@ -104,18 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Verificar se perfil está incompleto e redirecionar para /profile
     const isProfileIncomplete = !profile?.avatar_url || !profile?.whatsapp || !profile?.team;
     
-    if (isProfileIncomplete) {
-      // Verificar se já foi mostrado o aviso nesta sessão
-      const profileWarningShown = sessionStorage.getItem(`profile_warning_${userId}`);
-      
-      // Só redirecionar se:
-      // 1. Nunca mostrou o aviso nesta sessão
-      // 2. Não está já na página de perfil
-      if (!profileWarningShown && window.location.pathname !== '/profile') {
-        console.log('[useAuth] Profile incomplete (first time), redirecting to /profile');
-        
-        // Marcar que já mostrou o aviso nesta sessão
-        sessionStorage.setItem(`profile_warning_${userId}`, 'true');
+    // Verificar se é a PRIMEIRA VEZ que o usuário acessa o sistema
+    // (profile_onboarding_completed = FALSE)
+    if (isProfileIncomplete && !profile?.profile_onboarding_completed) {
+      if (window.location.pathname !== '/profile') {
+        console.log('[useAuth] First access detected, redirecting to /profile');
         
         setTimeout(() => {
           navigate('/profile');

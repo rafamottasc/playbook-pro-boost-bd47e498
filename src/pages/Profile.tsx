@@ -114,7 +114,10 @@ export default function Profile() {
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: publicUrl })
+        .update({ 
+          avatar_url: publicUrl,
+          profile_onboarding_completed: true 
+        })
         .eq("id", user.id);
 
       if (updateError) throw updateError;
@@ -163,6 +166,7 @@ export default function Profile() {
           whatsapp: unformatPhone(validated.whatsapp),
           gender: validated.gender || null,
           team: validated.team || null,
+          profile_onboarding_completed: true,
         })
         .eq("id", user.id);
 
@@ -175,9 +179,6 @@ export default function Profile() {
           variant: "destructive",
         });
       } else {
-        // Limpar a flag de aviso quando perfil for atualizado
-        sessionStorage.removeItem(`profile_warning_${user.id}`);
-        
         toast({
           title: "Perfil atualizado!",
           description: "Suas informações foram atualizadas com sucesso",
