@@ -7,11 +7,12 @@ import { MetricsView } from "@/components/admin/MetricsView";
 import { ResourcesManager } from "@/components/admin/ResourcesManager";
 import { UsersManager } from "@/components/admin/UsersManager";
 import { AcademyManager } from "@/components/admin/AcademyManager";
+import { FunnelsManager } from "@/components/admin/FunnelsManager";
 import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import PartnersManager from "@/pages/admin/PartnersManager";
 import { MoodMetrics } from "@/components/admin/MoodMetrics";
 import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
-import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle } from "lucide-react";
+import { MessageSquare, Lightbulb, BarChart3, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle, ListOrdered } from "lucide-react";
 
 export default function Admin() {
   return (
@@ -21,8 +22,12 @@ export default function Admin() {
       <main className="container py-6 px-4">
         <h1 className="text-3xl font-bold mb-6">Painel Administrativo</h1>
 
-        <Tabs defaultValue="messages" className="w-full">
+        <Tabs defaultValue="funnels" className="w-full">
           <TabsList className="mb-6 w-full justify-start">
+            <TabsTrigger value="funnels" className="gap-2">
+              <ListOrdered className="h-4 w-4" />
+              <span className="hidden sm:inline">Funis</span>
+            </TabsTrigger>
             <TabsTrigger value="messages" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Mensagens</span>
@@ -65,9 +70,13 @@ export default function Admin() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="messages">
-            <MessagesManager />
-          </TabsContent>
+        <TabsContent value="funnels">
+          <FunnelsManager />
+        </TabsContent>
+
+        <TabsContent value="messages">
+          <MessagesManager />
+        </TabsContent>
 
           <TabsContent value="suggestions">
             <SuggestionsManager />

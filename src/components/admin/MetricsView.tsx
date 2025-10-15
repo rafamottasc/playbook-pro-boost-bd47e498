@@ -7,8 +7,8 @@ import { ThumbsUp, ThumbsDown, Copy, TrendingUp } from "lucide-react";
 interface MessageDetail {
   title: string;
   content: string;
-  funnel: string;
-  stage: string;
+  funnel_slug: string;
+  stage_name: string;
   likes: number;
   dislikes: number;
 }
@@ -79,8 +79,8 @@ export function MetricsView() {
         .map(msg => ({
           title: msg.title,
           content: msg.content,
-          funnel: msg.funnel,
-          stage: msg.stage,
+          funnel_slug: msg.funnel_slug,
+          stage_name: msg.stage_name,
           likes: msg.likes || 0,
           dislikes: msg.dislikes || 0
         })) || [];
@@ -93,8 +93,8 @@ export function MetricsView() {
         .map(msg => ({
           title: msg.title,
           content: msg.content,
-          funnel: msg.funnel,
-          stage: msg.stage,
+          funnel_slug: msg.funnel_slug,
+          stage_name: msg.stage_name,
           likes: msg.likes || 0,
           dislikes: msg.dislikes || 0
         })) || [];

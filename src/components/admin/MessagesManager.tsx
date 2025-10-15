@@ -56,14 +56,15 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FUNNELS, STAGES_BY_FUNNEL } from "@/lib/playbook-constants";
+import { useFunnels } from "@/hooks/useFunnels";
+import { useStages } from "@/hooks/useStages";
 
 interface Message {
   id: string;
   title: string;
   content: string;
-  funnel: string;
-  stage: string;
+  funnel_slug: string;
+  stage_name: string;
   display_order: number;
   likes: number;
   dislikes: number;
@@ -131,7 +132,7 @@ function SortableMessageCard({
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {FUNNELS.find((f) => f.id === message.funnel)?.name} - {message.stage}
+                {funnelName} - {message.stage_name}
               </p>
             </div>
             <div className="flex gap-2">
@@ -209,12 +210,22 @@ export function MessagesManager() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const { toast } = useToast();
-
+  const { funnels } = useFunnels();
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    funnel: "lead-novo",
-    stage: "",
+    funnel_slug: "lead-novo",
+    stage_name: "",
+    delivery_type: "text" as 'audio' | 'call' | 'text',
+  });
+  const { stages } = useStages(selectedFunnel !== "todos" ? selectedFunnel : undefined);
+  const { stages: formStages } = useStages(formData.funnel_slug);
+
+  const [oldFormData] = useState({
+    title: "",
+    content: "",
+    funnel_slug: "lead-novo",
+    stage_name: "",
     delivery_type: "text" as 'audio' | 'call' | 'text',
   });
 
@@ -233,11 +244,11 @@ export function MessagesManager() {
     let filtered = messages;
     
     if (selectedFunnel !== "todos") {
-      filtered = filtered.filter(msg => msg.funnel === selectedFunnel);
+      filtered = filtered.filter(msg => msg.funnel_slug === selectedFunnel);
     }
     
     if (selectedStage !== "todas") {
-      filtered = filtered.filter(msg => msg.stage === selectedStage);
+      filtered = filtered.filter(msg => msg.stage_name === selectedStage);
     }
     
     setFilteredMessages(filtered);
@@ -311,7 +322,7 @@ export function MessagesManager() {
       return;
     }
     
-    if (!formData.stage) {
+    if (!formData.stage_name) {
       toast({
         title: "Erro de validação",
         description: "Selecione uma etapa",
@@ -327,8 +338,8 @@ export function MessagesManager() {
           .update({
             title: formData.title,
             content: formData.content,
-            funnel: formData.funnel,
-            stage: formData.stage,
+            funnel_slug: formData.funnel_slug,
+            stage_name: formData.stage_name,
             delivery_type: formData.delivery_type,
           })
           .eq("id", editingMessage.id);
@@ -340,8 +351,8 @@ export function MessagesManager() {
           {
             title: formData.title,
             content: formData.content,
-            funnel: formData.funnel,
-            stage: formData.stage,
+            funnel_slug: formData.funnel_slug,
+            stage_name: formData.stage_name,
             delivery_type: formData.delivery_type,
             display_order: messages.length,
           },
@@ -397,7 +408,7 @@ export function MessagesManager() {
       const { data: messagesToShift, error: fetchError } = await supabase
         .from("messages")
         .select("id, display_order")
-        .eq("funnel", message.funnel)
+        .eq("funnel_slug", message.funnel_slug)
         .gte("display_order", newDisplayOrder)
         .order("display_order", { ascending: false });
 
@@ -419,8 +430,8 @@ export function MessagesManager() {
         {
           title: `${message.title} (cópia)`,
           content: message.content,
-          funnel: message.funnel,
-          stage: message.stage,
+          funnel_slug: message.funnel_slug,
+          stage_name: message.stage_name,
           delivery_type: message.delivery_type || 'text',
           display_order: newDisplayOrder,
         },
@@ -444,8 +455,8 @@ export function MessagesManager() {
     setFormData({
       title: message.title,
       content: message.content,
-      funnel: message.funnel,
-      stage: message.stage,
+      funnel_slug: message.funnel_slug,
+      stage_name: message.stage_name,
       delivery_type: message.delivery_type || 'text',
     });
     setIsDialogOpen(true);
@@ -456,14 +467,11 @@ export function MessagesManager() {
     setFormData({
       title: "",
       content: "",
-      funnel: "lead-novo",
-      stage: "",
+      funnel_slug: "lead-novo",
+      stage_name: "",
       delivery_type: "text",
     });
   };
-
-  const availableStages = STAGES_BY_FUNNEL[formData.funnel] || [];
-  const filterStages = selectedFunnel !== "todos" ? STAGES_BY_FUNNEL[selectedFunnel] || [] : [];
 
   const handleFunnelChange = (value: string) => {
     setSelectedFunnel(value);
@@ -486,9 +494,9 @@ export function MessagesManager() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os Funis</SelectItem>
-              {FUNNELS.map((funnel) => (
+              {funnels.map((funnel) => (
                 <SelectItem key={funnel.id} value={funnel.id}>
-                  {funnel.name}
+                  {funnel.emoji} {funnel.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -504,9 +512,9 @@ export function MessagesManager() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as Etapas</SelectItem>
-              {filterStages.map((stage) => (
-                <SelectItem key={stage} value={stage}>
-                  {stage}
+              {stages.map((stage) => (
+                <SelectItem key={stage.id} value={stage.name}>
+                  {stage.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -545,18 +553,18 @@ export function MessagesManager() {
               <div className="space-y-2">
                 <Label htmlFor="funnel">Funil</Label>
                 <Select
-                  value={formData.funnel}
+                  value={formData.funnel_slug}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, funnel: value, stage: "" })
+                    setFormData({ ...formData, funnel_slug: value, stage_name: "" })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {FUNNELS.map((funnel) => (
-                      <SelectItem key={funnel.id} value={funnel.id}>
-                        {funnel.name}
+                    {funnels.map((funnel) => (
+                      <SelectItem key={funnel.id} value={funnel.slug}>
+                        {funnel.emoji} {funnel.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -565,18 +573,18 @@ export function MessagesManager() {
               <div className="space-y-2">
                 <Label htmlFor="stage">Etapa</Label>
                 <Select
-                  value={formData.stage}
+                  value={formData.stage_name}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, stage: value })
+                    setFormData({ ...formData, stage_name: value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma etapa" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableStages.map((stage) => (
-                      <SelectItem key={stage} value={stage}>
-                        {stage}
+                    {formStages.map((stage) => (
+                      <SelectItem key={stage.id} value={stage.name}>
+                        {stage.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

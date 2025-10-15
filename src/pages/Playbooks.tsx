@@ -13,8 +13,8 @@ interface Message {
   content: string;
   likes: number;
   dislikes: number;
-  stage: string;
-  funnel: string;
+  stage_name: string;
+  funnel_slug: string;
   delivery_type?: 'audio' | 'call' | 'text';
 }
 

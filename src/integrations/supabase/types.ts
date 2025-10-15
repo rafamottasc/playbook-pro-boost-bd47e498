@@ -528,10 +528,10 @@ export type Database = {
           delivery_type: string | null
           dislikes: number | null
           display_order: number | null
-          funnel: string
+          funnel_slug: string | null
           id: string
           likes: number | null
-          stage: string
+          stage_name: string | null
           title: string
           updated_at: string | null
         }
@@ -541,10 +541,10 @@ export type Database = {
           delivery_type?: string | null
           dislikes?: number | null
           display_order?: number | null
-          funnel: string
+          funnel_slug?: string | null
           id?: string
           likes?: number | null
-          stage: string
+          stage_name?: string | null
           title: string
           updated_at?: string | null
         }
@@ -554,10 +554,10 @@ export type Database = {
           delivery_type?: string | null
           dislikes?: number | null
           display_order?: number | null
-          funnel?: string
+          funnel_slug?: string | null
           id?: string
           likes?: number | null
-          stage?: string
+          stage_name?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -778,6 +778,80 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      playbook_funnels: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          display_order: number
+          emoji: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      playbook_stages: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          display_order: number
+          funnel_id: string
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          display_order?: number
+          funnel_id: string
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          display_order?: number
+          funnel_id?: string
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_stages_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "playbook_funnels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
