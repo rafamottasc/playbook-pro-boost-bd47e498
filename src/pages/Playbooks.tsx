@@ -15,6 +15,7 @@ interface Message {
   dislikes: number;
   stage: string;
   funnel: string;
+  delivery_type?: 'audio' | 'call' | 'text';
 }
 
 const INITIAL_MESSAGES: Message[] = [
@@ -378,7 +379,7 @@ export default function Index() {
 
       if (error) throw error;
       
-      setMessages(data || []);
+      setMessages((data || []) as Message[]);
     } catch (error: any) {
       console.error("Erro ao carregar mensagens:", error);
       toast({
