@@ -11,9 +11,11 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check, Circle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
+import comarcLogoDark from "@/assets/logo-comarc-dark.png";
 import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
 import { unformatPhone } from "@/lib/utils";
 import { ZodError } from "zod";
+import { useTheme } from "next-themes";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -28,6 +30,10 @@ export default function Auth() {
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+
+  // Determinar qual logo usar baseado no tema
+  const currentLogo = theme === 'dark' ? comarcLogoDark : comarcLogo;
 
   // Validações individuais para cada requisito de senha
   const requirements = [
@@ -213,7 +219,7 @@ export default function Auth() {
           <CardHeader className="text-center space-y-4">
             <div className="flex justify-center">
               <img 
-                src={comarcLogo} 
+                src={currentLogo} 
                 alt="COMARC" 
                 className="h-20 w-auto object-contain"
               />
@@ -257,7 +263,7 @@ export default function Auth() {
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <img 
-              src={comarcLogo} 
+              src={currentLogo} 
               alt="COMARC" 
               className="h-24 w-auto object-contain"
             />
