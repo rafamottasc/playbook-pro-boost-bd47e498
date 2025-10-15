@@ -78,6 +78,7 @@ export function LessonsManager() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [newAttachment, setNewAttachment] = useState({ title: "", file_url: "", file_type: 'link' as 'pdf' | 'link' });
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [selectedModuleFilter, setSelectedModuleFilter] = useState<string>('all');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [lessonToDelete, setLessonToDelete] = useState<string | null>(null);
 
@@ -351,8 +352,13 @@ export function LessonsManager() {
   };
 
   const filteredLessons = allLessons.filter(l => {
-    if (filterStatus === 'published') return l.published;
-    if (filterStatus === 'draft') return !l.published;
+    // Filtro por status
+    if (filterStatus === 'published' && !l.published) return false;
+    if (filterStatus === 'draft' && l.published) return false;
+    
+    // Filtro por módulo
+    if (selectedModuleFilter !== 'all' && l.module_id !== selectedModuleFilter) return false;
+    
     return true;
   });
 
@@ -361,39 +367,42 @@ export function LessonsManager() {
 
   return (
     <div>
-      <div className="space-y-4 mb-4">
-        <div>
-          <h3 className="text-xl font-semibold">Aulas</h3>
-          <p className="text-sm text-muted-foreground">
-            {allLessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
-            {modules.length > 0 && ` • ${modules.length} módulos`}
-          </p>
-        </div>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => {
-                setEditingLesson(null);
-                setFormData({
-                  module_id: "",
-                  title: "",
-                  description: "",
-                  video_url: "",
-                  duration_minutes: 0,
-                  points: 10,
-                  display_order: 0,
-                  published: false
-                });
-                setAttachments([]);
-              }}
-              disabled={modules.length === 0}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Aula
-            </Button>
-          </DialogTrigger>
+      <div className="space-y-4 mb-6">
+        {/* Cabeçalho e estatísticas */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <div>
+            <h3 className="text-xl font-semibold">Aulas</h3>
+            <p className="text-sm text-muted-foreground">
+              {allLessons.length} total • {publishedCount} publicadas • {draftCount} rascunhos
+              {modules.length > 0 && ` • ${modules.length} módulos`}
+            </p>
+          </div>
+          
+          {/* Botão Nova Aula */}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => {
+                  setEditingLesson(null);
+                  setFormData({
+                    module_id: "",
+                    title: "",
+                    description: "",
+                    video_url: "",
+                    duration_minutes: 0,
+                    points: 10,
+                    display_order: 0,
+                    published: false
+                  });
+                  setAttachments([]);
+                }}
+                disabled={modules.length === 0}
+                className="w-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Aula
+              </Button>
+            </DialogTrigger>
           <DraggableDialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
@@ -607,34 +616,57 @@ export function LessonsManager() {
         </Dialog>
       </div>
 
-      {allLessons.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button
-            variant={filterStatus === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilterStatus('all')}
-            className="flex-1 min-w-[100px] sm:flex-initial"
-          >
-            Todas ({allLessons.length})
-          </Button>
-          <Button
-            variant={filterStatus === 'published' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilterStatus('published')}
-            className="flex-1 min-w-[100px] sm:flex-initial"
-          >
-            Publicadas ({publishedCount})
-          </Button>
-          <Button
-            variant={filterStatus === 'draft' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilterStatus('draft')}
-            className="flex-1 min-w-[100px] sm:flex-initial"
-          >
-            Rascunhos ({draftCount})
-          </Button>
-        </div>
-      )}
+        {/* Filtros por Status e Módulo */}
+        {allLessons.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Filtros de Status */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={filterStatus === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterStatus('all')}
+              >
+                Todas ({allLessons.length})
+              </Button>
+              <Button
+                variant={filterStatus === 'published' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterStatus('published')}
+              >
+                Publicadas ({publishedCount})
+              </Button>
+              <Button
+                variant={filterStatus === 'draft' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterStatus('draft')}
+              >
+                Rascunhos ({draftCount})
+              </Button>
+            </div>
+
+            {/* Filtro por Módulo */}
+            <div className="flex gap-2 items-center sm:ml-auto">
+              <Label className="text-sm whitespace-nowrap">Módulo:</Label>
+              <Select 
+                value={selectedModuleFilter} 
+                onValueChange={setSelectedModuleFilter}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">📚 Todos</SelectItem>
+                  {modules.map((module) => (
+                    <SelectItem key={module.id} value={module.id}>
+                      {module.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+      </div>
 
       {modules.length === 0 ? (
         <Card className="p-12 text-center">
@@ -650,115 +682,153 @@ export function LessonsManager() {
           </p>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {filteredLessons.map((lesson, index) => (
-          <Card key={lesson.id} className="p-4">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+        (() => {
+          // Agrupar aulas por módulo
+          const lessonsByModule = filteredLessons.reduce((acc, lesson) => {
+            const moduleId = lesson.module_id;
+            if (!acc[moduleId]) {
+              acc[moduleId] = {
+                module: lesson.academy_modules,
+                lessons: []
+              };
+            }
+            acc[moduleId].lessons.push(lesson);
+            return acc;
+          }, {} as Record<string, { module: any; lessons: Lesson[] }>);
+
+          return (
+            <div className="space-y-6">
+              {Object.entries(lessonsByModule).map(([moduleId, { module, lessons }]) => (
+                <div key={moduleId} className="space-y-3">
+                  {/* Subtítulo do Módulo */}
+                  <div className="flex items-center gap-3 border-b pb-2">
+                    <h4 className="text-lg font-semibold text-primary">
+                      📚 {module?.title || 'Módulo'}
+                    </h4>
                     <Badge variant="outline" className="text-xs">
-                      {lesson.academy_modules?.title || 'Módulo'}
+                      {lessons.length} {lessons.length === 1 ? 'aula' : 'aulas'}
                     </Badge>
-                    <span className="text-xs font-medium bg-primary/10 px-2 py-1 rounded">
-                      Aula {index + 1}
-                    </span>
-                    <h4 className="font-semibold truncate">{lesson.title}</h4>
-                    <Badge variant={lesson.published ? "default" : "secondary"}>
-                      {lesson.published ? "Publicada" : "Rascunho"}
-                    </Badge>
-                  </div>
-                  {lesson.description && (
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      {lesson.description}
-                    </p>
-                  )}
-                  <div className="flex gap-4 text-xs text-muted-foreground">
-                    {lesson.duration_minutes && (
-                      <span>{lesson.duration_minutes} min</span>
+                    {!module?.published && (
+                      <Badge variant="secondary" className="text-xs">
+                        Módulo não publicado
+                      </Badge>
                     )}
-                    <span>+{lesson.points} pts</span>
+                  </div>
+
+                  {/* Cards das Aulas */}
+                  <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                    {lessons.map((lesson, index) => (
+                      <Card key={lesson.id} className="p-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="text-xs font-medium bg-primary/10 px-2 py-1 rounded">
+                                Aula {index + 1}
+                              </span>
+                              <h4 className="font-semibold truncate">{lesson.title}</h4>
+                              <Badge variant={lesson.published ? "default" : "secondary"}>
+                                {lesson.published ? "Publicada" : "Rascunho"}
+                              </Badge>
+                            </div>
+                            {lesson.description && (
+                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                                {lesson.description}
+                              </p>
+                            )}
+                            <div className="flex gap-4 text-xs text-muted-foreground">
+                              {lesson.duration_minutes && (
+                                <span>{lesson.duration_minutes} min</span>
+                              )}
+                              <span>+{lesson.points} pts</span>
+                            </div>
+                          </div>
+                          
+                          {/* Botões de ação */}
+                          <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    asChild
+                                  >
+                                    <a 
+                                      href={`/academy/modules/${lesson.module_id}/${lesson.id}`} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                    >
+                                      <ExternalLinkIcon className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Visualizar aula</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => togglePublished(lesson)}
+                                  >
+                                    {lesson.published ? (
+                                      <Eye className="h-4 w-4" />
+                                    ) : (
+                                      <EyeOff className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{lesson.published ? "Despublicar" : "Publicar"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEdit(lesson)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Editar aula</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDelete(lesson.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Excluir aula</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          asChild
-                        >
-                          <a 
-                            href={`/academy/modules/${lesson.module_id}/${lesson.id}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLinkIcon className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Visualizar aula</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => togglePublished(lesson)}
-                        >
-                          {lesson.published ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{lesson.published ? "Despublicar" : "Publicar"}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(lesson)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Editar aula</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(lesson.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Excluir aula</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          );
+        })()
       )}
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
