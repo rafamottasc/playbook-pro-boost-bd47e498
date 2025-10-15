@@ -216,17 +216,17 @@ export function MessagesManager() {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    funnel_slug: "lead-novo",
+    funnel_id: "",
     stage_name: "",
     delivery_type: "text" as 'audio' | 'call' | 'text',
   });
   const { stages } = useStages(selectedFunnel !== "todos" ? selectedFunnel : undefined);
-  const { stages: formStages } = useStages(formData.funnel_slug);
+  const { stages: formStages } = useStages(formData.funnel_id);
 
   const [oldFormData] = useState({
     title: "",
     content: "",
-    funnel_slug: "lead-novo",
+    funnel_id: "",
     stage_name: "",
     delivery_type: "text" as 'audio' | 'call' | 'text',
   });
@@ -246,7 +246,11 @@ export function MessagesManager() {
     let filtered = messages;
     
     if (selectedFunnel !== "todos") {
-      filtered = filtered.filter(msg => msg.funnel_slug === selectedFunnel);
+      // Convert UUID to slug for filtering
+      const selectedFunnelObj = funnels.find(f => f.id === selectedFunnel);
+      if (selectedFunnelObj) {
+        filtered = filtered.filter(msg => msg.funnel_slug === selectedFunnelObj.slug);
+      }
     }
     
     if (selectedStage !== "todas") {
@@ -254,7 +258,7 @@ export function MessagesManager() {
     }
     
     setFilteredMessages(filtered);
-  }, [selectedFunnel, selectedStage, messages]);
+  }, [selectedFunnel, selectedStage, messages, funnels]);
 
   const loadMessages = async () => {
     try {
@@ -333,14 +337,29 @@ export function MessagesManager() {
       return;
     }
 
+    if (!formData.funnel_id) {
+      toast({
+        title: "Erro de validação",
+        description: "Selecione um funil",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      // Convert funnel_id (UUID) to funnel_slug
+      const selectedFunnelObj = funnels.find(f => f.id === formData.funnel_id);
+      if (!selectedFunnelObj) {
+        throw new Error("Funil não encontrado");
+      }
+
       if (editingMessage) {
         const { error } = await supabase
           .from("messages")
           .update({
             title: formData.title,
             content: formData.content,
-            funnel_slug: formData.funnel_slug,
+            funnel_slug: selectedFunnelObj.slug,
             stage_name: formData.stage_name,
             delivery_type: formData.delivery_type,
           })
@@ -353,7 +372,7 @@ export function MessagesManager() {
           {
             title: formData.title,
             content: formData.content,
-            funnel_slug: formData.funnel_slug,
+            funnel_slug: selectedFunnelObj.slug,
             stage_name: formData.stage_name,
             delivery_type: formData.delivery_type,
             display_order: messages.length,
@@ -454,10 +473,12 @@ export function MessagesManager() {
 
   const openEditDialog = (message: Message) => {
     setEditingMessage(message);
+    // Convert funnel_slug to funnel_id (UUID)
+    const funnelObj = funnels.find(f => f.slug === message.funnel_slug);
     setFormData({
       title: message.title,
       content: message.content,
-      funnel_slug: message.funnel_slug,
+      funnel_id: funnelObj?.id || "",
       stage_name: message.stage_name,
       delivery_type: message.delivery_type || 'text',
     });
@@ -469,7 +490,7 @@ export function MessagesManager() {
     setFormData({
       title: "",
       content: "",
-      funnel_slug: "lead-novo",
+      funnel_id: "",
       stage_name: "",
       delivery_type: "text",
     });
@@ -555,17 +576,17 @@ export function MessagesManager() {
               <div className="space-y-2">
                 <Label htmlFor="funnel">Funil</Label>
                 <Select
-                  value={formData.funnel_slug}
+                  value={formData.funnel_id}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, funnel_slug: value, stage_name: "" })
+                    setFormData({ ...formData, funnel_id: value, stage_name: "" })
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione um funil" />
                   </SelectTrigger>
                   <SelectContent>
                     {funnels.map((funnel) => (
-                      <SelectItem key={funnel.id} value={funnel.slug}>
+                      <SelectItem key={funnel.id} value={funnel.id}>
                         {funnel.emoji} {funnel.name}
                       </SelectItem>
                     ))}
@@ -654,7 +675,7 @@ export function MessagesManager() {
           >
             <div className="grid gap-4">
               {filteredMessages.map((message) => {
-                const funnel = funnels.find(f => f.id === message.funnel_slug);
+                const funnel = funnels.find(f => f.slug === message.funnel_slug);
                 return (
                   <SortableMessageCard
                     key={message.id}
