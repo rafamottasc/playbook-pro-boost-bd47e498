@@ -76,11 +76,13 @@ function SortableMessageCard({
   onEdit,
   onDuplicate,
   onDelete,
+  funnelName,
 }: {
   message: Message;
   onEdit: (message: Message) => void;
   onDuplicate: (message: Message) => void;
   onDelete: (id: string) => void;
+  funnelName: string;
 }) {
   const {
     attributes,
@@ -651,15 +653,19 @@ export function MessagesManager() {
             strategy={verticalListSortingStrategy}
           >
             <div className="grid gap-4">
-              {filteredMessages.map((message) => (
-                <SortableMessageCard
-                  key={message.id}
-                  message={message}
-                  onEdit={openEditDialog}
-                  onDuplicate={handleDuplicate}
-                  onDelete={handleDelete}
-                />
-              ))}
+              {filteredMessages.map((message) => {
+                const funnel = funnels.find(f => f.id === message.funnel_slug);
+                return (
+                  <SortableMessageCard
+                    key={message.id}
+                    message={message}
+                    funnelName={funnel ? `${funnel.emoji} ${funnel.name}` : message.funnel_slug}
+                    onEdit={openEditDialog}
+                    onDuplicate={handleDuplicate}
+                    onDelete={handleDelete}
+                  />
+                );
+              })}
             </div>
           </SortableContext>
         </DndContext>

@@ -222,7 +222,7 @@ export function MetricsView() {
                   <div>
                     <p className="font-semibold">{message.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {message.funnel} - {message.stage}
+                      {message.funnel_slug} - {message.stage_name}
                     </p>
                   </div>
                   <p className="text-sm bg-muted/50 p-2 rounded-md whitespace-pre-wrap line-clamp-3">
@@ -276,7 +276,7 @@ export function MetricsView() {
                   <div>
                     <p className="font-semibold">{message.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {message.funnel} - {message.stage}
+                      {message.funnel_slug} - {message.stage_name}
                     </p>
                   </div>
                   <p className="text-sm bg-muted/50 p-2 rounded-md whitespace-pre-wrap line-clamp-3">
