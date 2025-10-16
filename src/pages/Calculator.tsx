@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Save, History, ArrowLeft, FileText } from "lucide-react";
+import { Download, Save, History, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,7 @@ import { generateFlowTXT } from "@/components/calculator/FlowTXT";
 import { PageTransition } from "@/components/PageTransition";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Header } from "@/components/Header";
 
 export default function Calculator() {
   const navigate = useNavigate();
@@ -267,39 +268,27 @@ export default function Calculator() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
-        {/* Header */}
-        <div className="bg-card border-b sticky top-0 z-10 shadow-sm">
-          <div className="container mx-auto px-3 sm:px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate("/")}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold">Calculadora de Fluxo</h1>
-                  <p className="text-sm text-muted-foreground">
-                    Simule condições de pagamento
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/calculator/history")}
-              >
-                <History className="mr-2 h-4 w-4" />
-                Histórico
-              </Button>
-            </div>
-          </div>
-        </div>
-
+      <div className="min-h-screen bg-background pb-20">
+        <Header />
+        
         {/* Content */}
         <div className="container mx-auto px-3 sm:px-4 py-6">
+          {/* Page Title and History Button */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">Calculadora de Fluxo</h1>
+              <p className="text-sm text-muted-foreground">
+                Simule condições de pagamento
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/calculator/history")}
+            >
+              <History className="mr-2 h-4 w-4" />
+              Histórico
+            </Button>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Form Column */}
             <div className="lg:col-span-2 space-y-4">
