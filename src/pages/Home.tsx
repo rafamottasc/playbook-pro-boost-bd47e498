@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings } from "lucide-react";
+import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
@@ -48,6 +48,12 @@ export default function Home() {
       description: "Informações e materiais das construtoras parceiras",
       icon: <Building2 className="w-12 h-12" />,
       route: "/campaigns/partners",
+    },
+    {
+      title: "Calculadora de Fluxo",
+      description: "Simule condições de pagamento e gere propostas profissionais",
+      icon: <Calculator className="w-12 h-12" />,
+      route: "/calculator",
     },
     {
       title: "Campanhas Ativas",

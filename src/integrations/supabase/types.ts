@@ -779,6 +779,41 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_flows: {
+        Row: {
+          calculation_data: Json
+          client_name: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calculation_data: Json
+          client_name: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calculation_data?: Json
+          client_name?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_flows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       playbook_funnels: {
         Row: {
           active: boolean | null

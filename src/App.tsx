@@ -21,6 +21,8 @@ import AcademyModules from "./pages/academy/AcademyModules";
 import ModuleLessons from "./pages/academy/ModuleLessons";
 import LessonView from "./pages/academy/LessonView";
 import PartnersView from "./pages/campaigns/PartnersView";
+import Calculator from "./pages/Calculator";
+import CalculatorHistory from "./pages/CalculatorHistory";
 
 // Lazy load only admin routes
 const Admin = lazy(() => import("./pages/Admin"));
@@ -111,6 +113,22 @@ function AppRoutes() {
                     element={
                       <ProtectedRoute requireAdmin>
                         <PartnersManager />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calculator"
+                    element={
+                      <ProtectedRoute>
+                        <Calculator />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calculator/history"
+                    element={
+                      <ProtectedRoute>
+                        <CalculatorHistory />
                       </ProtectedRoute>
                     }
                   />

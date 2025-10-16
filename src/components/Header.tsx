@@ -1,5 +1,5 @@
 import React from "react";
-import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2, BookOpen } from "lucide-react";
+import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2, BookOpen, Calculator } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -156,6 +156,10 @@ export const Header = function Header() {
                 <DropdownMenuItem onClick={() => navigate("/campaigns/partners")}>
                   <Building2 className="mr-2 h-4 w-4" />
                   Construtoras Parceiras
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/calculator")}>
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Calculadora de Fluxo
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem onClick={() => navigate("/admin")}>
