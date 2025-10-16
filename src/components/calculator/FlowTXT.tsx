@@ -11,16 +11,15 @@ export function generateFlowTXT(
   const currentTime = format(new Date(), "HH:mm");
   const deliveryDate = data.deliveryDate ? format(new Date(data.deliveryDate), "dd/MM/yyyy") : "Não informado";
 
-  let txt = `═══════════════════════════════════\n`;
-  txt += `🏢 PROPOSTA DE PAGAMENTO - COMARC\n`;
-  txt += `═══════════════════════════════════\n\n`;
+  let txt = `🏢 PROPOSTA DE PAGAMENTO - COMARC\n`;
+  txt += `━━━━━━━\n\n`;
 
   txt += `📅 Data: ${currentDate}\n`;
   txt += `👤 Cliente: ${data.clientName || "Não informado"}\n\n`;
 
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `🏠 DADOS DO IMÓVEL\n`;
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `Construtora: ${data.constructora || "Não informado"}\n`;
   txt += `Empreendimento: ${data.empreendimento || "Não informado"}\n`;
   txt += `Unidade: ${data.unidade || "Não informado"}\n`;
@@ -28,9 +27,9 @@ export function generateFlowTXT(
   txt += `Entrega: ${deliveryDate}\n`;
   txt += `Valor Total: R$ ${data.propertyValue.toLocaleString("pt-BR")}\n\n`;
 
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `💰 CONDIÇÕES DE PAGAMENTO\n`;
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  txt += `━━━━━━━\n\n`;
 
   // Entrada
   if (result.downPayment.value > 0) {
@@ -75,27 +74,25 @@ export function generateFlowTXT(
     txt += ` (${result.keysPayment.percentage.toFixed(1)}%)\n\n`;
   }
 
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `📊 TOTAL: R$ ${result.totalPaid.toLocaleString("pt-BR")} (${result.totalPercentage.toFixed(1)}%)\n`;
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  txt += `━━━━━━━\n\n`;
 
   txt += `📅 DISTRIBUIÇÃO TEMPORAL\n`;
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `✓ Até Entrega: R$ ${result.timeline.totalUntilDelivery.toLocaleString("pt-BR")}`;
   txt += ` (${result.timeline.percentageUntilDelivery.toFixed(1)}%)\n`;
   txt += `✓ Após Entrega: R$ ${result.timeline.totalAfterDelivery.toLocaleString("pt-BR")}`;
   txt += ` (${result.timeline.percentageAfterDelivery.toFixed(1)}%)\n\n`;
 
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `ℹ️ Informações\n`;
-  txt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `━━━━━━━\n`;
   txt += `Gerado em: ${currentDate} às ${currentTime}\n`;
   txt += `Corretor: ${correctorName}\n`;
   txt += `Validade: 30 dias\n\n`;
 
-  txt += `═══════════════════════════════════\n`;
-  txt += `COMARC - Corretores Associados\n`;
-  txt += `═══════════════════════════════════\n`;
+  txt += `COMARC - Negócios Imobiliários\n`;
 
   // Create and download the file
   const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
