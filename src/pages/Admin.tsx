@@ -8,7 +8,7 @@ import { AcademyManager } from "@/components/admin/AcademyManager";
 import { FunnelsManager } from "@/components/admin/FunnelsManager";
 import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import PartnersManager from "@/pages/admin/PartnersManager";
-import { MoodMetrics } from "@/components/admin/MoodMetrics";
+import MoodMetricsOptimized from "@/components/admin/MoodMetricsOptimized";
 import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
 import { PollsManager } from "@/components/admin/PollsManager";
 import { MessageSquare, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle, ListOrdered, PieChart } from "lucide-react";
@@ -94,7 +94,7 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="mood">
-            <MoodMetrics />
+            <MoodMetricsOptimized />
           </TabsContent>
 
           <TabsContent value="feedbacks">

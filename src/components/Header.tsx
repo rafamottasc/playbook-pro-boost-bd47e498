@@ -31,7 +31,7 @@ const BADGE_THRESHOLDS = [
   { name: "💎 Expert", points: 300, maxPoints: Infinity },
 ];
 
-export const Header = function Header() {
+export const Header = React.memo(function Header() {
   const { theme, setTheme } = useTheme();
   const { user, signOut, isAdmin } = useAuth();
   const { profile, loading } = useProfile();
@@ -179,6 +179,8 @@ export const Header = function Header() {
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = "Header";
 
 export default Header;

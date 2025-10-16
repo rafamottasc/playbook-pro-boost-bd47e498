@@ -1,3 +1,4 @@
+import React from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -8,7 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function NotificationBell() {
+export const NotificationBell = React.memo(() => {
   const { unreadCount } = useNotifications();
 
   return (
@@ -28,4 +29,6 @@ export function NotificationBell() {
       </PopoverContent>
     </Popover>
   );
-}
+});
+
+NotificationBell.displayName = "NotificationBell";
