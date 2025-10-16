@@ -40,7 +40,7 @@ export function AcademyOnboarding({ onClose }: AcademyOnboardingProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl">
-            Bem-vindo à COMARC Academy! 🎓
+            Bem-vindo aos Treinamentos Gerais! 🎓
           </DialogTitle>
         </DialogHeader>
         

@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { PageTransition } from "@/components/PageTransition";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DailyMoodCard } from "@/components/DailyMoodCard";
@@ -22,17 +23,33 @@ interface NavCard {
 export default function Home() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { profile } = useProfile();
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+
+  // Função para gerar saudação baseada no horário
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return "Bom dia";
+    } else if (hour >= 12 && hour < 18) {
+      return "Boa tarde";
+    } else {
+      return "Boa noite";
+    }
+  };
+
+  const greeting = getGreeting();
+  const firstName = profile?.full_name?.split(" ")[0] || "Usuário";
 
   const navigationCards: NavCard[] = [
     {
-      title: "Playbooks de Abordagem",
+      title: "Playbooks de Atendimento",
       description: "Acesse mensagens prontas e abordagens estratégicas para suas conversas",
       icon: <MessageSquare className="w-12 h-12" />,
       route: "/playbooks",
     },
     {
-      title: "COMARC Academy",
+      title: "Treinamentos Gerais",
       description: "Treinamentos completos e materiais de capacitação profissional",
       icon: <GraduationCap className="w-12 h-12" />,
       route: "/academy/modules",
@@ -79,7 +96,9 @@ export default function Home() {
         <main className="container mx-auto px-4 py-8">
           {/* Welcome Section */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold mb-2 text-foreground">Central COMARC</h1>
+            <h1 className="text-4xl font-bold mb-2 text-foreground">
+              {greeting}, {firstName}! 👋
+            </h1>
             <p className="text-muted-foreground text-lg">
               Selecione uma seção para começar
             </p>

@@ -139,11 +139,11 @@ export const Header = function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/academy/modules")}>
                   <BookOpen className="mr-2 h-4 w-4" />
-                  Comarc Academy
+                  Treinamentos Gerais
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/playbooks")}>
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  Playbooks de Abordagem
+                  Playbooks de Atendimento
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/resources")}>
                   <FolderOpen className="mr-2 h-4 w-4" />
