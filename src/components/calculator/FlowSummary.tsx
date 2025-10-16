@@ -12,12 +12,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
   const remaining = Math.max(0, 100 - result.totalPercentage);
 
   return (
-    <Card
-      className={cn(
-        "animate-fade-in",
-        isValid ? "border-green-500 bg-green-50/20" : "border-yellow-500 bg-yellow-50/20"
-      )}
-    >
+    <Card className="animate-fade-in border-border bg-card">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           ✨ RESUMO AUTOMÁTICO
@@ -25,7 +20,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Total Calculado */}
-        <div className="p-4 bg-card rounded-lg border-2 border-primary">
+        <div className="p-4 bg-card rounded-lg border border-border">
           <p className="text-sm text-muted-foreground">Total Calculado</p>
           <p className="text-3xl font-bold text-primary">
             R$ {result.totalPaid.toLocaleString("pt-BR")}
@@ -131,19 +126,19 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         </div>
 
         {/* Distribuição Temporal */}
-        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-          <p className="text-sm font-semibold text-blue-900 mb-3">📅 Distribuição Temporal</p>
+        <div className="p-4 bg-muted/30 rounded-lg border border-border">
+          <p className="text-sm font-semibold text-foreground mb-3">📅 Distribuição Temporal</p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-blue-700">Até Entrega:</span>
-              <span className="font-semibold text-blue-900">
+              <span className="text-muted-foreground">Até Entrega:</span>
+              <span className="font-semibold text-foreground">
                 R$ {result.timeline.totalUntilDelivery.toLocaleString("pt-BR")} (
                 {result.timeline.percentageUntilDelivery.toFixed(1)}%)
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-purple-700">Após Entrega:</span>
-              <span className="font-semibold text-purple-900">
+              <span className="text-muted-foreground">Após Entrega:</span>
+              <span className="font-semibold text-foreground">
                 R$ {result.timeline.totalAfterDelivery.toLocaleString("pt-BR")} (
                 {result.timeline.percentageAfterDelivery.toFixed(1)}%)
               </span>
@@ -151,16 +146,6 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           </div>
         </div>
 
-        {/* Warnings */}
-        {result.warnings.length > 0 && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            {result.warnings.map((warning, index) => (
-              <p key={index} className="text-xs text-yellow-700">
-                {warning}
-              </p>
-            ))}
-          </div>
-        )}
       </CardContent>
     </Card>
   );

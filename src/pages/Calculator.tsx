@@ -470,8 +470,23 @@ export default function Calculator() {
             </div>
 
             {/* Summary (Mobile) */}
-            <div className="lg:hidden">
+            <div className="lg:hidden space-y-4">
               <FlowSummary result={result} propertyValue={data.propertyValue} />
+              <div className="space-y-3">
+                <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
+                  <Download className="mr-2 h-5 w-5" />
+                  Baixar PDF
+                </Button>
+                <Button
+                  onClick={handleSaveProposal}
+                  className="w-full"
+                  size="lg"
+                  disabled={isSaving}
+                >
+                  <Save className="mr-2 h-5 w-5" />
+                  {isSaving ? "Salvando..." : "Salvar Proposta"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
