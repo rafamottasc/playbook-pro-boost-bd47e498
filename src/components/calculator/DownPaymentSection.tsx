@@ -56,7 +56,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
     : 0;
 
   return (
-    <Card className="bg-green-50/30 border-green-200 animate-fade-in">
+    <Card className="animate-fade-in">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           🏁 ENTRADA (quando assinar o contrato)
@@ -65,7 +65,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
           Quanto o cliente vai dar de entrada?
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="flex gap-2">
           <Button 
             type="button"
@@ -93,7 +93,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
               placeholder="10"
               value={data.downPayment.percentage || ""}
               onChange={(e) => handlePercentageChange(e.target.value)}
-              className="text-2xl h-16 font-semibold text-center"
+              className="text-lg h-11 font-semibold text-center"
             />
             {data.propertyValue > 0 && (
               <p className="text-sm text-muted-foreground text-center mt-2">
@@ -108,7 +108,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
               placeholder="R$ 160.000"
               value={data.downPayment.value ? `R$ ${data.downPayment.value.toLocaleString("pt-BR")}` : ""}
               onChange={(e) => handleValueChange(e.target.value)}
-              className="text-2xl h-16 font-semibold text-center"
+              className="text-lg h-11 font-semibold text-center"
             />
             {data.propertyValue > 0 && (
               <p className="text-sm text-muted-foreground text-center mt-2">
@@ -126,7 +126,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
             placeholder="1 (à vista)"
             value={data.downPayment.installments || 1}
             onChange={(e) => handleInstallmentsChange(e.target.value)}
-            className="h-12"
+            className="h-10"
           />
           {installmentValue > 0 && (
             <p className="text-sm text-muted-foreground mt-2">

@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 interface BasicInfoSectionProps {
   data: PaymentFlowData;
@@ -39,7 +41,7 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           Dados essenciais para o cálculo
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div>
           <Label className="mb-2">Valor Total do Imóvel</Label>
           <Input
@@ -47,18 +49,18 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
             placeholder="R$ 1.600.000,00"
             value={data.propertyValue ? `R$ ${data.propertyValue.toLocaleString("pt-BR")}` : ""}
             onChange={(e) => formatCurrency(e.target.value)}
-            className="text-xl h-14 font-semibold"
+            className="text-lg h-11 font-semibold"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <Label className="mb-2">🏗️ Início da Obra</Label>
             <Input
               type="date"
               value={data.constructionStartDate}
               onChange={(e) => onChange("constructionStartDate", e.target.value)}
-              className="h-12"
+              className="h-10"
             />
           </div>
 
@@ -68,7 +70,7 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
               type="date"
               value={data.deliveryDate}
               onChange={(e) => onChange("deliveryDate", e.target.value)}
-              className="h-12"
+              className="h-10"
             />
           </div>
         </div>
@@ -88,58 +90,64 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
             placeholder="Ex: João Silva"
             value={data.clientName}
             onChange={(e) => onChange("clientName", e.target.value)}
-            className="h-12"
+            className="h-10"
           />
         </div>
 
-        <div className="pt-4 border-t space-y-3">
-          <p className="text-sm text-muted-foreground">📋 Campos opcionais (para o PDF)</p>
-          
-          <div>
-            <Label className="text-sm">Construtora</Label>
-            <Input
-              type="text"
-              placeholder="Nome da construtora"
-              value={data.constructora || ""}
-              onChange={(e) => onChange("constructora", e.target.value)}
-              className="h-10"
-            />
-          </div>
+        <div className="pt-3 border-t">
+          <Collapsible defaultOpen={false}>
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ChevronDown className="h-4 w-4" />
+              📋 Campos opcionais (para o PDF)
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-3">
+              <div>
+                <Label className="text-sm">Construtora</Label>
+                <Input
+                  type="text"
+                  placeholder="Nome da construtora"
+                  value={data.constructora || ""}
+                  onChange={(e) => onChange("constructora", e.target.value)}
+                  className="h-9"
+                />
+              </div>
 
-          <div>
-            <Label className="text-sm">Empreendimento</Label>
-            <Input
-              type="text"
-              placeholder="Nome do empreendimento"
-              value={data.empreendimento || ""}
-              onChange={(e) => onChange("empreendimento", e.target.value)}
-              className="h-10"
-            />
-          </div>
+              <div>
+                <Label className="text-sm">Empreendimento</Label>
+                <Input
+                  type="text"
+                  placeholder="Nome do empreendimento"
+                  value={data.empreendimento || ""}
+                  onChange={(e) => onChange("empreendimento", e.target.value)}
+                  className="h-9"
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-sm">Unidade</Label>
-              <Input
-                type="text"
-                placeholder="Ex: 301"
-                value={data.unidade || ""}
-                onChange={(e) => onChange("unidade", e.target.value)}
-                className="h-10"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-sm">Unidade</Label>
+                  <Input
+                    type="text"
+                    placeholder="Ex: 301"
+                    value={data.unidade || ""}
+                    onChange={(e) => onChange("unidade", e.target.value)}
+                    className="h-9"
+                  />
+                </div>
 
-            <div>
-              <Label className="text-sm">Área Privativa</Label>
-              <Input
-                type="text"
-                placeholder="Ex: 85m²"
-                value={data.areaPrivativa || ""}
-                onChange={(e) => onChange("areaPrivativa", e.target.value)}
-                className="h-10"
-              />
-            </div>
-          </div>
+                <div>
+                  <Label className="text-sm">Área Privativa</Label>
+                  <Input
+                    type="text"
+                    placeholder="Ex: 85m²"
+                    value={data.areaPrivativa || ""}
+                    onChange={(e) => onChange("areaPrivativa", e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </CardContent>
     </Card>

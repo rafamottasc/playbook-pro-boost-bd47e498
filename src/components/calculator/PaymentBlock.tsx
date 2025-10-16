@@ -117,7 +117,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
   const autoCalculatedValue = type === 'monthly' ? calculateAutoMonthlyValue() : 0;
 
   return (
-    <Card className={`bg-${config.color}-50/30 border-${config.color}-200 animate-fade-in`}>
+    <Card className="animate-fade-in">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -133,9 +133,9 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       </CardHeader>
 
       {paymentData?.enabled && (
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {(type === 'monthly' || type === 'semiannual' || type === 'annual') && (
-            <div className="flex items-center gap-2 p-3 bg-white/50 rounded-lg">
+            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
               <Switch 
                 checked={paymentData?.autoCalculate || false} 
                 onCheckedChange={handleAutoCalculateToggle}
@@ -158,14 +158,14 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                   count: parseInt(e.target.value) || 0,
                 })
               }
-              className="h-12"
+              className="h-10"
             />
           </div>
 
           {type === 'monthly' && paymentData?.autoCalculate ? (
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm font-medium text-blue-900 mb-1">Valor calculado automaticamente</p>
-              <p className="text-2xl font-bold text-blue-700">
+              <p className="text-xl font-bold text-blue-700">
                 R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-xs text-blue-600 mt-1">
@@ -181,10 +181,10 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                 placeholder="8"
                 value={paymentData.percentage || ""}
                 onChange={(e) => handlePercentageChange(e.target.value)}
-                className="h-12"
+                className="h-10"
               />
               {data.propertyValue > 0 && paymentData.percentage && paymentData.count && (
-                <div className="mt-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="mt-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
                   <p className="text-sm text-muted-foreground">
                     {paymentData.count}x de {paymentData.percentage}% = <span className="font-bold text-purple-700">{(paymentData.count * paymentData.percentage).toFixed(1)}% do total</span>
                   </p>
@@ -206,7 +206,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                     : ""
                 }
                 onChange={(e) => formatCurrency(e.target.value)}
-                className="text-xl h-14 font-semibold"
+                className="text-base h-11 font-semibold"
               />
               {data.propertyValue > 0 && paymentData.value && (
                 <p className="text-sm text-muted-foreground mt-1">
@@ -226,7 +226,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                     : ""
                 }
                 onChange={(e) => formatCurrency(e.target.value)}
-                className="text-xl h-14 font-semibold"
+                className="text-base h-11 font-semibold"
               />
             </div>
           )}

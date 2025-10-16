@@ -300,15 +300,15 @@ export default function Calculator() {
 
         {/* Content */}
         <div className="container mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Form Column */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4">
               <BasicInfoSection data={data} onChange={updateField} />
               <DownPaymentSection data={data} onChange={updateField} />
               
               {/* Início da Obra */}
-              <Card className="bg-green-50/30 border-green-200 animate-fade-in">
-                <CardContent className="pt-6 space-y-4">
+              <Card className="animate-fade-in">
+                <CardContent className="pt-6 space-y-3">
                   <Label className="text-base mb-2 block">
                     🏗️ Início da Obra (opcional)
                   </Label>
@@ -348,7 +348,7 @@ export default function Calculator() {
                             value: calculatedValue 
                           });
                         }}
-                        className="text-xl h-14 text-center"
+                        className="text-base h-11 text-center"
                       />
                       {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
                         <p className="text-sm text-muted-foreground text-center mt-2">
@@ -372,7 +372,7 @@ export default function Calculator() {
                             percentage: calculatedPercentage
                           });
                         }}
-                        className="text-xl h-14 text-center"
+                        className="text-base h-11 text-center"
                       />
                       {data.propertyValue > 0 && data.constructionStartPayment?.value && (
                         <p className="text-sm text-muted-foreground text-center mt-2">
@@ -393,8 +393,8 @@ export default function Calculator() {
               <PaymentBlock type="annual" data={data} onChange={updateField} />
 
               {/* Chaves */}
-              <Card className="bg-yellow-50/30 border-yellow-200 animate-fade-in">
-                <CardContent className="pt-6 space-y-4">
+              <Card className="animate-fade-in">
+                <CardContent className="pt-6 space-y-3">
                   <Label className="text-base mb-2 block">
                     🔑 Pagamento na Entrega das Chaves (opcional)
                   </Label>
@@ -441,7 +441,7 @@ export default function Calculator() {
                         placeholder="8"
                         value={data.keysPayment.percentage || ""}
                         onChange={(e) => handleKeysPercentageChange(e.target.value)}
-                        className="text-xl h-14 text-center"
+                        className="text-base h-11 text-center"
                       />
                       {data.propertyValue > 0 && (
                         <p className="text-sm text-muted-foreground text-center mt-2">
@@ -456,7 +456,7 @@ export default function Calculator() {
                         placeholder="R$ 128.000"
                         value={data.keysPayment?.value ? `R$ ${data.keysPayment.value.toLocaleString("pt-BR")}` : ""}
                         onChange={(e) => formatKeysPayment(e.target.value)}
-                        className="text-xl h-14 text-center"
+                        className="text-base h-11 text-center"
                       />
                       {data.propertyValue > 0 && (
                         <p className="text-sm text-muted-foreground text-center mt-2">
