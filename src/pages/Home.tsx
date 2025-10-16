@@ -28,12 +28,20 @@ export default function Home() {
 
   // Função para gerar saudação baseada no horário
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    
+    // Bom dia: 5:00 até 12:30
+    if (hour >= 5 && (hour < 12 || (hour === 12 && minute <= 30))) {
       return "Bom dia";
-    } else if (hour >= 12 && hour < 18) {
+    } 
+    // Boa tarde: 12:31 até 18:30
+    else if ((hour === 12 && minute > 30) || (hour > 12 && hour < 18) || (hour === 18 && minute <= 30)) {
       return "Boa tarde";
-    } else {
+    } 
+    // Boa noite: 18:31 até 4:59
+    else {
       return "Boa noite";
     }
   };
