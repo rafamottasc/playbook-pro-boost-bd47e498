@@ -92,10 +92,13 @@ export async function generateFlowPDF(
   const tableData: any[] = [];
 
   // Entrada
+  const downPaymentInstallments = result.downPayment.installments || 1;
+  const downPaymentValue = result.downPayment.installmentValue || result.downPayment.value;
+  
   tableData.push([
     "Entrada",
-    "1x",
-    `R$ ${result.downPayment.value.toLocaleString("pt-BR")}`,
+    `${downPaymentInstallments}x`,
+    `R$ ${downPaymentValue.toLocaleString("pt-BR")}`,
     `${result.downPayment.percentage.toFixed(1)}%`,
   ]);
 
