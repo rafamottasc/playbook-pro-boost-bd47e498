@@ -29,6 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface MoodData {
   user_id: string;
@@ -77,6 +78,8 @@ export function MoodMetrics() {
   const [period, setPeriod] = useState("7");
   const [summary, setSummary] = useState<MoodSummary | null>(null);
   const [recentMoods, setRecentMoods] = useState<MoodData[]>([]);
+  const [recordsPerPage, setRecordsPerPage] = useState(15);
+  const [currentRecordsPage, setCurrentRecordsPage] = useState(1);
 
   useEffect(() => {
     loadMoodData();
@@ -159,18 +162,27 @@ export function MoodMetrics() {
 
       const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
 
-      const enrichedMoods = moodData?.slice(0, 50).map(m => ({
+      const enrichedMoods = moodData?.map(m => ({
         ...m,
         full_name: profileMap.get(m.user_id) || "Usuário desconhecido",
       })) || [];
 
       setRecentMoods(enrichedMoods);
+      
+      // Reset pagination when period changes
+      setCurrentRecordsPage(1);
     } catch (error) {
       console.error("Error loading mood data:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Pagination calculations for recent moods
+  const totalRecordsPages = Math.ceil(recentMoods.length / recordsPerPage);
+  const recordsStartIndex = (currentRecordsPage - 1) * recordsPerPage;
+  const recordsEndIndex = recordsStartIndex + recordsPerPage;
+  const paginatedMoods = recentMoods.slice(recordsStartIndex, recordsEndIndex);
 
   if (loading) {
     return <div className="text-center py-8">Carregando métricas...</div>;
@@ -365,10 +377,31 @@ export function MoodMetrics() {
       {/* Recent Moods Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Registros Recentes</CardTitle>
-          <CardDescription>
-            Histórico individual de humor dos corretores
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Registros Recentes</CardTitle>
+              <CardDescription>
+                Histórico individual de humor dos corretores
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Mostrar:</span>
+              <Select value={recordsPerPage.toString()} onValueChange={(v) => {
+                setRecordsPerPage(Number(v));
+                setCurrentRecordsPage(1);
+              }}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="15">15</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -381,14 +414,14 @@ export function MoodMetrics() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentMoods.length === 0 ? (
+              {paginatedMoods.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
                     Nenhum registro encontrado
                   </TableCell>
                 </TableRow>
               ) : (
-                recentMoods.map((mood) => (
+                paginatedMoods.map((mood) => (
                   <TableRow key={mood.user_id + mood.date}>
                     <TableCell className="font-medium">{mood.full_name}</TableCell>
                     <TableCell>{mood.team || "-"}</TableCell>
@@ -405,6 +438,53 @@ export function MoodMetrics() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {totalRecordsPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentRecordsPage(p => Math.max(1, p - 1))}
+                      className={currentRecordsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {[...Array(totalRecordsPages)].map((_, i) => {
+                    const page = i + 1;
+                    if (
+                      page === 1 || 
+                      page === totalRecordsPages || 
+                      (page >= currentRecordsPage - 1 && page <= currentRecordsPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentRecordsPage(page)}
+                            isActive={currentRecordsPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (page === currentRecordsPage - 2 || page === currentRecordsPage + 2) {
+                      return <PaginationEllipsis key={page} />;
+                    }
+                    return null;
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentRecordsPage(p => Math.min(totalRecordsPages, p + 1))}
+                      className={currentRecordsPage === totalRecordsPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

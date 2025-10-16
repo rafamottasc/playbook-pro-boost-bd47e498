@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock, ChevronDown, BookOpen, Trophy } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { formatPhone } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,6 +64,8 @@ export function UsersManager() {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [removeAdminUserId, setRemoveAdminUserId] = useState<string | null>(null);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -112,6 +116,12 @@ export function UsersManager() {
       setLoading(false);
     }
   };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = users.slice(startIndex, endIndex);
 
   const getStatusBadge = (approved: boolean, blocked: boolean) => {
     if (blocked) {
@@ -465,8 +475,32 @@ export function UsersManager() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Gerenciar Usuários</h2>
         
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-muted-foreground">
+            Total: {users.length} usuários
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Mostrar:</span>
+            <Select value={itemsPerPage.toString()} onValueChange={(v) => {
+              setItemsPerPage(Number(v));
+              setCurrentPage(1);
+            }}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="grid gap-4">
-          {users.map((user) => {
+          {paginatedUsers.map((user) => {
             const isExpanded = expandedUsers.has(user.id);
             const activityStatus = getLastActivityStatus(user.last_sign_in_at);
             
@@ -705,6 +739,52 @@ export function UsersManager() {
             );
           })}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Pagination className="mt-6">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                // Show first, last, current and adjacent pages
+                if (
+                  page === 1 || 
+                  page === totalPages || 
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return <PaginationEllipsis key={page} />;
+                }
+                return null;
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
 
       {/* Dialog de confirmação para exclusão de usuário */}
