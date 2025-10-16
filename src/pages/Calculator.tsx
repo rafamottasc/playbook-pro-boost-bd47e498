@@ -44,7 +44,11 @@ export default function Calculator() {
       return;
     }
 
-    if (data.downPayment <= 0) {
+    const downPaymentValue = data.downPayment.type === 'percentage' && data.downPayment.percentage
+      ? (data.downPayment.percentage / 100) * data.propertyValue
+      : data.downPayment.value || 0;
+
+    if (downPaymentValue <= 0) {
       toast({
         title: "Entrada obrigatória",
         description: "Por favor, preencha o valor da entrada",
@@ -86,7 +90,11 @@ export default function Calculator() {
       return;
     }
 
-    if (data.propertyValue <= 0 || data.downPayment <= 0) {
+    const downPaymentValue = data.downPayment.type === 'percentage' && data.downPayment.percentage
+      ? (data.downPayment.percentage / 100) * data.propertyValue
+      : data.downPayment.value || 0;
+
+    if (data.propertyValue <= 0 || downPaymentValue <= 0) {
       toast({
         title: "Dados incompletos",
         description: "Preencha valor do imóvel e entrada",
@@ -130,11 +138,38 @@ export default function Calculator() {
     }
   };
 
-  const formatCurrency = (value: string) => {
+  const formatKeysPayment = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     const amount = parseInt(numbers || "0");
-    updateField("keysPayment", amount);
+    const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+    updateField("keysPayment", {
+      ...data.keysPayment,
+      value: amount,
+      percentage: calculatedPercentage
+    });
   };
+
+  const handleKeysTypeChange = (type: 'percentage' | 'value') => {
+    updateField("keysPayment", { ...data.keysPayment, type });
+  };
+
+  const handleKeysPercentageChange = (value: string) => {
+    const percentage = parseFloat(value) || 0;
+    const calculatedValue = (percentage / 100) * data.propertyValue;
+    updateField("keysPayment", { 
+      ...data.keysPayment, 
+      percentage, 
+      value: calculatedValue 
+    });
+  };
+
+  const keysDisplayValue = data.keysPayment?.type === 'percentage' && data.keysPayment.percentage
+    ? (data.keysPayment.percentage / 100) * data.propertyValue
+    : data.keysPayment?.value || 0;
+
+  const keysDisplayPercentage = data.keysPayment?.type === 'value' && data.keysPayment.value && data.propertyValue > 0
+    ? (data.keysPayment.value / data.propertyValue) * 100
+    : data.keysPayment?.percentage || 0;
 
   return (
     <PageTransition>
@@ -186,21 +221,62 @@ export default function Calculator() {
 
               {/* Chaves */}
               <Card className="bg-yellow-50/30 border-yellow-200 animate-fade-in">
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 space-y-4">
                   <Label className="text-base mb-2 block">
                     🔑 Pagamento na Entrega das Chaves (opcional)
                   </Label>
-                  <Input
-                    type="text"
-                    placeholder="R$ 136.952,49"
-                    value={
-                      data.keysPayment
-                        ? `R$ ${data.keysPayment.toLocaleString("pt-BR")}`
-                        : ""
-                    }
-                    onChange={(e) => formatCurrency(e.target.value)}
-                    className="text-xl h-14 text-center"
-                  />
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button"
+                      variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
+                      onClick={() => handleKeysTypeChange('percentage')}
+                      className="flex-1"
+                    >
+                      % Percentual
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
+                      onClick={() => handleKeysTypeChange('value')}
+                      className="flex-1"
+                    >
+                      R$ Valor
+                    </Button>
+                  </div>
+
+                  {data.keysPayment?.type === 'percentage' ? (
+                    <div>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="8"
+                        value={data.keysPayment.percentage || ""}
+                        onChange={(e) => handleKeysPercentageChange(e.target.value)}
+                        className="text-xl h-14 text-center"
+                      />
+                      {data.propertyValue > 0 && (
+                        <p className="text-sm text-muted-foreground text-center mt-2">
+                          = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Input
+                        type="text"
+                        placeholder="R$ 128.000"
+                        value={data.keysPayment?.value ? `R$ ${data.keysPayment.value.toLocaleString("pt-BR")}` : ""}
+                        onChange={(e) => formatKeysPayment(e.target.value)}
+                        className="text-xl h-14 text-center"
+                      />
+                      {data.propertyValue > 0 && (
+                        <p className="text-sm text-muted-foreground text-center mt-2">
+                          = {keysDisplayPercentage.toFixed(1)}%
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

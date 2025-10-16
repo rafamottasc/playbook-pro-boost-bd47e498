@@ -1,14 +1,40 @@
 import { useState } from "react";
+import { differenceInMonths, parseISO } from "date-fns";
 
 export interface PaymentFlowData {
   propertyValue: number;
+  constructionStartDate: string;
   deliveryDate: string;
   clientName: string;
-  downPayment: number;
-  monthly?: { enabled: boolean; count?: number; value?: number };
-  semiannual?: { enabled: boolean; count?: number; value?: number };
-  annual?: { enabled: boolean; count?: number; value?: number };
-  keysPayment?: number;
+  downPayment: {
+    type: 'percentage' | 'value';
+    percentage?: number;
+    value?: number;
+    installments?: number;
+  };
+  monthly?: { 
+    enabled: boolean; 
+    count?: number; 
+    value?: number;
+    autoCalculate?: boolean;
+  };
+  semiannualReinforcement?: { 
+    enabled: boolean; 
+    count?: number; 
+    value?: number;
+    percentage?: number;
+  };
+  annualReinforcement?: { 
+    enabled: boolean; 
+    count?: number; 
+    value?: number;
+    percentage?: number;
+  };
+  keysPayment?: {
+    type: 'percentage' | 'value';
+    percentage?: number;
+    value?: number;
+  };
   constructora?: string;
   empreendimento?: string;
   unidade?: string;
@@ -16,11 +42,46 @@ export interface PaymentFlowData {
 }
 
 export interface CalculatedResult {
-  downPayment: { value: number; percentage: number };
-  monthly?: { count: number; value: number; total: number; percentage: number };
-  semiannual?: { count: number; value: number; total: number; percentage: number };
-  annual?: { count: number; value: number; total: number; percentage: number };
-  keysPayment?: { value: number; percentage: number };
+  downPayment: { 
+    value: number; 
+    percentage: number;
+    installmentValue?: number;
+  };
+  monthly?: { 
+    count: number; 
+    value: number; 
+    total: number; 
+    percentage: number;
+    untilDelivery: number;
+    afterDelivery: number;
+  };
+  semiannualReinforcement?: { 
+    count: number; 
+    value: number; 
+    total: number; 
+    percentage: number;
+    untilDelivery: number;
+    afterDelivery: number;
+  };
+  annualReinforcement?: { 
+    count: number; 
+    value: number; 
+    total: number; 
+    percentage: number;
+    untilDelivery: number;
+    afterDelivery: number;
+  };
+  keysPayment?: { 
+    value: number; 
+    percentage: number;
+  };
+  timeline: {
+    monthsUntilDelivery: number;
+    totalUntilDelivery: number;
+    totalAfterDelivery: number;
+    percentageUntilDelivery: number;
+    percentageAfterDelivery: number;
+  };
   totalPaid: number;
   totalPercentage: number;
   isValid: boolean;
@@ -30,81 +91,212 @@ export interface CalculatedResult {
 export function usePaymentFlow() {
   const [data, setData] = useState<PaymentFlowData>({
     propertyValue: 0,
+    constructionStartDate: "",
     deliveryDate: "",
     clientName: "",
-    downPayment: 0,
-    monthly: { enabled: false },
-    semiannual: { enabled: false },
-    annual: { enabled: false },
-    keysPayment: 0,
+    downPayment: { type: 'percentage', percentage: 10, value: 0 },
+    monthly: { enabled: false, autoCalculate: true },
+    semiannualReinforcement: { enabled: false, percentage: 8 },
+    annualReinforcement: { enabled: false, percentage: 8 },
+    keysPayment: { type: 'percentage', percentage: 8, value: 0 },
   });
 
   const calculate = (): CalculatedResult => {
-    let totalPaid = data.downPayment;
+    // 1. Calcular meses até entrega
+    let monthsUntilDelivery = 0;
+    if (data.constructionStartDate && data.deliveryDate) {
+      try {
+        const start = parseISO(data.constructionStartDate);
+        const end = parseISO(data.deliveryDate);
+        monthsUntilDelivery = Math.max(0, differenceInMonths(end, start));
+      } catch (e) {
+        monthsUntilDelivery = 0;
+      }
+    }
+
+    // 2. Calcular entrada
+    let downPaymentValue = 0;
+    if (data.downPayment.type === 'percentage' && data.downPayment.percentage) {
+      downPaymentValue = (data.downPayment.percentage / 100) * data.propertyValue;
+    } else if (data.downPayment.type === 'value' && data.downPayment.value) {
+      downPaymentValue = data.downPayment.value;
+    }
+
+    const downPaymentInstallmentValue = data.downPayment.installments && data.downPayment.installments > 1
+      ? downPaymentValue / data.downPayment.installments
+      : undefined;
+
+    // 3. Calcular reforços
+    let totalSemiannual = 0;
+    let semiannualValue = 0;
+    if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count) {
+      if (data.semiannualReinforcement.value) {
+        semiannualValue = data.semiannualReinforcement.value;
+      } else if (data.semiannualReinforcement.percentage) {
+        semiannualValue = (data.semiannualReinforcement.percentage / 100) * data.propertyValue;
+      }
+      totalSemiannual = semiannualValue * data.semiannualReinforcement.count;
+    }
+
+    let totalAnnual = 0;
+    let annualValue = 0;
+    if (data.annualReinforcement?.enabled && data.annualReinforcement.count) {
+      if (data.annualReinforcement.value) {
+        annualValue = data.annualReinforcement.value;
+      } else if (data.annualReinforcement.percentage) {
+        annualValue = (data.annualReinforcement.percentage / 100) * data.propertyValue;
+      }
+      totalAnnual = annualValue * data.annualReinforcement.count;
+    }
+
+    // 4. Calcular chaves
+    let keysValue = 0;
+    if (data.keysPayment) {
+      if (data.keysPayment.type === 'percentage' && data.keysPayment.percentage) {
+        keysValue = (data.keysPayment.percentage / 100) * data.propertyValue;
+      } else if (data.keysPayment.type === 'value' && data.keysPayment.value) {
+        keysValue = data.keysPayment.value;
+      }
+    }
+
+    // 5. Calcular parcelas mensais
+    let monthlyValue = 0;
+    let totalMonthly = 0;
+    if (data.monthly?.enabled && data.monthly.count) {
+      if (data.monthly.autoCalculate) {
+        const remainingBalance = data.propertyValue - downPaymentValue - totalSemiannual - totalAnnual - keysValue;
+        monthlyValue = remainingBalance / data.monthly.count;
+      } else if (data.monthly.value) {
+        monthlyValue = data.monthly.value;
+      }
+      totalMonthly = monthlyValue * data.monthly.count;
+    }
+
+    // 6. Distribuir parcelas mensais até/após entrega
+    const monthlyUntilDelivery = data.monthly?.enabled && data.monthly.count
+      ? Math.min(data.monthly.count, monthsUntilDelivery)
+      : 0;
+    const monthlyAfterDelivery = data.monthly?.enabled && data.monthly.count
+      ? data.monthly.count - monthlyUntilDelivery
+      : 0;
+
+    // 7. Distribuir reforços até/após entrega
+    const yearsUntilDelivery = monthsUntilDelivery / 12;
     
-    const result: any = {
+    const semiannualUntilDelivery = data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count
+      ? Math.min(data.semiannualReinforcement.count, Math.floor(yearsUntilDelivery * 2))
+      : 0;
+    const semiannualAfterDelivery = data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count
+      ? data.semiannualReinforcement.count - semiannualUntilDelivery
+      : 0;
+
+    const annualUntilDelivery = data.annualReinforcement?.enabled && data.annualReinforcement.count
+      ? Math.min(data.annualReinforcement.count, Math.floor(yearsUntilDelivery))
+      : 0;
+    const annualAfterDelivery = data.annualReinforcement?.enabled && data.annualReinforcement.count
+      ? data.annualReinforcement.count - annualUntilDelivery
+      : 0;
+
+    // 8. Calcular totais temporais
+    const totalUntilDelivery = 
+      downPaymentValue +
+      (monthlyValue * monthlyUntilDelivery) +
+      (semiannualValue * semiannualUntilDelivery) +
+      (annualValue * annualUntilDelivery);
+
+    const totalAfterDelivery = 
+      (monthlyValue * monthlyAfterDelivery) +
+      (semiannualValue * semiannualAfterDelivery) +
+      (annualValue * annualAfterDelivery) +
+      keysValue;
+
+    const totalPaid = downPaymentValue + totalMonthly + totalSemiannual + totalAnnual + keysValue;
+    const totalPercentage = data.propertyValue > 0 ? (totalPaid / data.propertyValue) * 100 : 0;
+    const percentageUntilDelivery = data.propertyValue > 0 ? (totalUntilDelivery / data.propertyValue) * 100 : 0;
+    const percentageAfterDelivery = data.propertyValue > 0 ? (totalAfterDelivery / data.propertyValue) * 100 : 0;
+
+    // 9. Montar resultado
+    const result: CalculatedResult = {
       downPayment: {
-        value: data.downPayment,
-        percentage: data.propertyValue > 0 ? (data.downPayment / data.propertyValue) * 100 : 0,
+        value: downPaymentValue,
+        percentage: data.propertyValue > 0 ? (downPaymentValue / data.propertyValue) * 100 : 0,
+        installmentValue: downPaymentInstallmentValue,
       },
-      totalPaid: data.downPayment,
+      timeline: {
+        monthsUntilDelivery,
+        totalUntilDelivery,
+        totalAfterDelivery,
+        percentageUntilDelivery,
+        percentageAfterDelivery,
+      },
+      totalPaid,
+      totalPercentage,
       warnings: [],
+      isValid: true,
     };
 
-    // Mensais
-    if (data.monthly?.enabled && data.monthly.count && data.monthly.value) {
-      const total = data.monthly.count * data.monthly.value;
-      totalPaid += total;
+    // Adicionar parcelas mensais ao resultado
+    if (data.monthly?.enabled && data.monthly.count) {
       result.monthly = {
         count: data.monthly.count,
-        value: data.monthly.value,
-        total,
-        percentage: data.propertyValue > 0 ? (total / data.propertyValue) * 100 : 0,
+        value: monthlyValue,
+        total: totalMonthly,
+        percentage: data.propertyValue > 0 ? (totalMonthly / data.propertyValue) * 100 : 0,
+        untilDelivery: monthlyUntilDelivery,
+        afterDelivery: monthlyAfterDelivery,
       };
     }
 
-    // Semestrais
-    if (data.semiannual?.enabled && data.semiannual.count && data.semiannual.value) {
-      const total = data.semiannual.count * data.semiannual.value;
-      totalPaid += total;
-      result.semiannual = {
-        count: data.semiannual.count,
-        value: data.semiannual.value,
-        total,
-        percentage: data.propertyValue > 0 ? (total / data.propertyValue) * 100 : 0,
+    // Adicionar reforços semestrais
+    if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count) {
+      result.semiannualReinforcement = {
+        count: data.semiannualReinforcement.count,
+        value: semiannualValue,
+        total: totalSemiannual,
+        percentage: data.propertyValue > 0 ? (totalSemiannual / data.propertyValue) * 100 : 0,
+        untilDelivery: semiannualUntilDelivery,
+        afterDelivery: semiannualAfterDelivery,
       };
     }
 
-    // Anuais
-    if (data.annual?.enabled && data.annual.count && data.annual.value) {
-      const total = data.annual.count * data.annual.value;
-      totalPaid += total;
-      result.annual = {
-        count: data.annual.count,
-        value: data.annual.value,
-        total,
-        percentage: data.propertyValue > 0 ? (total / data.propertyValue) * 100 : 0,
+    // Adicionar reforços anuais
+    if (data.annualReinforcement?.enabled && data.annualReinforcement.count) {
+      result.annualReinforcement = {
+        count: data.annualReinforcement.count,
+        value: annualValue,
+        total: totalAnnual,
+        percentage: data.propertyValue > 0 ? (totalAnnual / data.propertyValue) * 100 : 0,
+        untilDelivery: annualUntilDelivery,
+        afterDelivery: annualAfterDelivery,
       };
     }
 
-    // Chaves
-    if (data.keysPayment && data.keysPayment > 0) {
-      totalPaid += data.keysPayment;
+    // Adicionar chaves
+    if (keysValue > 0) {
       result.keysPayment = {
-        value: data.keysPayment,
-        percentage: data.propertyValue > 0 ? (data.keysPayment / data.propertyValue) * 100 : 0,
+        value: keysValue,
+        percentage: data.propertyValue > 0 ? (keysValue / data.propertyValue) * 100 : 0,
       };
     }
 
-    result.totalPaid = totalPaid;
-    result.totalPercentage = data.propertyValue > 0 ? (totalPaid / data.propertyValue) * 100 : 0;
-
-    // Validações
+    // 10. Validações
     if (data.propertyValue > 0) {
-      const diff = Math.abs(result.totalPercentage - 100);
-      if (diff > 5) {
+      const diff = Math.abs(totalPercentage - 100);
+      if (diff > 1) {
         result.warnings.push(
-          `Total calculado: ${result.totalPercentage.toFixed(1)}% (diferença de ${diff.toFixed(1)}% dos 100%)`
+          `Total: ${totalPercentage.toFixed(1)}% (${diff > 0 ? 'acima' : 'abaixo'} de 100%)`
+        );
+      }
+
+      if (percentageUntilDelivery < 50) {
+        result.warnings.push(
+          `⚠️ Apenas ${percentageUntilDelivery.toFixed(1)}% até entrega (recomendado: mínimo 50%)`
+        );
+      }
+
+      if (monthlyValue > data.propertyValue * 0.02) {
+        result.warnings.push(
+          `💡 Parcelas mensais acima de 2% do valor total - cliente pode ter dificuldade`
         );
       }
     }

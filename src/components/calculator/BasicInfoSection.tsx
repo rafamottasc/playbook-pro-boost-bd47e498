@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
+import { differenceInMonths, parseISO } from "date-fns";
 
 interface BasicInfoSectionProps {
   data: PaymentFlowData;
@@ -15,43 +16,79 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
     onChange("propertyValue", amount);
   };
 
+  const calculateMonthsUntilDelivery = () => {
+    if (data.constructionStartDate && data.deliveryDate) {
+      try {
+        const start = parseISO(data.constructionStartDate);
+        const end = parseISO(data.deliveryDate);
+        return Math.max(0, differenceInMonths(end, start));
+      } catch (e) {
+        return 0;
+      }
+    }
+    return 0;
+  };
+
+  const monthsUntilDelivery = calculateMonthsUntilDelivery();
+
   return (
     <Card className="animate-fade-in">
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          1️⃣ INFORMAÇÕES BÁSICAS
-        </CardTitle>
+        <CardTitle className="text-xl">📋 Informações Básicas</CardTitle>
+        <CardDescription>
+          Dados essenciais para o cálculo
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label className="text-base">💰 Valor Total do Imóvel</Label>
+          <Label className="mb-2">Valor Total do Imóvel</Label>
           <Input
             type="text"
-            placeholder="R$ 1.369.524,91"
+            placeholder="R$ 1.600.000,00"
             value={data.propertyValue ? `R$ ${data.propertyValue.toLocaleString("pt-BR")}` : ""}
             onChange={(e) => formatCurrency(e.target.value)}
-            className="text-lg h-14"
+            className="text-xl h-14 font-semibold"
           />
         </div>
-        
-        <div>
-          <Label className="text-base">📅 Entrega das Chaves</Label>
-          <Input
-            type="date"
-            value={data.deliveryDate}
-            onChange={(e) => onChange("deliveryDate", e.target.value)}
-            className="text-lg h-14"
-          />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="mb-2">🏗️ Início da Obra</Label>
+            <Input
+              type="date"
+              value={data.constructionStartDate}
+              onChange={(e) => onChange("constructionStartDate", e.target.value)}
+              className="h-12"
+            />
+          </div>
+
+          <div>
+            <Label className="mb-2">🔑 Entrega das Chaves</Label>
+            <Input
+              type="date"
+              value={data.deliveryDate}
+              onChange={(e) => onChange("deliveryDate", e.target.value)}
+              className="h-12"
+            />
+          </div>
         </div>
-        
+
+        {monthsUntilDelivery > 0 && (
+          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-700 font-medium">
+              ⏱️ {monthsUntilDelivery} meses até a entrega ({(monthsUntilDelivery / 12).toFixed(1)} anos)
+            </p>
+          </div>
+        )}
+
         <div>
-          <Label className="text-base">👤 Nome do Cliente</Label>
+          <Label className="mb-2">Nome do Cliente</Label>
           <Input
             type="text"
-            placeholder="João Silva"
+            placeholder="Ex: João Silva"
             value={data.clientName}
             onChange={(e) => onChange("clientName", e.target.value)}
-            className="text-lg h-14"
+            className="h-12"
           />
         </div>
 

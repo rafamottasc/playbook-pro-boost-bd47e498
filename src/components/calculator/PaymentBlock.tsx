@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 
 interface PaymentBlockProps {
@@ -13,96 +13,186 @@ interface PaymentBlockProps {
 
 const CONFIG = {
   monthly: {
-    emoji: "📆",
+    emoji: "📅",
     title: "PARCELAS MENSAIS",
-    subtitle: "Cliente vai pagar todo mês?",
+    subtitle: "Cliente quer pagar mensalmente?",
     color: "blue",
-    placeholder: "Ex: 100 vezes de R$ 2.739,05",
+    placeholder: "Ex: 100",
   },
   semiannual: {
-    emoji: "🎯",
-    title: "PARCELAS SEMESTRAIS",
-    subtitle: "Cliente vai pagar a cada 6 meses?",
+    emoji: "📆",
+    title: "REFORÇOS SEMESTRAIS",
+    subtitle: "Cliente quer reforços a cada 6 meses?",
     color: "purple",
-    placeholder: "Ex: 10 vezes de R$ 54.781,00",
+    placeholder: "Ex: 10",
   },
   annual: {
-    emoji: "🎯",
-    title: "PARCELAS ANUAIS",
-    subtitle: "Cliente vai pagar a cada ano?",
+    emoji: "📊",
+    title: "REFORÇOS ANUAIS",
+    subtitle: "Cliente quer reforços anuais?",
     color: "orange",
-    placeholder: "Ex: 5 vezes de R$ 68.476,00",
+    placeholder: "Ex: 10",
   },
 };
 
 export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
   const config = CONFIG[type];
-  const isEnabled = data[type]?.enabled || false;
+  
+  const fieldName = type === 'monthly' ? 'monthly' : 
+                    type === 'semiannual' ? 'semiannualReinforcement' : 
+                    'annualReinforcement';
+  
+  const paymentData = data[fieldName as keyof PaymentFlowData] as any;
+
+  const handleToggle = (checked: boolean) => {
+    onChange(fieldName, { ...paymentData, enabled: checked });
+  };
+
+  const handleAutoCalculateToggle = (checked: boolean) => {
+    onChange(fieldName, { ...paymentData, autoCalculate: checked });
+  };
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     const amount = parseInt(numbers || "0");
-    return amount;
+    onChange(fieldName, { ...paymentData, value: amount });
   };
 
+  const handlePercentageChange = (value: string) => {
+    const percentage = parseFloat(value) || 0;
+    const calculatedValue = (percentage / 100) * data.propertyValue;
+    onChange(fieldName, { 
+      ...paymentData, 
+      percentage,
+      value: calculatedValue
+    });
+  };
+
+  // Calculate auto value for monthly
+  const calculateAutoMonthlyValue = () => {
+    if (type !== 'monthly' || !paymentData?.autoCalculate || !paymentData?.count) return 0;
+    
+    let downPaymentValue = 0;
+    if (data.downPayment.type === 'percentage' && data.downPayment.percentage) {
+      downPaymentValue = (data.downPayment.percentage / 100) * data.propertyValue;
+    } else if (data.downPayment.type === 'value' && data.downPayment.value) {
+      downPaymentValue = data.downPayment.value;
+    }
+
+    let totalReinforcements = 0;
+    if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count) {
+      const value = data.semiannualReinforcement.value || 
+                    ((data.semiannualReinforcement.percentage || 0) / 100) * data.propertyValue;
+      totalReinforcements += value * data.semiannualReinforcement.count;
+    }
+    if (data.annualReinforcement?.enabled && data.annualReinforcement.count) {
+      const value = data.annualReinforcement.value || 
+                    ((data.annualReinforcement.percentage || 0) / 100) * data.propertyValue;
+      totalReinforcements += value * data.annualReinforcement.count;
+    }
+
+    let keysValue = 0;
+    if (data.keysPayment) {
+      if (data.keysPayment.type === 'percentage' && data.keysPayment.percentage) {
+        keysValue = (data.keysPayment.percentage / 100) * data.propertyValue;
+      } else if (data.keysPayment.type === 'value' && data.keysPayment.value) {
+        keysValue = data.keysPayment.value;
+      }
+    }
+
+    const remainingBalance = data.propertyValue - downPaymentValue - totalReinforcements - keysValue;
+    return remainingBalance / paymentData.count;
+  };
+
+  const autoCalculatedValue = type === 'monthly' ? calculateAutoMonthlyValue() : 0;
+
   return (
-    <Card
-      className={cn(
-        "transition-all duration-300 animate-fade-in",
-        isEnabled && config.color === "blue" && "bg-blue-50/30 border-blue-200",
-        isEnabled && config.color === "purple" && "bg-purple-50/30 border-purple-200",
-        isEnabled && config.color === "orange" && "bg-orange-50/30 border-orange-200"
-      )}
-    >
+    <Card className={`bg-${config.color}-50/30 border-${config.color}-200 animate-fade-in`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               {config.emoji} {config.title}
             </CardTitle>
-            <CardDescription>{config.subtitle}</CardDescription>
+            <p className="text-sm text-muted-foreground mt-1">
+              {config.subtitle}
+            </p>
           </div>
-          <Switch
-            checked={isEnabled}
-            onCheckedChange={(checked) =>
-              onChange(type, { ...data[type], enabled: checked })
-            }
-          />
+          <Switch checked={paymentData?.enabled || false} onCheckedChange={handleToggle} />
         </div>
       </CardHeader>
 
-      {isEnabled && (
-        <CardContent className="space-y-3 animate-fade-in">
-          <div className="grid grid-cols-2 gap-3">
+      {paymentData?.enabled && (
+        <CardContent className="space-y-4">
+          {type === 'monthly' && (
+            <div className="flex items-center gap-2 p-3 bg-white/50 rounded-lg">
+              <Switch 
+                checked={paymentData?.autoCalculate || false} 
+                onCheckedChange={handleAutoCalculateToggle}
+              />
+              <Label>Calcular valor automaticamente</Label>
+            </div>
+          )}
+
+          <div>
+            <Label className="mb-2">Quantas vezes?</Label>
+            <Input
+              type="number"
+              placeholder={config.placeholder}
+              value={paymentData.count || ""}
+              onChange={(e) =>
+                onChange(fieldName, {
+                  ...paymentData,
+                  count: parseInt(e.target.value) || 0,
+                })
+              }
+              className="h-12"
+            />
+          </div>
+
+          {type === 'monthly' && paymentData?.autoCalculate ? (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm font-medium text-blue-900 mb-1">Valor calculado automaticamente</p>
+              <p className="text-2xl font-bold text-blue-700">
+                R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Baseado no saldo restante ÷ {paymentData.count} parcelas
+              </p>
+            </div>
+          ) : type !== 'monthly' ? (
             <div>
-              <Label className="text-sm">Quantas vezes?</Label>
+              <Label className="mb-2">Percentual de cada reforço (%)</Label>
               <Input
                 type="number"
-                placeholder="100"
-                value={data[type]?.count || ""}
-                onChange={(e) =>
-                  onChange(type, { ...data[type], count: parseInt(e.target.value) || 0 })
-                }
-                className="h-12 text-lg"
+                step="0.1"
+                placeholder="8"
+                value={paymentData.percentage || ""}
+                onChange={(e) => handlePercentageChange(e.target.value)}
+                className="h-12"
               />
+              {data.propertyValue > 0 && paymentData.percentage && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  = R$ {((paymentData.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cada
+                </p>
+              )}
             </div>
+          ) : (
             <div>
-              <Label className="text-sm">Valor de cada</Label>
+              <Label className="mb-2">Valor de cada parcela</Label>
               <Input
                 type="text"
-                placeholder="R$ 2.739,05"
-                value={data[type]?.value ? `R$ ${data[type]!.value!.toLocaleString("pt-BR")}` : ""}
-                onChange={(e) => {
-                  const amount = formatCurrency(e.target.value);
-                  onChange(type, { ...data[type], value: amount });
-                }}
-                className="h-12 text-lg"
+                placeholder="R$ 11.840,00"
+                value={
+                  paymentData.value
+                    ? `R$ ${paymentData.value.toLocaleString("pt-BR")}`
+                    : ""
+                }
+                onChange={(e) => formatCurrency(e.target.value)}
+                className="text-xl h-14 font-semibold"
               />
             </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            💡 Dica: Se deixar vazio, o sistema não vai incluir no cálculo
-          </p>
+          )}
         </CardContent>
       )}
     </Card>
