@@ -31,9 +31,9 @@ const PartnersManager = lazy(() => import("./pages/admin/PartnersManager"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 2, // 2 minutes for fresh data
-      gcTime: 1000 * 60 * 10, // 10 minutes cache retention
-      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 15, // 15 minutes - optimized for better caching
+      gcTime: 1000 * 60 * 30, // 30 minutes - keep data in cache longer
+      refetchOnWindowFocus: false, // Reduce unnecessary refetches
       retry: 1,
     },
   },

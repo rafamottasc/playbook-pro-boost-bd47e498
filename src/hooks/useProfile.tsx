@@ -11,7 +11,7 @@ interface Profile {
 }
 
 const CACHE_KEY = "user_profile_cache";
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes - optimized caching
 
 interface CacheData {
   profile: Profile;
