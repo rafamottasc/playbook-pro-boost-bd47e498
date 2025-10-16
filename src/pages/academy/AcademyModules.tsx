@@ -199,9 +199,9 @@ export default function AcademyModules() {
                 size="icon"
                 onClick={scrollPrev}
                 aria-label="Módulo anterior"
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-16 rounded-none bg-gradient-to-r from-background via-background/80 to-transparent opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity shadow-lg"
+                className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-primary/90 hover:bg-primary text-white shadow-2xl opacity-0 md:opacity-90 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
               >
-                <ChevronLeft className="h-10 w-10" />
+                <ChevronLeft className="h-6 w-6" />
               </Button>
             )}
             
@@ -228,9 +228,9 @@ export default function AcademyModules() {
                 size="icon"
                 onClick={scrollNext}
                 aria-label="Próximo módulo"
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-16 rounded-none bg-gradient-to-l from-background via-background/80 to-transparent opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity shadow-lg"
+                className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-primary/90 hover:bg-primary text-white shadow-2xl opacity-0 md:opacity-90 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
               >
-                <ChevronRight className="h-10 w-10" />
+                <ChevronRight className="h-6 w-6" />
               </Button>
             )}
 
