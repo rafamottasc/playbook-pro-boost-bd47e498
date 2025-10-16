@@ -267,10 +267,10 @@ export default function Calculator() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
         {/* Header */}
         <div className="bg-card border-b sticky top-0 z-10 shadow-sm">
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto px-3 sm:px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Button
@@ -299,7 +299,7 @@ export default function Calculator() {
         </div>
 
         {/* Content */}
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-3 sm:px-4 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Form Column */}
             <div className="lg:col-span-2 space-y-4">
@@ -467,37 +467,6 @@ export default function Calculator() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Action Buttons (Mobile) */}
-              <div className="lg:hidden flex gap-3">
-                <Button
-                  onClick={handleDownloadPDF}
-                  className="flex-1"
-                  size="lg"
-                >
-                  <Download className="mr-2 h-5 w-5" />
-                  PDF
-                </Button>
-                <Button
-                  onClick={handleDownloadTXT}
-                  variant="outline"
-                  className="flex-1"
-                  size="lg"
-                >
-                  <FileText className="mr-2 h-5 w-5" />
-                  TXT
-                </Button>
-                <Button
-                  onClick={handleSaveProposal}
-                  variant="secondary"
-                  className="flex-1"
-                  size="lg"
-                  disabled={isSaving}
-                >
-                  <Save className="mr-2 h-5 w-5" />
-                  {isSaving ? "Salvando..." : "Salvar"}
-                </Button>
-              </div>
             </div>
 
             {/* Summary Column (Desktop) - Sticky Container */}
