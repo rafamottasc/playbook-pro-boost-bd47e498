@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Save, History, ArrowLeft } from "lucide-react";
+import { Download, Save, History, ArrowLeft, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,7 @@ import { DownPaymentSection } from "@/components/calculator/DownPaymentSection";
 import { PaymentBlock } from "@/components/calculator/PaymentBlock";
 import { FlowSummary } from "@/components/calculator/FlowSummary";
 import { generateFlowPDF } from "@/components/calculator/FlowPDF";
+import { generateFlowTXT } from "@/components/calculator/FlowTXT";
 import { PageTransition } from "@/components/PageTransition";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -112,6 +113,49 @@ export default function Calculator() {
       console.error("Erro ao gerar PDF:", error);
       toast({
         title: "Erro ao gerar PDF",
+        description: "Tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadTXT = async () => {
+    if (!data.clientName || data.clientName.length < 3) {
+      toast({
+        title: "Nome do cliente obrigatório",
+        description: "Por favor, preencha o nome do cliente",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data.propertyValue <= 0) {
+      toast({
+        title: "Valor do imóvel obrigatório",
+        description: "Por favor, preencha o valor do imóvel",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user?.id)
+        .single();
+
+      generateFlowTXT(data, result, profile?.full_name || "Corretor");
+
+      toast({
+        title: "TXT gerado com sucesso!",
+        description: "Arquivo pronto para compartilhar no WhatsApp",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Erro ao gerar TXT:", error);
+      toast({
+        title: "Erro ao gerar TXT",
         description: "Tente novamente",
         variant: "destructive",
       });
@@ -432,7 +476,16 @@ export default function Calculator() {
                   size="lg"
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Baixar PDF
+                  PDF
+                </Button>
+                <Button
+                  onClick={handleDownloadTXT}
+                  variant="outline"
+                  className="flex-1"
+                  size="lg"
+                >
+                  <FileText className="mr-2 h-5 w-5" />
+                  TXT
                 </Button>
                 <Button
                   onClick={handleSaveProposal}
@@ -456,6 +509,10 @@ export default function Calculator() {
                     <Download className="mr-2 h-5 w-5" />
                     Baixar PDF
                   </Button>
+                  <Button onClick={handleDownloadTXT} className="w-full" size="lg" variant="outline">
+                    <FileText className="mr-2 h-5 w-5" />
+                    Baixar TXT (WhatsApp)
+                  </Button>
                   <Button
                     onClick={handleSaveProposal}
                     className="w-full"
@@ -476,6 +533,10 @@ export default function Calculator() {
                 <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
                   <Download className="mr-2 h-5 w-5" />
                   Baixar PDF
+                </Button>
+                <Button onClick={handleDownloadTXT} className="w-full" size="lg" variant="outline">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Baixar TXT (WhatsApp)
                 </Button>
                 <Button
                   onClick={handleSaveProposal}
