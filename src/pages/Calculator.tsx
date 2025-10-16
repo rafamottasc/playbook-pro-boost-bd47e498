@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, Save, History, ArrowLeft } from "lucide-react";
@@ -18,12 +18,22 @@ import { Input } from "@/components/ui/input";
 
 export default function Calculator() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { data, updateField, calculate, setData } = usePaymentFlow();
   const [isSaving, setIsSaving] = useState(false);
 
   const result = calculate();
+
+  // Carregar proposta do histórico via location.state
+  useEffect(() => {
+    if (location.state?.loadedData) {
+      setData(location.state.loadedData);
+      // Limpar state para não recarregar ao revisitar
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleDownloadPDF = async () => {
     if (!data.clientName || data.clientName.length < 3) {
@@ -69,6 +79,7 @@ export default function Calculator() {
       toast({
         title: "PDF gerado com sucesso!",
         description: "O arquivo foi baixado",
+        duration: 3000,
       });
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
@@ -113,18 +124,10 @@ export default function Calculator() {
 
       if (error) throw error;
 
-      // Gerar PDF após salvar
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user?.id)
-        .single();
-
-      await generateFlowPDF(data, result, profile?.full_name || "Corretor");
-
       toast({
         title: "Proposta salva com sucesso!",
-        description: "PDF gerado e baixado",
+        description: "Você pode encontrá-la no histórico",
+        duration: 3000,
       });
     } catch (error) {
       console.error("Erro ao salvar proposta:", error);
@@ -176,6 +179,7 @@ export default function Calculator() {
     toast({
       title: "Saldo calculado!",
       description: `R$ ${remaining.toLocaleString('pt-BR')} restantes`,
+      duration: 3000,
     });
   };
 
@@ -408,7 +412,7 @@ export default function Calculator() {
 
             {/* Summary Column (Desktop) - Sticky Container */}
             <div className="hidden lg:block">
-              <div className="sticky top-6 space-y-4">
+              <div className="sticky top-0 space-y-4">
                 <FlowSummary result={result} />
                 <div className="space-y-3">
                   <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">

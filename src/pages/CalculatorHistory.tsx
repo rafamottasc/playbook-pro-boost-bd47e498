@@ -53,11 +53,11 @@ export default function CalculatorHistory() {
   };
 
   const handleLoadProposal = (proposal: SavedProposal) => {
-    setData(proposal.calculation_data);
-    navigate("/calculator");
+    navigate("/calculator", { state: { loadedData: proposal.calculation_data } });
     toast({
       title: "Proposta carregada",
       description: "Você pode editar e salvar novamente",
+      duration: 3000,
     });
   };
 
@@ -75,6 +75,7 @@ export default function CalculatorHistory() {
       toast({
         title: "Proposta deletada",
         description: "Removida com sucesso",
+        duration: 3000,
       });
     } catch (error) {
       console.error("Erro ao deletar proposta:", error);
@@ -106,6 +107,7 @@ export default function CalculatorHistory() {
       toast({
         title: "PDF gerado com sucesso!",
         description: "O arquivo foi baixado",
+        duration: 3000,
       });
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);

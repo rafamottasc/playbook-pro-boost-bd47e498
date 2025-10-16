@@ -52,6 +52,7 @@ export interface CalculatedResult {
   downPayment: { 
     value: number; 
     percentage: number;
+    installments?: number;
     installmentValue?: number;
   };
   constructionStartPayment?: { 
@@ -242,6 +243,7 @@ export function usePaymentFlow() {
       downPayment: {
         value: downPaymentValue,
         percentage: data.propertyValue > 0 ? (downPaymentValue / data.propertyValue) * 100 : 0,
+        installments: data.downPayment.installments || 1,
         installmentValue: downPaymentInstallmentValue,
       },
       timeline: {

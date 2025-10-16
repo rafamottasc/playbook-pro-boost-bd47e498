@@ -13,7 +13,7 @@ export function FlowSummary({ result }: FlowSummaryProps) {
   return (
     <Card
       className={cn(
-        "sticky top-6 animate-fade-in",
+        "sticky top-0 animate-fade-in",
         isValid ? "border-green-500 bg-green-50/20" : "border-yellow-500 bg-yellow-50/20"
       )}
     >
@@ -54,8 +54,20 @@ export function FlowSummary({ result }: FlowSummaryProps) {
             <div className="flex justify-between text-sm">
               <span>🏁 Entrada:</span>
               <span className="font-medium">
-                R$ {result.downPayment.value.toLocaleString("pt-BR")} (
-                {result.downPayment.percentage.toFixed(1)}%)
+                {result.downPayment.installments && result.downPayment.installments > 1 ? (
+                  // Parcelada
+                  <>
+                    {result.downPayment.installments}x de R${" "}
+                    {(result.downPayment.value / result.downPayment.installments).toLocaleString("pt-BR")} (
+                    {result.downPayment.percentage.toFixed(1)}%)
+                  </>
+                ) : (
+                  // À vista
+                  <>
+                    R$ {result.downPayment.value.toLocaleString("pt-BR")} (
+                    {result.downPayment.percentage.toFixed(1)}%)
+                  </>
+                )}
               </span>
             </div>
           )}
