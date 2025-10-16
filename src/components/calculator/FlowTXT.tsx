@@ -15,16 +15,31 @@ export function generateFlowTXT(
   txt += `━━━━━━━\n\n`;
 
   txt += `📅 Data: ${currentDate}\n`;
-  txt += `👤 Cliente: ${data.clientName || "Não informado"}\n\n`;
+  if (data.clientName) {
+    txt += `👤 Cliente: ${data.clientName}\n`;
+  }
+  txt += `\n`;
 
   txt += `━━━━━━━\n`;
   txt += `🏠 DADOS DO IMÓVEL\n`;
   txt += `━━━━━━━\n`;
-  txt += `Construtora: ${data.constructora || "Não informado"}\n`;
-  txt += `Empreendimento: ${data.empreendimento || "Não informado"}\n`;
-  txt += `Unidade: ${data.unidade || "Não informado"}\n`;
-  txt += `Área Privativa: ${data.areaPrivativa || "Não informado"}\n`;
-  txt += `Entrega: ${deliveryDate}\n`;
+  
+  if (data.constructora) {
+    txt += `Construtora: ${data.constructora}\n`;
+  }
+  if (data.empreendimento) {
+    txt += `Empreendimento: ${data.empreendimento}\n`;
+  }
+  if (data.unidade) {
+    txt += `Unidade: ${data.unidade}\n`;
+  }
+  if (data.areaPrivativa) {
+    txt += `Área Privativa: ${data.areaPrivativa}\n`;
+  }
+  if (data.deliveryDate) {
+    txt += `Entrega: ${deliveryDate}\n`;
+  }
+  
   txt += `Valor Total: R$ ${data.propertyValue.toLocaleString("pt-BR")}\n\n`;
 
   txt += `━━━━━━━\n`;
