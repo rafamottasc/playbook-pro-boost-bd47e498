@@ -449,8 +449,8 @@ export default function Calculator() {
 
             {/* Summary Column (Desktop) - Sticky Container */}
             <div className="hidden lg:block">
-              <div className="sticky top-0 space-y-4">
-                <FlowSummary result={result} />
+              <div className="sticky top-24 space-y-4">
+                <FlowSummary result={result} propertyValue={data.propertyValue} />
                 <div className="space-y-3">
                   <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
                     <Download className="mr-2 h-5 w-5" />
@@ -471,7 +471,7 @@ export default function Calculator() {
 
             {/* Summary (Mobile) */}
             <div className="lg:hidden">
-              <FlowSummary result={result} />
+              <FlowSummary result={result} propertyValue={data.propertyValue} />
             </div>
           </div>
         </div>

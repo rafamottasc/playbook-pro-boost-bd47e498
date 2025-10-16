@@ -4,16 +4,17 @@ import { CalculatedResult } from "@/hooks/usePaymentFlow";
 
 interface FlowSummaryProps {
   result: CalculatedResult;
+  propertyValue: number;
 }
 
-export function FlowSummary({ result }: FlowSummaryProps) {
+export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
   const isValid = Math.abs(result.totalPercentage - 100) < 5;
   const remaining = Math.max(0, 100 - result.totalPercentage);
 
   return (
     <Card
       className={cn(
-        "sticky top-0 animate-fade-in",
+        "animate-fade-in",
         isValid ? "border-green-500 bg-green-50/20" : "border-yellow-500 bg-yellow-50/20"
       )}
     >
@@ -47,7 +48,7 @@ export function FlowSummary({ result }: FlowSummaryProps) {
               <>
                 <span className="text-green-600">⚠️ Pago {result.totalPercentage.toFixed(1)}%</span>
                 {" "}
-                <span className="text-red-600">🚨 Falta {remaining.toFixed(1)}%</span>
+                <span className="text-red-600">🚨 Falta R$ {((propertyValue * remaining) / 100).toLocaleString("pt-BR")}</span>
               </>
             )}
           </p>
@@ -103,9 +104,7 @@ export function FlowSummary({ result }: FlowSummaryProps) {
               <span>🎯 Reforços Semestrais:</span>
               <span className="font-medium">
                 {result.semiannualReinforcement.count}x de {" "}
-                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {" "}
-                R$ {result.semiannualReinforcement.value.toLocaleString("pt-BR")} (
-                {result.semiannualReinforcement.percentage.toFixed(1)}% do total)
+                {Math.round((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100))}% = R$ {result.semiannualReinforcement.value.toLocaleString("pt-BR")} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
               </span>
             </div>
           )}
@@ -115,9 +114,7 @@ export function FlowSummary({ result }: FlowSummaryProps) {
               <span>🎯 Reforços Anuais:</span>
               <span className="font-medium">
                 {result.annualReinforcement.count}x de {" "}
-                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {" "}
-                R$ {result.annualReinforcement.value.toLocaleString("pt-BR")} (
-                {result.annualReinforcement.percentage.toFixed(1)}% do total)
+                {Math.round((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100))}% = R$ {result.annualReinforcement.value.toLocaleString("pt-BR")} ({result.annualReinforcement.percentage.toFixed(1)}%)
               </span>
             </div>
           )}
@@ -152,11 +149,6 @@ export function FlowSummary({ result }: FlowSummaryProps) {
               </span>
             </div>
           </div>
-          {result.timeline.percentageUntilDelivery < 50 && (
-            <p className="text-xs text-yellow-700 mt-2 p-2 bg-yellow-50 rounded">
-              ⚠️ Menos de 50% até entrega - risco maior para o cliente
-            </p>
-          )}
         </div>
 
         {/* Warnings */}
