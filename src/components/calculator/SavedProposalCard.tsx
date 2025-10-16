@@ -30,6 +30,22 @@ export function SavedProposalCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
+        {calculationData.constructora && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Construtora:</span>
+            <span className="font-medium">
+              {calculationData.constructora}
+            </span>
+          </div>
+        )}
+        {calculationData.empreendimento && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Empreendimento:</span>
+            <span className="font-medium">
+              {calculationData.empreendimento}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Valor Total:</span>
           <span className="font-medium">
