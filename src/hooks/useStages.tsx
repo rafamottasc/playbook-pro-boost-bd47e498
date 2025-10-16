@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export interface Stage {
   id: string;
@@ -35,6 +36,10 @@ export function useStages(funnelId?: string) {
       setStages(data || []);
     } catch (error: any) {
       console.error("Erro ao carregar etapas:", error);
+      logger.error("Erro ao carregar etapas", { 
+        action: "fetch_stages", 
+        metadata: { error: error.message, funnelId } 
+      });
       toast({
         title: "Erro ao carregar etapas",
         description: error.message,
@@ -85,6 +90,10 @@ export function useStages(funnelId?: string) {
       
       return { success: true };
     } catch (error: any) {
+      logger.error("Erro ao criar etapa", { 
+        action: "create_stage", 
+        metadata: { error: error.message } 
+      });
       toast({
         title: "Erro ao criar etapa",
         description: error.message,
@@ -110,6 +119,10 @@ export function useStages(funnelId?: string) {
       
       return { success: true };
     } catch (error: any) {
+      logger.error("Erro ao atualizar etapa", { 
+        action: "update_stage", 
+        metadata: { error: error.message, stageId: id } 
+      });
       toast({
         title: "Erro ao atualizar etapa",
         description: error.message,
@@ -150,6 +163,10 @@ export function useStages(funnelId?: string) {
       
       return { success: true };
     } catch (error: any) {
+      logger.error("Erro ao deletar etapa", { 
+        action: "delete_stage", 
+        metadata: { error: error.message, stageId: id, stageName } 
+      });
       toast({
         title: "Erro ao deletar etapa",
         description: error.message,

@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageTransition } from "@/components/PageTransition";
 import Home from "./pages/Home";
 import Playbooks from "./pages/Playbooks";
 import Auth from "./pages/Auth";
@@ -60,54 +61,78 @@ function AppRoutes() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/playbooks"
-                    element={
-                      <ProtectedRoute>
-                        <Playbooks />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <Admin />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/resources"
-                    element={
-                      <ProtectedRoute>
-                        <Resources />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/campaigns"
-                    element={
-                      <ProtectedRoute>
-                        <Campaigns />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/campaigns/partners"
-                    element={
-                      <ProtectedRoute>
-                        <PartnersView />
-                      </ProtectedRoute>
-                    }
-                  />
+          <Route
+            path="/playbooks"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <PageTransition>
+                    <Playbooks />
+                  </PageTransition>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <ErrorBoundary>
+                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
+                    <Admin />
+                  </Suspense>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resources"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <PageTransition>
+                    <Resources />
+                  </PageTransition>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <PageTransition>
+                    <Profile />
+                  </PageTransition>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/campaigns"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <PageTransition>
+                    <Campaigns />
+                  </PageTransition>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/campaigns/partners"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <PageTransition>
+                    <PartnersView />
+                  </PageTransition>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
                   <Route
                     path="/admin/campaigns/partners"
                     element={
@@ -116,14 +141,18 @@ function AppRoutes() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/calculator"
-                    element={
-                      <ProtectedRoute>
-                        <Calculator />
-                      </ProtectedRoute>
-                    }
-                  />
+          <Route
+            path="/calculator"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <PageTransition>
+                    <Calculator />
+                  </PageTransition>
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
                   <Route
                     path="/calculator/history"
                     element={

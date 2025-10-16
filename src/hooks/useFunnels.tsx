@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export interface Funnel {
   id: string;
@@ -30,6 +31,10 @@ export function useFunnels() {
       setFunnels(data || []);
     } catch (error: any) {
       console.error("Erro ao carregar funis:", error);
+      logger.error("Erro ao carregar funis", { 
+        action: "fetch_funnels", 
+        metadata: { error: error.message } 
+      });
       toast({
         title: "Erro ao carregar funis",
         description: error.message,
@@ -82,6 +87,10 @@ export function useFunnels() {
       
       return { success: true };
     } catch (error: any) {
+      logger.error("Erro ao criar funil", { 
+        action: "create_funnel", 
+        metadata: { error: error.message } 
+      });
       toast({
         title: "Erro ao criar funil",
         description: error.message,
@@ -107,6 +116,10 @@ export function useFunnels() {
       
       return { success: true };
     } catch (error: any) {
+      logger.error("Erro ao atualizar funil", { 
+        action: "update_funnel", 
+        metadata: { error: error.message, funnelId: id } 
+      });
       toast({
         title: "Erro ao atualizar funil",
         description: error.message,
@@ -147,6 +160,10 @@ export function useFunnels() {
       
       return { success: true };
     } catch (error: any) {
+      logger.error("Erro ao deletar funil", { 
+        action: "delete_funnel", 
+        metadata: { error: error.message, funnelId: id } 
+      });
       toast({
         title: "Erro ao deletar funil",
         description: error.message,

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export type FeedbackType = "suggestion" | "complaint";
 export type FeedbackCategory = 
@@ -79,8 +80,11 @@ export function useFeedbacks() {
       });
 
       return { success: true };
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
+    } catch (error: any) {
+      logger.error("Erro ao enviar feedback", { 
+        action: "submit_feedback", 
+        metadata: { error: error?.message } 
+      });
       toast({
         title: "Erro",
         description: "Não foi possível enviar seu feedback. Tente novamente.",
@@ -122,8 +126,11 @@ export function useFeedbacks() {
       if (error) throw error;
 
       return (data || []) as Feedback[];
-    } catch (error) {
-      console.error("Error fetching feedbacks:", error);
+    } catch (error: any) {
+      logger.error("Erro ao buscar feedbacks", { 
+        action: "fetch_feedbacks", 
+        metadata: { error: error?.message } 
+      });
       toast({
         title: "Erro",
         description: "Não foi possível carregar os feedbacks.",
@@ -148,8 +155,11 @@ export function useFeedbacks() {
       });
 
       return { success: true };
-    } catch (error) {
-      console.error("Error updating feedback status:", error);
+    } catch (error: any) {
+      logger.error("Erro ao atualizar status do feedback", { 
+        action: "update_feedback_status", 
+        metadata: { error: error?.message, feedbackId: id, status } 
+      });
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o status.",
@@ -174,8 +184,11 @@ export function useFeedbacks() {
       });
 
       return { success: true };
-    } catch (error) {
-      console.error("Error updating feedback notes:", error);
+    } catch (error: any) {
+      logger.error("Erro ao atualizar notas do feedback", { 
+        action: "update_feedback_notes", 
+        metadata: { error: error?.message, feedbackId: id } 
+      });
       toast({
         title: "Erro",
         description: "Não foi possível salvar as notas.",
@@ -200,8 +213,11 @@ export function useFeedbacks() {
       });
 
       return { success: true };
-    } catch (error) {
-      console.error("Error deleting feedback:", error);
+    } catch (error: any) {
+      logger.error("Erro ao excluir feedback", { 
+        action: "delete_feedback", 
+        metadata: { error: error?.message, feedbackId: id } 
+      });
       toast({
         title: "Erro",
         description: "Não foi possível excluir o feedback.",

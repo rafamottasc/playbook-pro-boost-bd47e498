@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { logger } from "@/lib/logger";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -105,6 +106,10 @@ export function ResourcesManager() {
       if (error) throw error;
       setResources(data || []);
     } catch (error: any) {
+      logger.error("Erro ao carregar recursos", { 
+        action: "load_resources", 
+        metadata: { error: error.message } 
+      });
       toast({
         title: "Erro ao carregar recursos",
         description: error.message,
@@ -126,6 +131,10 @@ export function ResourcesManager() {
       if (error) throw error;
       setCategories(data || []);
     } catch (error: any) {
+      logger.error("Erro ao carregar categorias", { 
+        action: "load_categories", 
+        metadata: { error: error.message } 
+      });
       toast({
         title: "Erro ao carregar categorias",
         description: error.message,
@@ -241,6 +250,10 @@ export function ResourcesManager() {
       setIsDialogOpen(false);
       resetForm();
     } catch (error: any) {
+      logger.error("Erro ao salvar recurso", { 
+        action: "save_resource", 
+        metadata: { error: error.message, isEditing: !!editingResource } 
+      });
       toast({
         title: "Erro ao salvar recurso",
         description: error.message,
@@ -264,6 +277,10 @@ export function ResourcesManager() {
       toast({ title: "Recurso excluído com sucesso!" });
       loadResources();
     } catch (error: any) {
+      logger.error("Erro ao excluir recurso", { 
+        action: "delete_resource", 
+        metadata: { error: error.message, resourceId: resourceToDelete } 
+      });
       toast({
         title: "Erro ao excluir recurso",
         description: error.message,
