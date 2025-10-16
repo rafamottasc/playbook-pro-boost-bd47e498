@@ -163,6 +163,22 @@ export default function Calculator() {
     });
   };
 
+  const handleCalculateBalance = () => {
+    const result = calculate();
+    const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
+    
+    updateField("keysPayment", {
+      type: 'value',
+      value: remaining,
+      percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0
+    });
+    
+    toast({
+      title: "Saldo calculado!",
+      description: `R$ ${remaining.toLocaleString('pt-BR')} restantes`,
+    });
+  };
+
   const keysDisplayValue = data.keysPayment?.type === 'percentage' && data.keysPayment.percentage
     ? (data.keysPayment.percentage / 100) * data.propertyValue
     : data.keysPayment?.value || 0;
@@ -211,6 +227,85 @@ export default function Calculator() {
             <div className="lg:col-span-2 space-y-6">
               <BasicInfoSection data={data} onChange={updateField} />
               <DownPaymentSection data={data} onChange={updateField} />
+              
+              {/* Início da Obra */}
+              <Card className="bg-green-50/30 border-green-200 animate-fade-in">
+                <CardContent className="pt-6 space-y-4">
+                  <Label className="text-base mb-2 block">
+                    🏗️ Início da Obra (opcional)
+                  </Label>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button"
+                      variant={data.constructionStartPayment?.type === 'percentage' ? 'default' : 'outline'}
+                      onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'percentage' })}
+                      className="flex-1"
+                    >
+                      % Percentual
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={data.constructionStartPayment?.type === 'value' ? 'default' : 'outline'}
+                      onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'value' })}
+                      className="flex-1"
+                    >
+                      R$ Valor
+                    </Button>
+                  </div>
+
+                  {data.constructionStartPayment?.type === 'percentage' ? (
+                    <div>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="5"
+                        value={data.constructionStartPayment.percentage || ""}
+                        onChange={(e) => {
+                          const percentage = parseFloat(e.target.value) || 0;
+                          const calculatedValue = (percentage / 100) * data.propertyValue;
+                          updateField("constructionStartPayment", { 
+                            ...data.constructionStartPayment, 
+                            percentage, 
+                            value: calculatedValue 
+                          });
+                        }}
+                        className="text-xl h-14 text-center"
+                      />
+                      {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
+                        <p className="text-sm text-muted-foreground text-center mt-2">
+                          = R$ {((data.constructionStartPayment.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Input
+                        type="text"
+                        placeholder="R$ 50.000"
+                        value={data.constructionStartPayment?.value ? `R$ ${data.constructionStartPayment.value.toLocaleString("pt-BR")}` : ""}
+                        onChange={(e) => {
+                          const numbers = e.target.value.replace(/\D/g, "");
+                          const amount = parseInt(numbers || "0");
+                          const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+                          updateField("constructionStartPayment", {
+                            ...data.constructionStartPayment,
+                            value: amount,
+                            percentage: calculatedPercentage
+                          });
+                        }}
+                        className="text-xl h-14 text-center"
+                      />
+                      {data.propertyValue > 0 && data.constructionStartPayment?.value && (
+                        <p className="text-sm text-muted-foreground text-center mt-2">
+                          = {((data.constructionStartPayment.value / data.propertyValue) * 100).toFixed(1)}%
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <PaymentBlock type="monthly" data={data} onChange={updateField} />
               <PaymentBlock
                 type="semiannual"
@@ -242,6 +337,14 @@ export default function Calculator() {
                       className="flex-1"
                     >
                       R$ Valor
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="secondary"
+                      onClick={handleCalculateBalance}
+                      className="flex-1"
+                    >
+                      💰 Saldo
                     </Button>
                   </div>
 
@@ -303,24 +406,25 @@ export default function Calculator() {
               </div>
             </div>
 
-            {/* Summary Column (Desktop) */}
+            {/* Summary Column (Desktop) - Sticky Container */}
             <div className="hidden lg:block">
-              <FlowSummary result={result} />
-              <div className="mt-6 space-y-3">
-                <Button onClick={handleDownloadPDF} className="w-full" size="lg">
-                  <Download className="mr-2 h-5 w-5" />
-                  Baixar PDF
-                </Button>
-                <Button
-                  onClick={handleSaveProposal}
-                  variant="secondary"
-                  className="w-full"
-                  size="lg"
-                  disabled={isSaving}
-                >
-                  <Save className="mr-2 h-5 w-5" />
-                  {isSaving ? "Salvando..." : "Salvar Proposta"}
-                </Button>
+              <div className="sticky top-6 space-y-4">
+                <FlowSummary result={result} />
+                <div className="space-y-3">
+                  <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
+                    <Download className="mr-2 h-5 w-5" />
+                    Baixar PDF
+                  </Button>
+                  <Button
+                    onClick={handleSaveProposal}
+                    className="w-full"
+                    size="lg"
+                    disabled={isSaving}
+                  >
+                    <Save className="mr-2 h-5 w-5" />
+                    {isSaving ? "Salvando..." : "Salvar Proposta"}
+                  </Button>
+                </div>
               </div>
             </div>
 

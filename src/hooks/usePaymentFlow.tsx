@@ -12,6 +12,11 @@ export interface PaymentFlowData {
     value?: number;
     installments?: number;
   };
+  constructionStartPayment?: {
+    type: 'percentage' | 'value';
+    percentage?: number;
+    value?: number;
+  };
   monthly?: { 
     enabled: boolean; 
     count?: number; 
@@ -23,12 +28,14 @@ export interface PaymentFlowData {
     count?: number; 
     value?: number;
     percentage?: number;
+    autoCalculate?: boolean;
   };
   annualReinforcement?: { 
     enabled: boolean; 
     count?: number; 
     value?: number;
     percentage?: number;
+    autoCalculate?: boolean;
   };
   keysPayment?: {
     type: 'percentage' | 'value';
@@ -46,6 +53,10 @@ export interface CalculatedResult {
     value: number; 
     percentage: number;
     installmentValue?: number;
+  };
+  constructionStartPayment?: { 
+    value: number; 
+    percentage: number;
   };
   monthly?: { 
     count: number; 
@@ -126,6 +137,16 @@ export function usePaymentFlow() {
       ? downPaymentValue / data.downPayment.installments
       : undefined;
 
+    // 2.5 Calcular início da obra
+    let constructionStartValue = 0;
+    if (data.constructionStartPayment) {
+      if (data.constructionStartPayment.type === 'percentage' && data.constructionStartPayment.percentage) {
+        constructionStartValue = (data.constructionStartPayment.percentage / 100) * data.propertyValue;
+      } else if (data.constructionStartPayment.type === 'value' && data.constructionStartPayment.value) {
+        constructionStartValue = data.constructionStartPayment.value;
+      }
+    }
+
     // 3. Calcular reforços
     let totalSemiannual = 0;
     let semiannualValue = 0;
@@ -164,7 +185,7 @@ export function usePaymentFlow() {
     let totalMonthly = 0;
     if (data.monthly?.enabled && data.monthly.count) {
       if (data.monthly.autoCalculate) {
-        const remainingBalance = data.propertyValue - downPaymentValue - totalSemiannual - totalAnnual - keysValue;
+        const remainingBalance = data.propertyValue - downPaymentValue - constructionStartValue - totalSemiannual - totalAnnual - keysValue;
         monthlyValue = remainingBalance / data.monthly.count;
       } else if (data.monthly.value) {
         monthlyValue = data.monthly.value;
@@ -200,6 +221,7 @@ export function usePaymentFlow() {
     // 8. Calcular totais temporais
     const totalUntilDelivery = 
       downPaymentValue +
+      constructionStartValue +
       (monthlyValue * monthlyUntilDelivery) +
       (semiannualValue * semiannualUntilDelivery) +
       (annualValue * annualUntilDelivery);
@@ -210,7 +232,7 @@ export function usePaymentFlow() {
       (annualValue * annualAfterDelivery) +
       keysValue;
 
-    const totalPaid = downPaymentValue + totalMonthly + totalSemiannual + totalAnnual + keysValue;
+    const totalPaid = downPaymentValue + constructionStartValue + totalMonthly + totalSemiannual + totalAnnual + keysValue;
     const totalPercentage = data.propertyValue > 0 ? (totalPaid / data.propertyValue) * 100 : 0;
     const percentageUntilDelivery = data.propertyValue > 0 ? (totalUntilDelivery / data.propertyValue) * 100 : 0;
     const percentageAfterDelivery = data.propertyValue > 0 ? (totalAfterDelivery / data.propertyValue) * 100 : 0;
@@ -268,6 +290,14 @@ export function usePaymentFlow() {
         percentage: data.propertyValue > 0 ? (totalAnnual / data.propertyValue) * 100 : 0,
         untilDelivery: annualUntilDelivery,
         afterDelivery: annualAfterDelivery,
+      };
+    }
+
+    // Adicionar início da obra
+    if (constructionStartValue > 0) {
+      result.constructionStartPayment = {
+        value: constructionStartValue,
+        percentage: data.propertyValue > 0 ? (constructionStartValue / data.propertyValue) * 100 : 0,
       };
     }
 

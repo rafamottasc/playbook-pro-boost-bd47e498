@@ -10,10 +10,10 @@ export async function generateFlowPDF(
 ) {
   const doc = new jsPDF();
   
-  // Adicionar logo COMARC (top left)
+  // Adicionar logo COMARC (top left) - proporção corrigida
   const logoUrl = "/src/assets/logo-comarc.png";
   try {
-    doc.addImage(logoUrl, "PNG", 15, 10, 40, 15);
+    doc.addImage(logoUrl, "PNG", 15, 10, 45, 15);
   } catch (error) {
     console.log("Logo não carregado, continuando sem logo");
   }
@@ -43,7 +43,7 @@ export async function generateFlowPDF(
   if (hasPropertyDetails) {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text("📋 DADOS DO IMÓVEL", 15, yPosition);
+    doc.text("DADOS DO IMOVEL", 15, yPosition);
     yPosition += 7;
 
     doc.setFontSize(10);
@@ -86,23 +86,33 @@ export async function generateFlowPDF(
   // Tabela de condições
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("📊 CONDIÇÕES DE PAGAMENTO", 15, yPosition);
+  doc.text("CONDICOES DE PAGAMENTO", 15, yPosition);
   yPosition += 5;
 
   const tableData: any[] = [];
 
   // Entrada
   tableData.push([
-    "🏁 Entrada",
+    "Entrada",
     "1x",
     `R$ ${result.downPayment.value.toLocaleString("pt-BR")}`,
     `${result.downPayment.percentage.toFixed(1)}%`,
   ]);
 
+  // Início da Obra
+  if (result.constructionStartPayment && result.constructionStartPayment.value > 0) {
+    tableData.push([
+      "Inicio da Obra",
+      "1x",
+      `R$ ${result.constructionStartPayment.value.toLocaleString("pt-BR")}`,
+      `${result.constructionStartPayment.percentage.toFixed(1)}%`,
+    ]);
+  }
+
   // Mensais
   if (result.monthly) {
     tableData.push([
-      "📆 Mensais",
+      "Mensais",
       `${result.monthly.count}x`,
       `R$ ${result.monthly.value.toLocaleString("pt-BR")}`,
       `${result.monthly.percentage.toFixed(1)}%`,
@@ -110,29 +120,29 @@ export async function generateFlowPDF(
   }
 
   // Semestrais
-  if (result.semiannual) {
+  if (result.semiannualReinforcement) {
     tableData.push([
-      "🎯 Semestrais",
-      `${result.semiannual.count}x`,
-      `R$ ${result.semiannual.value.toLocaleString("pt-BR")}`,
-      `${result.semiannual.percentage.toFixed(1)}%`,
+      "Reforcos Semestrais",
+      `${result.semiannualReinforcement.count}x`,
+      `R$ ${result.semiannualReinforcement.value.toLocaleString("pt-BR")}`,
+      `${result.semiannualReinforcement.percentage.toFixed(1)}%`,
     ]);
   }
 
   // Anuais
-  if (result.annual) {
+  if (result.annualReinforcement) {
     tableData.push([
-      "🎯 Anuais",
-      `${result.annual.count}x`,
-      `R$ ${result.annual.value.toLocaleString("pt-BR")}`,
-      `${result.annual.percentage.toFixed(1)}%`,
+      "Reforcos Anuais",
+      `${result.annualReinforcement.count}x`,
+      `R$ ${result.annualReinforcement.value.toLocaleString("pt-BR")}`,
+      `${result.annualReinforcement.percentage.toFixed(1)}%`,
     ]);
   }
 
   // Chaves
   if (result.keysPayment && result.keysPayment.value > 0) {
     tableData.push([
-      "🔑 Chaves",
+      "Chaves",
       "1x",
       `R$ ${result.keysPayment.value.toLocaleString("pt-BR")}`,
       `${result.keysPayment.percentage.toFixed(1)}%`,
@@ -148,17 +158,43 @@ export async function generateFlowPDF(
   });
 
   // Total
-  const finalY = (doc as any).lastAutoTable.finalY + 10;
+  let finalY = (doc as any).lastAutoTable.finalY + 10;
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text(
-    `✅ TOTAL: R$ ${result.totalPaid.toLocaleString("pt-BR")} (${result.totalPercentage.toFixed(1)}%)`,
+    `TOTAL: R$ ${result.totalPaid.toLocaleString("pt-BR")} (${result.totalPercentage.toFixed(1)}%)`,
     15,
     finalY
   );
 
+  // Distribuição Temporal
+  finalY += 15;
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("DISTRIBUICAO TEMPORAL", 15, finalY);
+  finalY += 5;
+
+  autoTable(doc, {
+    startY: finalY,
+    head: [["Fase", "Valor", "Percentual"]],
+    body: [
+      [
+        "Ate Entrega",
+        `R$ ${result.timeline.totalUntilDelivery.toLocaleString("pt-BR")}`,
+        `${result.timeline.percentageUntilDelivery.toFixed(1)}%`
+      ],
+      [
+        "Apos Entrega",
+        `R$ ${result.timeline.totalAfterDelivery.toLocaleString("pt-BR")}`,
+        `${result.timeline.percentageAfterDelivery.toFixed(1)}%`
+      ]
+    ],
+    theme: "grid",
+    headStyles: { fillColor: [52, 152, 219] },
+  });
+
   // Rodapé
-  const footerY = finalY + 15;
+  const footerY = (doc as any).lastAutoTable.finalY + 15;
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100);

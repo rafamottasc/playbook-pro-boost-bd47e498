@@ -8,6 +8,7 @@ interface FlowSummaryProps {
 
 export function FlowSummary({ result }: FlowSummaryProps) {
   const isValid = Math.abs(result.totalPercentage - 100) < 5;
+  const remaining = Math.max(0, 100 - result.totalPercentage);
 
   return (
     <Card
@@ -31,12 +32,19 @@ export function FlowSummary({ result }: FlowSummaryProps) {
           <p
             className={cn(
               "text-sm font-medium",
-              isValid ? "text-green-600" : "text-yellow-600"
+              result.totalPercentage >= 99 && result.totalPercentage <= 101
+                ? "text-green-600"
+                : result.totalPercentage > 101
+                ? "text-red-600"
+                : "text-yellow-600"
             )}
           >
-            {isValid
+            {result.totalPercentage >= 99 && result.totalPercentage <= 101
               ? "✅ Valores fecham 100%"
-              : `⚠️ ${result.totalPercentage.toFixed(1)}%`}
+              : result.totalPercentage > 101
+              ? `⚠️ ${result.totalPercentage.toFixed(1)}% 🚨 Acima de 100%`
+              : `⚠️ ${result.totalPercentage.toFixed(1)}% 🚨 Falta ${remaining.toFixed(1)}%`
+            }
           </p>
         </div>
 
@@ -52,6 +60,16 @@ export function FlowSummary({ result }: FlowSummaryProps) {
             </div>
           )}
 
+          {result.constructionStartPayment && result.constructionStartPayment.value > 0 && (
+            <div className="flex justify-between text-sm">
+              <span>🏗️ Início da Obra:</span>
+              <span className="font-medium">
+                R$ {result.constructionStartPayment.value.toLocaleString("pt-BR")} (
+                {result.constructionStartPayment.percentage.toFixed(1)}%)
+              </span>
+            </div>
+          )}
+
           {result.monthly && (
             <div className="flex justify-between text-sm">
               <span>📆 Mensais:</span>
@@ -63,24 +81,26 @@ export function FlowSummary({ result }: FlowSummaryProps) {
             </div>
           )}
 
-          {result.semiannual && (
+          {result.semiannualReinforcement && (
             <div className="flex justify-between text-sm">
-              <span>🎯 Semestrais:</span>
+              <span>🎯 Reforços Semestrais:</span>
               <span className="font-medium">
-                {result.semiannual.count}x de R${" "}
-                {result.semiannual.value.toLocaleString("pt-BR")} (
-                {result.semiannual.percentage.toFixed(1)}%)
+                {result.semiannualReinforcement.count}x de {" "}
+                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {" "}
+                R$ {result.semiannualReinforcement.value.toLocaleString("pt-BR")} (
+                {result.semiannualReinforcement.percentage.toFixed(1)}% do total)
               </span>
             </div>
           )}
 
-          {result.annual && (
+          {result.annualReinforcement && (
             <div className="flex justify-between text-sm">
-              <span>🎯 Anuais:</span>
+              <span>🎯 Reforços Anuais:</span>
               <span className="font-medium">
-                {result.annual.count}x de R${" "}
-                {result.annual.value.toLocaleString("pt-BR")} (
-                {result.annual.percentage.toFixed(1)}%)
+                {result.annualReinforcement.count}x de {" "}
+                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {" "}
+                R$ {result.annualReinforcement.value.toLocaleString("pt-BR")} (
+                {result.annualReinforcement.percentage.toFixed(1)}% do total)
               </span>
             </div>
           )}
@@ -93,6 +113,32 @@ export function FlowSummary({ result }: FlowSummaryProps) {
                 {result.keysPayment.percentage.toFixed(1)}%)
               </span>
             </div>
+          )}
+        </div>
+
+        {/* Distribuição Temporal */}
+        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+          <p className="text-sm font-semibold text-blue-900 mb-3">📅 Distribuição Temporal</p>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-blue-700">Até Entrega:</span>
+              <span className="font-semibold text-blue-900">
+                R$ {result.timeline.totalUntilDelivery.toLocaleString("pt-BR")} (
+                {result.timeline.percentageUntilDelivery.toFixed(1)}%)
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-purple-700">Após Entrega:</span>
+              <span className="font-semibold text-purple-900">
+                R$ {result.timeline.totalAfterDelivery.toLocaleString("pt-BR")} (
+                {result.timeline.percentageAfterDelivery.toFixed(1)}%)
+              </span>
+            </div>
+          </div>
+          {result.timeline.percentageUntilDelivery < 50 && (
+            <p className="text-xs text-yellow-700 mt-2 p-2 bg-yellow-50 rounded">
+              ⚠️ Menos de 50% até entrega - risco maior para o cliente
+            </p>
           )}
         </div>
 
