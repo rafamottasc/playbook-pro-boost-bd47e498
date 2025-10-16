@@ -41,6 +41,7 @@ export interface PaymentFlowData {
     type: 'percentage' | 'value';
     percentage?: number;
     value?: number;
+    isSaldoMode?: boolean;
   };
   constructora?: string;
   empreendimento?: string;

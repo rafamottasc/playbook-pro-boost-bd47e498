@@ -39,12 +39,17 @@ export function FlowSummary({ result }: FlowSummaryProps) {
                 : "text-yellow-600"
             )}
           >
-            {result.totalPercentage >= 99 && result.totalPercentage <= 101
-              ? "✅ Valores fecham 100%"
-              : result.totalPercentage > 101
-              ? `⚠️ ${result.totalPercentage.toFixed(1)}% 🚨 Acima de 100%`
-              : `⚠️ ${result.totalPercentage.toFixed(1)}% 🚨 Falta ${remaining.toFixed(1)}%`
-            }
+            {result.totalPercentage >= 99 && result.totalPercentage <= 101 ? (
+              <span className="text-green-600">✅ Valores fecham 100%</span>
+            ) : result.totalPercentage > 101 ? (
+              <span className="text-red-600">⚠️ {result.totalPercentage.toFixed(1)}% 🚨 Acima de 100%</span>
+            ) : (
+              <>
+                <span className="text-green-600">⚠️ Pago {result.totalPercentage.toFixed(1)}%</span>
+                {" "}
+                <span className="text-red-600">🚨 Falta {remaining.toFixed(1)}%</span>
+              </>
+            )}
           </p>
         </div>
 

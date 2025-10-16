@@ -79,6 +79,16 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       downPaymentValue = data.downPayment.value;
     }
 
+    // Calcular valor de início da obra
+    let constructionStartValue = 0;
+    if (data.constructionStartPayment) {
+      if (data.constructionStartPayment.type === 'percentage' && data.constructionStartPayment.percentage) {
+        constructionStartValue = (data.constructionStartPayment.percentage / 100) * data.propertyValue;
+      } else if (data.constructionStartPayment.type === 'value' && data.constructionStartPayment.value) {
+        constructionStartValue = data.constructionStartPayment.value;
+      }
+    }
+
     let totalReinforcements = 0;
     if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count) {
       const value = data.semiannualReinforcement.value || 
@@ -100,7 +110,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       }
     }
 
-    const remainingBalance = data.propertyValue - downPaymentValue - totalReinforcements - keysValue;
+    const remainingBalance = data.propertyValue - downPaymentValue - constructionStartValue - totalReinforcements - keysValue;
     return remainingBalance / paymentData.count;
   };
 

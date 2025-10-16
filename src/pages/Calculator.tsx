@@ -26,6 +26,33 @@ export default function Calculator() {
 
   const result = calculate();
 
+  // Monitorar mudanças para recalcular saldo automaticamente
+  useEffect(() => {
+    if (data.keysPayment?.isSaldoMode) {
+      const timer = setTimeout(() => {
+        const result = calculate();
+        const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
+        
+        updateField('keysPayment', {
+          ...data.keysPayment,
+          type: 'value',
+          value: remaining,
+          percentage: (remaining / data.propertyValue) * 100,
+          isSaldoMode: true
+        });
+      }, 100); // Debounce de 100ms
+      
+      return () => clearTimeout(timer);
+    }
+  }, [
+    data.propertyValue,
+    data.downPayment,
+    data.constructionStartPayment,
+    data.monthly,
+    data.semiannualReinforcement,
+    data.annualReinforcement
+  ]);
+
   // Carregar proposta do histórico via location.state
   useEffect(() => {
     if (location.state?.loadedData) {
@@ -148,12 +175,13 @@ export default function Calculator() {
     updateField("keysPayment", {
       ...data.keysPayment,
       value: amount,
-      percentage: calculatedPercentage
+      percentage: calculatedPercentage,
+      isSaldoMode: false // Desativar modo automático
     });
   };
 
   const handleKeysTypeChange = (type: 'percentage' | 'value') => {
-    updateField("keysPayment", { ...data.keysPayment, type });
+    updateField("keysPayment", { ...data.keysPayment, type, isSaldoMode: false });
   };
 
   const handleKeysPercentageChange = (value: string) => {
@@ -162,7 +190,8 @@ export default function Calculator() {
     updateField("keysPayment", { 
       ...data.keysPayment, 
       percentage, 
-      value: calculatedValue 
+      value: calculatedValue,
+      isSaldoMode: false // Desativar modo automático
     });
   };
 
@@ -173,12 +202,13 @@ export default function Calculator() {
     updateField("keysPayment", {
       type: 'value',
       value: remaining,
-      percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0
+      percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+      isSaldoMode: true // Ativar modo saldo automático
     });
     
     toast({
       title: "Saldo calculado!",
-      description: `R$ ${remaining.toLocaleString('pt-BR')} restantes`,
+      description: `R$ ${remaining.toLocaleString('pt-BR')} (modo automático ativado)`,
       duration: 3000,
     });
   };
@@ -324,6 +354,13 @@ export default function Calculator() {
                   <Label className="text-base mb-2 block">
                     🔑 Pagamento na Entrega das Chaves (opcional)
                   </Label>
+                  
+                  {data.keysPayment?.isSaldoMode && (
+                    <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+                      <span>🔄</span>
+                      <span>Modo Saldo Automático - O valor será recalculado ao alterar outros campos</span>
+                    </div>
+                  )}
                   
                   <div className="flex gap-2">
                     <Button 
