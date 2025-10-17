@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { ThemePreview } from './ThemePreview';
 import { Palette, RotateCcw } from 'lucide-react';
 import { SketchPicker, ColorResult } from 'react-color';
 
@@ -186,9 +185,6 @@ export function ThemeManager() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Preview */}
-      <ThemePreview />
 
       {/* Ações */}
       <div className="flex flex-col sm:flex-row gap-3">
