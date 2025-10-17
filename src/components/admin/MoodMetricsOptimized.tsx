@@ -42,27 +42,20 @@ interface MoodData {
 }
 
 const moodLabels: Record<string, string> = {
-  great: "Ótimo",
-  good: "Bom",
-  okay: "Normal",
-  bad: "Ruim",
-  terrible: "Péssimo",
+  otimo: "Ótimo",
+  bem: "Bem",
+  neutro: "Neutro",
+  cansado: "Cansado",
+  dificil: "Difícil",
 };
 
 // Mapeamento de moods do banco (português) para variantes do componente (inglês)
 const moodVariantMap: Record<string, string> = {
   'otimo': 'great',
-  'great': 'great',
   'bem': 'good',
-  'good': 'good',
   'neutro': 'okay',
-  'normal': 'okay',
-  'okay': 'okay',
   'cansado': 'bad',
-  'ruim': 'bad',
-  'bad': 'bad',
-  'pessimo': 'terrible',
-  'terrible': 'terrible',
+  'dificil': 'terrible',
 };
 
 // Cores rotativas para times (verde, azul, laranja)
@@ -204,7 +197,7 @@ const MoodMetricsOptimized = React.memo(() => {
               <div key={mood} className="space-y-2">
                 <div className="flex items-center justify-end">
                   <span className="text-sm font-medium">
-                    {moodLabels[moodVariantMap[mood]] || moodLabels[mood] || mood}: {count} ({percentage.toFixed(1)}%)
+                    {moodLabels[mood] || mood}: {count} ({percentage.toFixed(1)}%)
                   </span>
                 </div>
                 <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-2" />
@@ -221,16 +214,33 @@ const MoodMetricsOptimized = React.memo(() => {
             <CardTitle>Comparação por Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {summary.teamMoods.map((teamMood, index) => (
-                <div key={teamMood.team} className="space-y-2">
-                  <div className="flex items-center justify-end">
-                    <span className="text-sm font-medium">{teamMood.team}: {teamMood.averageMood.toFixed(2)}</span>
-                  </div>
-                  <Progress value={(teamMood.averageMood / 5) * 100} variant={teamColors[index % teamColors.length]} className="h-2" />
+            {(() => {
+              // Calcular total de votos de todas as equipes
+              const totalVotes = summary.teamMoods.reduce((acc: number, team: any) => acc + (team.voteCount || 0), 0);
+              
+              return (
+                <div className="space-y-4">
+                  {summary.teamMoods.map((teamMood: any, index: number) => {
+                    const percentage = totalVotes > 0 ? (teamMood.voteCount / totalVotes) * 100 : 0;
+                    
+                    return (
+                      <div key={teamMood.team} className="space-y-2">
+                        <div className="flex items-center justify-end">
+                          <span className="text-sm font-medium">
+                            {teamMood.team}: {teamMood.voteCount} votos ({percentage.toFixed(1)}%)
+                          </span>
+                        </div>
+                        <Progress 
+                          value={percentage} 
+                          variant={teamColors[index % teamColors.length]} 
+                          className="h-2" 
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </CardContent>
         </Card>
       )}
