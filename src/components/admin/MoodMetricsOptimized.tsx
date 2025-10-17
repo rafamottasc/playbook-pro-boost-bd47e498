@@ -22,7 +22,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface MoodSummary {
   totalUsers: number;
@@ -69,23 +68,6 @@ const moodVariantMap: Record<string, string> = {
 // Cores rotativas para times (verde, azul, laranja)
 const teamColors = ['great', 'good', 'bad'] as const;
 
-// Helper function para cores dos moods (para gráfico de pizza)
-const getMoodColor = (mood: string) => {
-  const colors = {
-    great: '#22c55e',     // Verde
-    good: '#3b82f6',      // Azul
-    okay: '#eab308',      // Amarelo
-    bad: '#f97316',       // Laranja
-    terrible: '#ef4444',  // Vermelho
-  };
-  return colors[mood as keyof typeof colors] || '#3b82f6';
-};
-
-// Helper function para cores dos times (para gráfico de pizza)
-const getTeamColor = (index: number) => {
-  const colors = ['#22c55e', '#3b82f6', '#f97316', '#a855f7', '#ec4899', '#06b6d4'];
-  return colors[index % colors.length];
-};
 
 const MoodMetricsOptimized = React.memo(() => {
   const [loading, setLoading] = useState(true);
@@ -215,37 +197,20 @@ const MoodMetricsOptimized = React.memo(() => {
         <CardHeader>
           <CardTitle>Distribuição de Clima</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={Object.entries(summary.moodDistribution).map(([mood, count]) => ({
-                  name: moodLabels[mood],
-                  value: count,
-                  color: getMoodColor(mood),
-                  percentage: ((count / totalRecords) * 100).toFixed(1)
-                }))}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value, percentage }) => `${name}: ${value} (${percentage}%)`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {Object.entries(summary.moodDistribution).map(([mood], index) => (
-                  <Cell key={`cell-${index}`} fill={getMoodColor(mood)} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value: number) => [`${value} registros`, 'Quantidade']}
-                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-              />
-              <Legend 
-                formatter={(value: string, entry: any) => `${value}: ${entry.payload.value} (${entry.payload.percentage}%)`}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+        <CardContent className="space-y-4">
+          {Object.entries(summary.moodDistribution).map(([mood, count]) => {
+            const percentage = (count / totalRecords) * 100;
+            return (
+              <div key={mood} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {moodLabels[mood]}: {count} ({percentage.toFixed(1)}%)
+                  </span>
+                </div>
+                <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-2" />
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
@@ -256,36 +221,16 @@ const MoodMetricsOptimized = React.memo(() => {
             <CardTitle>Comparação por Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={summary.teamMoods.map((teamMood, index) => ({
-                    name: teamMood.team,
-                    value: teamMood.averageMood,
-                    color: getTeamColor(index),
-                    displayValue: teamMood.averageMood.toFixed(2)
-                  }))}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, displayValue }) => `${name}: ${displayValue}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {summary.teamMoods.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={getTeamColor(index)} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: number) => [`${value.toFixed(2)}/5.00`, 'Clima Médio']}
-                  contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                />
-                <Legend 
-                  formatter={(value: string, entry: any) => `${value}: ${entry.payload.displayValue}`}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {summary.teamMoods.map((teamMood, index) => (
+                <div key={teamMood.team} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{teamMood.team}: {teamMood.averageMood.toFixed(2)}</span>
+                  </div>
+                  <Progress value={(teamMood.averageMood / 5) * 100} variant={teamColors[index % teamColors.length]} className="h-2" />
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
