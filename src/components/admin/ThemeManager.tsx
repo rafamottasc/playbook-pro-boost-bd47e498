@@ -2,10 +2,52 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { ThemePreview } from './ThemePreview';
 import { Palette, RotateCcw } from 'lucide-react';
+import { SketchPicker, ColorResult } from 'react-color';
+
+// Funções de conversão HSL ↔ HEX
+function hslToHex(h: number, s: number, l: number): string {
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return { h: 0, s: 0, l: 0 };
+  
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+}
 
 const PRESET_COLORS = [
   { name: 'Dourado', hue: 38, sat: 75, light: 50 },
@@ -39,10 +81,16 @@ export function ThemeManager() {
     applyTheme(newColors); // Preview em tempo real
   };
 
-  const handleSliderChange = (field: 'hue' | 'saturation' | 'lightness', value: number) => {
-    const newColors = { ...preview, [field]: value };
+  const handleColorChange = (color: ColorResult) => {
+    const hsl = hexToHsl(color.hex);
+    // Aplicar limites de saturação e luminosidade
+    const newColors = {
+      hue: hsl.h,
+      saturation: Math.max(40, Math.min(100, hsl.s)),
+      lightness: Math.max(20, Math.min(70, hsl.l))
+    };
     setPreview(newColors);
-    applyTheme(newColors); // Preview em tempo real
+    applyTheme(newColors);
   };
 
   const handleSave = () => {
@@ -83,7 +131,7 @@ export function ThemeManager() {
           <CardTitle>Cores Pré-definidas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {PRESET_COLORS.map((preset) => (
               <Button
                 key={preset.name}
@@ -104,93 +152,61 @@ export function ThemeManager() {
         </CardContent>
       </Card>
 
-      {/* Ajuste Personalizado */}
+      {/* Seletor Visual de Cores */}
       <Card>
         <CardHeader>
-          <CardTitle>Ajuste Personalizado</CardTitle>
+          <CardTitle>Seletor Visual de Cores</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-8">
-            {/* Matiz */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Matiz (Cor Base)</Label>
-                <span className="text-sm font-mono bg-muted px-3 py-1 rounded">
-                  {preview.hue}°
-                </span>
-              </div>
-              <Slider
-                value={[preview.hue]}
-                onValueChange={([val]) => handleSliderChange('hue', val)}
-                min={0}
-                max={360}
-                step={1}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">
-                0° = Vermelho | 120° = Verde | 240° = Azul | 360° = Vermelho
-              </p>
-            </div>
-            
-            {/* Saturação */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Saturação (Intensidade)</Label>
-                <span className="text-sm font-mono bg-muted px-3 py-1 rounded">
-                  {preview.saturation}%
-                </span>
-              </div>
-              <Slider
-                value={[preview.saturation]}
-                onValueChange={([val]) => handleSliderChange('saturation', val)}
-                min={40}
-                max={100}
-                step={1}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">
-                Mínimo de 40% para evitar cores desbotadas
-              </p>
-            </div>
-            
-            {/* Luminosidade */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Luminosidade (Brilho)</Label>
-                <span className="text-sm font-mono bg-muted px-3 py-1 rounded">
-                  {preview.lightness}%
-                </span>
-              </div>
-              <Slider
-                value={[preview.lightness]}
-                onValueChange={([val]) => handleSliderChange('lightness', val)}
-                min={20}
-                max={70}
-                step={1}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">
-                20-70% para garantir contraste adequado com o texto
-              </p>
-            </div>
-
-            {/* Preview da cor atual */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Cor Atual</Label>
-              <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
-                <div
-                  className="w-20 h-20 rounded-lg shadow-lg border-2 border-background"
-                  style={{ 
-                    backgroundColor: `hsl(${preview.hue} ${preview.saturation}% ${preview.lightness}%)` 
-                  }}
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Color Picker */}
+              <div className="flex-shrink-0">
+                <SketchPicker
+                  color={hslToHex(preview.hue, preview.saturation, preview.lightness)}
+                  onChange={handleColorChange}
+                  disableAlpha
+                  presetColors={PRESET_COLORS.map(p => 
+                    hslToHex(p.hue, p.sat, p.light)
+                  )}
                 />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-mono">
-                    HSL({preview.hue}, {preview.saturation}%, {preview.lightness}%)
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Esta cor será aplicada em botões, badges, ícones, links e bordas
-                  </p>
+              </div>
+
+              {/* Preview e Informações */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <Label className="text-base font-semibold">Cor Atual</Label>
+                  <div className="mt-3 flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
+                    <div
+                      className="w-24 h-24 rounded-lg shadow-lg border-2 border-background flex-shrink-0"
+                      style={{ 
+                        backgroundColor: `hsl(${preview.hue} ${preview.saturation}% ${preview.lightness}%)` 
+                      }}
+                    />
+                    <div className="flex-1 space-y-2">
+                      <div className="space-y-1">
+                        <p className="text-sm font-mono font-semibold">
+                          {hslToHex(preview.hue, preview.saturation, preview.lightness).toUpperCase()}
+                        </p>
+                        <p className="text-xs font-mono text-muted-foreground">
+                          HSL({preview.hue}, {preview.saturation}%, {preview.lightness}%)
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Esta cor será aplicada em botões, badges, ícones, links e bordas por todo o sistema.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informações de Limites */}
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p className="text-xs font-semibold">ℹ️ Limites Aplicados:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Saturação: 40-100% (mínimo para evitar cores desbotadas)</li>
+                    <li>Luminosidade: 20-70% (para garantir contraste adequado)</li>
+                    <li>Matiz: 0-360° (todas as cores do espectro)</li>
+                  </ul>
                 </div>
               </div>
             </div>
