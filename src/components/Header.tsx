@@ -68,7 +68,7 @@ export const Header = React.memo(function Header() {
           </div>
           <div className="hidden sm:block">
             <h1 className="text-lg font-bold text-foreground">COMARC</h1>
-            <p className="text-xs text-muted-foreground">Central de Atendimento</p>
+            <p className="text-xs text-muted-foreground">Negócios Imobiliários</p>
           </div>
         </div>
 
