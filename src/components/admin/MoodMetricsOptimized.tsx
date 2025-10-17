@@ -49,6 +49,22 @@ const moodLabels: Record<string, string> = {
   terrible: "Péssimo",
 };
 
+// Mapeamento de moods do banco (português) para variantes do componente (inglês)
+const moodVariantMap: Record<string, string> = {
+  'otimo': 'great',
+  'great': 'great',
+  'bem': 'good',
+  'good': 'good',
+  'neutro': 'okay',
+  'normal': 'okay',
+  'okay': 'okay',
+  'cansado': 'bad',
+  'ruim': 'bad',
+  'bad': 'bad',
+  'pessimo': 'terrible',
+  'terrible': 'terrible',
+};
+
 
 const MoodMetricsOptimized = React.memo(() => {
   const [loading, setLoading] = useState(true);
@@ -117,7 +133,7 @@ const MoodMetricsOptimized = React.memo(() => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Clima Organizacional</h2>
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] text-foreground">
             <SelectValue placeholder="Período" />
           </SelectTrigger>
           <SelectContent>
@@ -189,7 +205,7 @@ const MoodMetricsOptimized = React.memo(() => {
                     {count} ({percentage.toFixed(1)}%)
                   </span>
                 </div>
-                <Progress value={percentage} variant={mood as any} className="h-2" />
+                <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-3" />
               </div>
             );
           })}
@@ -233,7 +249,7 @@ const MoodMetricsOptimized = React.memo(() => {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="w-[100px]">
+              <SelectTrigger className="w-[100px] text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -260,7 +276,7 @@ const MoodMetricsOptimized = React.memo(() => {
                 <TableRow key={`${mood.user_id}-${mood.created_at}-${index}`}>
                   <TableCell>{mood.full_name || "Usuário Desconhecido"}</TableCell>
                   <TableCell>
-                    <Badge variant={`mood-${mood.mood}` as any}>
+                    <Badge variant={`mood-${moodVariantMap[mood.mood] || 'okay'}` as any}>
                       {moodLabels[mood.mood] || mood.mood}
                     </Badge>
                   </TableCell>

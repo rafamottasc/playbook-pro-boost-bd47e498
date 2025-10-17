@@ -25,11 +25,21 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, Varian
 function Badge({ className, variant, ...props }: BadgeProps) {
   // Cores fixas para moods (não sobrescritas pelo tema)
   const moodStyles: Record<string, React.CSSProperties> = {
+    // Mood variants (inglês)
     'mood-great': { backgroundColor: 'hsl(142.1 76% 45%)', color: 'white', borderColor: 'transparent' },
     'mood-good': { backgroundColor: 'hsl(221.2 83% 53%)', color: 'white', borderColor: 'transparent' },
     'mood-okay': { backgroundColor: 'hsl(47.9 96% 53%)', color: 'black', borderColor: 'transparent' },
     'mood-bad': { backgroundColor: 'hsl(24.6 95% 53%)', color: 'white', borderColor: 'transparent' },
     'mood-terrible': { backgroundColor: 'hsl(0 84% 60%)', color: 'white', borderColor: 'transparent' },
+    // Mood variants (português - espelho dos ingleses)
+    'mood-otimo': { backgroundColor: 'hsl(142.1 76% 45%)', color: 'white', borderColor: 'transparent' },
+    'mood-bem': { backgroundColor: 'hsl(221.2 83% 53%)', color: 'white', borderColor: 'transparent' },
+    'mood-neutro': { backgroundColor: 'hsl(47.9 96% 53%)', color: 'black', borderColor: 'transparent' },
+    'mood-normal': { backgroundColor: 'hsl(47.9 96% 53%)', color: 'black', borderColor: 'transparent' },
+    'mood-cansado': { backgroundColor: 'hsl(24.6 95% 53%)', color: 'white', borderColor: 'transparent' },
+    'mood-ruim': { backgroundColor: 'hsl(24.6 95% 53%)', color: 'white', borderColor: 'transparent' },
+    'mood-pessimo': { backgroundColor: 'hsl(0 84% 60%)', color: 'white', borderColor: 'transparent' },
+    // Delivery types
     'delivery-text': { backgroundColor: 'hsl(210 100% 45%)', color: 'white', borderColor: 'transparent' },
     'delivery-audio': { backgroundColor: 'hsl(195 100% 50%)', color: 'white', borderColor: 'transparent' },
     'delivery-call': { backgroundColor: 'hsl(15 90% 55%)', color: 'white', borderColor: 'transparent' },
