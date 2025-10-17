@@ -196,7 +196,7 @@ const MoodMetricsOptimized = React.memo(() => {
                     {count} ({percentage.toFixed(1)}%)
                   </span>
                 </div>
-                <Progress value={percentage} className="h-2" />
+                <Progress value={percentage} variant={mood as any} className="h-2" />
               </div>
             );
           })}
@@ -219,7 +219,7 @@ const MoodMetricsOptimized = React.memo(() => {
                       {teamMood.averageMood.toFixed(2)}
                     </span>
                   </div>
-                  <Progress value={(teamMood.averageMood / 5) * 100} className="h-2" />
+                  <Progress value={(teamMood.averageMood / 5) * 100} variant="default" className="h-2" />
                 </div>
               ))}
             </div>
