@@ -4,6 +4,16 @@ import { PaymentFlowData, CalculatedResult } from "@/hooks/usePaymentFlow";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 
+// Helper function to load image and get its dimensions
+async function loadImageWithDimensions(url: string): Promise<{ img: HTMLImageElement; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ img, width: img.width, height: img.height });
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 export async function generateFlowPDF(
   data: PaymentFlowData,
   result: CalculatedResult,
@@ -11,12 +21,17 @@ export async function generateFlowPDF(
 ) {
   const doc = new jsPDF();
   
-  // Adicionar logo COMARC (top left) - proporção corrigida
-  const logoUrl = "/src/assets/logo-comarc.png";
+  // Adicionar logo COMARC (top left) - proporção automática
+  const logoUrl = "/logo-comarc.png"; // Caminho relativo ao public
   try {
-    doc.addImage(logoUrl, "PNG", 15, 10, 45, 15);
+    const { img, width, height } = await loadImageWithDimensions(logoUrl);
+    const aspectRatio = width / height;
+    const desiredWidth = 40; // Largura desejada em mm
+    const calculatedHeight = desiredWidth / aspectRatio; // Altura proporcional
+    
+    doc.addImage(img, "PNG", 15, 10, desiredWidth, calculatedHeight);
   } catch (error) {
-    console.log("Logo não carregado, continuando sem logo");
+    console.warn("Logo não pôde ser carregada:", error);
   }
 
   // Data no topo direito
