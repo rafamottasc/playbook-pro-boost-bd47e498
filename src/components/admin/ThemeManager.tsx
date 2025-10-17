@@ -125,33 +125,6 @@ export function ThemeManager() {
         </div>
       </div>
 
-      {/* Cores Pré-definidas */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Cores Pré-definidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {PRESET_COLORS.map((preset) => (
-              <Button
-                key={preset.name}
-                variant="outline"
-                className="h-24 flex flex-col items-center justify-center gap-2 hover:scale-105 transition-transform"
-                onClick={() => handlePresetClick(preset)}
-              >
-                <div
-                  className="w-14 h-14 rounded-full shadow-lg border-2 border-background"
-                  style={{ 
-                    backgroundColor: `hsl(${preset.hue} ${preset.sat}% ${preset.light}%)` 
-                  }}
-                />
-                <span className="text-xs font-medium text-center">{preset.name}</span>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Seletor Visual de Cores */}
       <Card>
         <CardHeader>
