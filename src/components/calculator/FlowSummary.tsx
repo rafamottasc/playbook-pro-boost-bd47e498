@@ -136,7 +136,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           {result.totalInCub && (
             <>
               <div className="flex justify-between text-sm">
-                <span>📊 Valor total CUB:</span>
+                <span>📊 Valor total em CUB:</span>
                 <span className="font-medium">
                   {result.totalInCub.toFixed(5)}
                 </span>

@@ -230,6 +230,12 @@ export async function generateFlowPDF(
         additionalY
       );
       additionalY += 5;
+      doc.text(
+        `*Valor corrigido pelo CUB/SC`,
+        15,
+        additionalY
+      );
+      additionalY += 5;
     }
 
     additionalY += 5;

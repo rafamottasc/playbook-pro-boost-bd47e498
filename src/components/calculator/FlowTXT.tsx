@@ -113,6 +113,7 @@ export function generateFlowTXT(
     
     if (result.totalInCub && result.cubValue) {
       txt += `📊 Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})\n`;
+      txt += `*Valor corrigido pelo CUB/SC\n`;
     }
     
     if (result.cubWarning) {
