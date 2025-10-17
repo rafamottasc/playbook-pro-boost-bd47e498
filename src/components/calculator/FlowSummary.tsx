@@ -123,6 +123,31 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               </span>
             </div>
           )}
+
+          {result.pricePerSqm && (
+            <div className="flex justify-between text-sm">
+              <span>📐 Valor total m²:</span>
+              <span className="font-medium">
+                R$ {result.pricePerSqm.toFixed(2)}
+              </span>
+            </div>
+          )}
+
+          {result.totalInCub && (
+            <>
+              <div className="flex justify-between text-sm">
+                <span>📊 Valor total CUB:</span>
+                <span className="font-medium">
+                  {result.totalInCub.toFixed(5)}
+                </span>
+              </div>
+              {result.cubWarning && (
+                <p className="text-xs text-yellow-600 mt-1">
+                  {result.cubWarning}
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         {/* Distribuição Temporal */}

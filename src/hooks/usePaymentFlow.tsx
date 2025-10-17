@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { differenceInMonths, parseISO } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface PaymentFlowData {
   propertyValue: number;
@@ -97,6 +98,10 @@ export interface CalculatedResult {
   };
   totalPaid: number;
   totalPercentage: number;
+  pricePerSqm?: number;
+  totalInCub?: number;
+  cubValue?: number;
+  cubWarning?: string;
   isValid: boolean;
   warnings: string[];
 }
@@ -113,6 +118,41 @@ export function usePaymentFlow() {
     annualReinforcement: { enabled: false, percentage: 8 },
     keysPayment: { type: 'percentage', percentage: 8, value: 0 },
   });
+
+  const [cubValue, setCubValue] = useState<number | null>(null);
+  const [cubWarning, setCubWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCub = async () => {
+      const now = new Date();
+      const { data: cubData } = await supabase
+        .from("cub_values")
+        .select("value, month, year")
+        .eq("month", now.getMonth() + 1)
+        .eq("year", now.getFullYear())
+        .maybeSingle();
+
+      if (cubData) {
+        setCubValue(cubData.value);
+        setCubWarning(null);
+      } else {
+        const { data: latest } = await supabase
+          .from("cub_values")
+          .select("value, month, year")
+          .order("year", { ascending: false })
+          .order("month", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latest) {
+          setCubValue(latest.value);
+          setCubWarning(`⚠️ Usando CUB de ${latest.month}/${latest.year}`);
+        }
+      }
+    };
+
+    fetchCub();
+  }, []);
 
   const calculate = (): CalculatedResult => {
     // 1. Calcular meses até entrega
@@ -335,6 +375,20 @@ export function usePaymentFlow() {
     }
 
     result.isValid = result.warnings.length === 0;
+
+    // 11. Calcular valor por m²
+    if (data.areaPrivativa && parseFloat(data.areaPrivativa) > 0) {
+      result.pricePerSqm = data.propertyValue / parseFloat(data.areaPrivativa);
+    }
+
+    // 12. Calcular CUB
+    if (cubValue) {
+      result.cubValue = cubValue;
+      result.totalInCub = data.propertyValue / cubValue;
+      if (cubWarning) {
+        result.cubWarning = cubWarning;
+      }
+    }
 
     return result;
   };

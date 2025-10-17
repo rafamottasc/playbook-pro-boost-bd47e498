@@ -62,7 +62,7 @@ export async function generateFlowPDF(
       yPosition += 5;
     }
     if (data.areaPrivativa) {
-      doc.text(`Área Privativa: ${data.areaPrivativa}`, 15, yPosition);
+      doc.text(`Área Privativa: ${data.areaPrivativa}m²`, 15, yPosition);
       yPosition += 5;
     }
 
@@ -196,8 +196,35 @@ export async function generateFlowPDF(
     headStyles: { fillColor: [52, 152, 219] },
   });
 
+  // Valores Adicionais (m² e CUB)
+  let additionalY = (doc as any).lastAutoTable.finalY + 15;
+  if (result.pricePerSqm || result.totalInCub) {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    
+    if (result.pricePerSqm) {
+      doc.text(
+        `Valor por m²: R$ ${result.pricePerSqm.toFixed(2)}/m²`,
+        15,
+        additionalY
+      );
+      additionalY += 5;
+    }
+    
+    if (result.totalInCub && result.cubValue) {
+      doc.text(
+        `Valor em CUB: ${result.totalInCub.toFixed(5)} CUB (Base: R$ ${result.cubValue.toFixed(2)})`,
+        15,
+        additionalY
+      );
+      additionalY += 5;
+    }
+
+    additionalY += 5;
+  }
+
   // Rodapé
-  const footerY = (doc as any).lastAutoTable.finalY + 15;
+  const footerY = additionalY;
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100);

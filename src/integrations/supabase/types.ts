@@ -387,6 +387,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cub_values: {
+        Row: {
+          created_at: string | null
+          id: string
+          month: number
+          updated_by: string | null
+          value: number
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          month: number
+          updated_by?: string | null
+          value: number
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          month?: number
+          updated_by?: string | null
+          value?: number
+          year?: number
+        }
+        Relationships: []
+      }
       daily_mood: {
         Row: {
           created_at: string

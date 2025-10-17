@@ -34,7 +34,7 @@ export function generateFlowTXT(
     txt += `Unidade: ${data.unidade}\n`;
   }
   if (data.areaPrivativa) {
-    txt += `Área Privativa: ${data.areaPrivativa}\n`;
+    txt += `Área Privativa: ${data.areaPrivativa}m²\n`;
   }
   if (data.deliveryDate) {
     txt += `Entrega: ${deliveryDate}\n`;
@@ -99,6 +99,28 @@ export function generateFlowTXT(
   txt += ` (${result.timeline.percentageUntilDelivery.toFixed(1)}%)\n`;
   txt += `✓ Após Entrega: R$ ${result.timeline.totalAfterDelivery.toLocaleString("pt-BR")}`;
   txt += ` (${result.timeline.percentageAfterDelivery.toFixed(1)}%)\n\n`;
+
+  // Valores adicionais (m² e CUB)
+  if (result.pricePerSqm || result.totalInCub) {
+    txt += `━━━━━━━\n`;
+    txt += `📊 VALORES ADICIONAIS\n`;
+    txt += `━━━━━━━\n`;
+    
+    if (result.pricePerSqm) {
+      txt += `📐 Valor por m²: R$ ${result.pricePerSqm.toFixed(2)}/m²\n`;
+    }
+    
+    if (result.totalInCub && result.cubValue) {
+      txt += `📊 Valor em CUB: ${result.totalInCub.toFixed(5)} CUB\n`;
+      txt += `   (Base: R$ ${result.cubValue.toFixed(2)})\n`;
+    }
+    
+    if (result.cubWarning) {
+      txt += `\n⚠️ ${result.cubWarning}\n`;
+    }
+    
+    txt += `\n`;
+  }
 
   txt += `━━━━━━━\n`;
   txt += `ℹ️ Informações\n`;
