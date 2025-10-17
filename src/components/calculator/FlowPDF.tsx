@@ -21,36 +21,32 @@ export async function generateFlowPDF(
 ) {
   const doc = new jsPDF();
   
-  // Adicionar logo COMARC (top left) - proporção automática
+  // Adicionar logo COMARC (centralizada) - proporção automática
   const logoUrl = "/logo-comarc.png"; // Caminho relativo ao public
   try {
     const { img, width, height } = await loadImageWithDimensions(logoUrl);
     const aspectRatio = width / height;
     const desiredWidth = 40; // Largura desejada em mm
     const calculatedHeight = desiredWidth / aspectRatio; // Altura proporcional
+    const xPosition = (210 - desiredWidth) / 2; // Centralizar (A4 tem 210mm de largura)
     
-    doc.addImage(img, "PNG", 15, 10, desiredWidth, calculatedHeight);
+    doc.addImage(img, "PNG", xPosition, 10, desiredWidth, calculatedHeight);
   } catch (error) {
     console.warn("Logo não pôde ser carregada:", error);
   }
-
-  // Data no topo direito
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Data: ${format(new Date(), "dd/MM/yyyy")}`, 195, 15, { align: "right" });
 
   // Título
   doc.setFontSize(18);
   doc.setTextColor(0);
   doc.setFont("helvetica", "bold");
-  doc.text("PROPOSTA DE PAGAMENTO", 105, 35, { align: "center" });
+  doc.text("PROPOSTA DE PAGAMENTO", 105, 50, { align: "center" });
 
   // Nome do cliente
   doc.setFontSize(14);
   doc.setFont("helvetica", "normal");
-  doc.text(`Cliente: ${data.clientName}`, 15, 45);
+  doc.text(`Cliente: ${data.clientName}`, 15, 60);
 
-  let yPosition = 55;
+  let yPosition = 70;
 
   // Dados do Imóvel (se preenchidos)
   const hasPropertyDetails =
