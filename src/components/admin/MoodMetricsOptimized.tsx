@@ -65,6 +65,9 @@ const moodVariantMap: Record<string, string> = {
   'terrible': 'terrible',
 };
 
+// Cores rotativas para times (verde, azul, laranja)
+const teamColors = ['great', 'good', 'bad'] as const;
+
 
 const MoodMetricsOptimized = React.memo(() => {
   const [loading, setLoading] = useState(true);
@@ -134,7 +137,7 @@ const MoodMetricsOptimized = React.memo(() => {
         <h2 className="text-2xl font-bold">Clima Organizacional</h2>
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-[180px] text-foreground">
-            <SelectValue placeholder="Período" />
+            <SelectValue placeholder="Período" className="text-foreground" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="7">Últimos 7 dias</SelectItem>
@@ -220,7 +223,7 @@ const MoodMetricsOptimized = React.memo(() => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {summary.teamMoods.map((teamMood) => (
+              {summary.teamMoods.map((teamMood, index) => (
                 <div key={teamMood.team} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{teamMood.team}</span>
@@ -228,7 +231,7 @@ const MoodMetricsOptimized = React.memo(() => {
                       {teamMood.averageMood.toFixed(2)}
                     </span>
                   </div>
-                  <Progress value={(teamMood.averageMood / 5) * 100} variant="default" className="h-2" />
+                  <Progress value={(teamMood.averageMood / 5) * 100} variant={teamColors[index % teamColors.length]} className="h-2" />
                 </div>
               ))}
             </div>
@@ -250,7 +253,7 @@ const MoodMetricsOptimized = React.memo(() => {
               }}
             >
               <SelectTrigger className="w-[100px] text-foreground">
-                <SelectValue />
+                <SelectValue className="text-foreground" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="10">10</SelectItem>
