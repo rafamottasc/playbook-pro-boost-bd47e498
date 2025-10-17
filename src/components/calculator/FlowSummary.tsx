@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { CalculatedResult } from "@/hooks/usePaymentFlow";
 
 interface FlowSummaryProps {
@@ -128,7 +128,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
             <div className="flex justify-between text-sm">
               <span>📐 Valor total m²:</span>
               <span className="font-medium">
-                R$ {result.pricePerSqm.toFixed(2)}
+                R$ {formatCurrency(result.pricePerSqm)}
               </span>
             </div>
           )}

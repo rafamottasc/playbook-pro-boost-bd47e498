@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calculator, TrendingUp, Calendar } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface CubValue {
   id: string;
@@ -52,7 +53,9 @@ export function CubManager() {
   };
 
   const handleUpdateCub = async () => {
-    const value = parseFloat(newValue.replace(",", "."));
+    // Remove pontos (separador de milhar) e converte vírgula em ponto (decimal)
+    const cleanValue = newValue.replace(/\./g, "").replace(",", ".");
+    const value = parseFloat(cleanValue);
     
     if (isNaN(value) || value <= 0) {
       toast({
@@ -79,6 +82,8 @@ export function CubManager() {
           year, 
           value,
           updated_by: userData.user?.id 
+        }, {
+          onConflict: 'month,year'
         });
 
       if (error) throw error;
@@ -127,7 +132,7 @@ export function CubManager() {
             <div className="space-y-4">
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-primary">
-                  R$ {currentCub.value.toFixed(2)}
+                  R$ {formatCurrency(currentCub.value)}
                 </span>
                 <span className="text-muted-foreground">
                   {monthName(currentCub.month)}/{currentCub.year}
@@ -206,7 +211,7 @@ export function CubManager() {
                     <TableCell className="font-medium">
                       {monthName(item.month)}/{item.year}
                     </TableCell>
-                    <TableCell>R$ {item.value.toFixed(2)}</TableCell>
+                    <TableCell>R$ {formatCurrency(item.value)}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {format(new Date(item.created_at), "dd/MM/yyyy")}
                     </TableCell>

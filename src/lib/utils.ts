@@ -25,3 +25,11 @@ export function formatPhone(phone: string): string {
 export function unformatPhone(phone: string): string {
   return phone.replace(/\D/g, "");
 }
+
+// Formata valores monetários no padrão brasileiro
+export function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
