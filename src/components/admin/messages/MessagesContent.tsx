@@ -121,7 +121,7 @@ function SortableMessageCard({
                   <Badge variant="outline">{funnelName}</Badge>
                   <Badge variant="secondary">{message.stage_name}</Badge>
                   {message.delivery_type && (
-                    <Badge variant="default" className="capitalize">
+                    <Badge variant={`delivery-${message.delivery_type}` as any} className="capitalize">
                       {message.delivery_type === 'audio' ? '🎵 Áudio' : 
                        message.delivery_type === 'call' ? '📞 Ligação' : 
                        '💬 Texto'}

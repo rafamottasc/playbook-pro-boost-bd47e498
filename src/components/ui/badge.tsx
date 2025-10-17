@@ -25,11 +25,14 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, Varian
 function Badge({ className, variant, ...props }: BadgeProps) {
   // Cores fixas para moods (não sobrescritas pelo tema)
   const moodStyles: Record<string, React.CSSProperties> = {
-    'mood-great': { backgroundColor: 'hsl(142.1 70% 45%)', color: 'white', borderColor: 'transparent' },
-    'mood-good': { backgroundColor: 'hsl(221.2 83.2% 58%)', color: 'white', borderColor: 'transparent' },
-    'mood-okay': { backgroundColor: 'hsl(47.9 95.8% 55%)', color: 'white', borderColor: 'transparent' },
-    'mood-bad': { backgroundColor: 'hsl(24.6 95% 58%)', color: 'white', borderColor: 'transparent' },
-    'mood-terrible': { backgroundColor: 'hsl(0 84.2% 65%)', color: 'white', borderColor: 'transparent' },
+    'mood-great': { backgroundColor: 'hsl(142.1 76% 45%)', color: 'white', borderColor: 'transparent' },
+    'mood-good': { backgroundColor: 'hsl(221.2 83% 53%)', color: 'white', borderColor: 'transparent' },
+    'mood-okay': { backgroundColor: 'hsl(47.9 96% 53%)', color: 'black', borderColor: 'transparent' },
+    'mood-bad': { backgroundColor: 'hsl(24.6 95% 53%)', color: 'white', borderColor: 'transparent' },
+    'mood-terrible': { backgroundColor: 'hsl(0 84% 60%)', color: 'white', borderColor: 'transparent' },
+    'delivery-text': { backgroundColor: 'hsl(210 100% 50%)', color: 'white', borderColor: 'transparent' },
+    'delivery-audio': { backgroundColor: 'hsl(280 100% 50%)', color: 'white', borderColor: 'transparent' },
+    'delivery-call': { backgroundColor: 'hsl(120 100% 35%)', color: 'white', borderColor: 'transparent' },
   };
 
   const style = variant && moodStyles[variant as string] ? moodStyles[variant as string] : undefined;
