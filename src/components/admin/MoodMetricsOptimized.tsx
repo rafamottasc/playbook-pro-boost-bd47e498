@@ -202,9 +202,9 @@ const MoodMetricsOptimized = React.memo(() => {
             const percentage = (count / totalRecords) * 100;
             return (
               <div key={mood} className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-end">
                   <span className="text-sm font-medium">
-                    {moodLabels[mood]}: {count} ({percentage.toFixed(1)}%)
+                    {moodLabels[moodVariantMap[mood]] || moodLabels[mood] || mood}: {count} ({percentage.toFixed(1)}%)
                   </span>
                 </div>
                 <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-2" />
@@ -224,7 +224,7 @@ const MoodMetricsOptimized = React.memo(() => {
             <div className="space-y-4">
               {summary.teamMoods.map((teamMood, index) => (
                 <div key={teamMood.team} className="space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-end">
                     <span className="text-sm font-medium">{teamMood.team}: {teamMood.averageMood.toFixed(2)}</span>
                   </div>
                   <Progress value={(teamMood.averageMood / 5) * 100} variant={teamColors[index % teamColors.length]} className="h-2" />
