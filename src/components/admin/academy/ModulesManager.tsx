@@ -10,6 +10,7 @@ import { Plus, Pencil, Trash2, GraduationCap, Eye, EyeOff, ChevronLeft, ChevronR
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { resizeImage, validateImageFile } from "@/lib/imageUtils";
+import { cn } from "@/lib/utils";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   Dialog,
@@ -440,9 +441,10 @@ export function ModulesManager() {
               variant="ghost"
               size="icon"
               onClick={scrollPrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-r from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Módulo anterior"
+              className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-primary/90 hover:bg-primary text-white shadow-2xl opacity-0 md:opacity-90 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
             >
-              <ChevronLeft className="h-8 w-8" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
           )}
           
@@ -538,10 +540,30 @@ export function ModulesManager() {
               variant="ghost"
               size="icon"
               onClick={scrollNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-full w-12 rounded-none bg-gradient-to-l from-background to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Próximo módulo"
+              className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-primary/90 hover:bg-primary text-white shadow-2xl opacity-0 md:opacity-90 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
             >
-              <ChevronRight className="h-8 w-8" />
+              <ChevronRight className="h-6 w-6" />
             </Button>
+          )}
+
+          {/* Carousel indicators */}
+          {filteredModules.length > 1 && (
+            <div className="flex justify-center gap-2 mt-4">
+              {filteredModules.map((module, index) => (
+                <button
+                  key={module.id}
+                  onClick={() => emblaApi?.scrollTo(index)}
+                  className={cn(
+                    "h-2 rounded-full transition-all",
+                    emblaApi?.selectedScrollSnap() === index 
+                      ? "w-8 bg-primary" 
+                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  )}
+                  aria-label={`Ir para módulo ${index + 1}`}
+                />
+              ))}
+            </div>
           )}
         </div>
       )}
