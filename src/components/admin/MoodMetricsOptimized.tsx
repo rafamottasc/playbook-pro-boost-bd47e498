@@ -63,7 +63,8 @@ const teamColors = ['great', 'good', 'bad'] as const;
 
 
 const MoodMetricsOptimized = React.memo(() => {
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
   const [period, setPeriod] = useState("30");
   const [recordsPerPage, setRecordsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
@@ -117,7 +118,11 @@ const MoodMetricsOptimized = React.memo(() => {
 
   const loadMoodData = async () => {
     try {
-      setLoading(true);
+      if (initialLoading) {
+        setInitialLoading(true);
+      } else {
+        setFilterLoading(true);
+      }
       
       const offset = (currentPage - 1) * recordsPerPage;
       
@@ -141,13 +146,14 @@ const MoodMetricsOptimized = React.memo(() => {
     } catch (error) {
       console.error("Error loading mood data:", error);
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
+      setFilterLoading(false);
     }
   };
 
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-12 w-full" />
@@ -219,65 +225,68 @@ const MoodMetricsOptimized = React.memo(() => {
         </Card>
       </div>
 
-      {/* Mood Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Distribuição de Clima</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(summary.moodDistribution).map(([mood, count]) => {
-            const percentage = (count / totalRecords) * 100;
-            return (
-              <div key={mood} className="space-y-2">
-                <div className="flex items-center justify-end">
-                  <span className="text-sm font-medium">
-                    {moodLabels[mood] || mood}: {count} ({percentage.toFixed(1)}%)
-                  </span>
-                </div>
-                <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-2" />
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      {/* Team Comparison */}
-      {summary.teamMoods && summary.teamMoods.length > 0 && (
+      {/* Mood Distribution & Team Comparison - Side by side on desktop */}
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+        {/* Mood Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Comparação por Time</CardTitle>
+            <CardTitle>Distribuição de Clima</CardTitle>
           </CardHeader>
-          <CardContent>
-            {(() => {
-              // Calcular total de votos de todas as equipes
-              const totalVotes = summary.teamMoods.reduce((acc: number, team: any) => acc + (team.voteCount || 0), 0);
-              
+          <CardContent className="space-y-4">
+            {Object.entries(summary.moodDistribution).map(([mood, count]) => {
+              const percentage = (count / totalRecords) * 100;
               return (
-                <div className="space-y-4">
-                  {summary.teamMoods.map((teamMood: any, index: number) => {
-                    const percentage = totalVotes > 0 ? (teamMood.voteCount / totalVotes) * 100 : 0;
-                    
-                    return (
-                      <div key={teamMood.team} className="space-y-2">
-                        <div className="flex items-center justify-end">
-                          <span className="text-sm font-medium">
-                            {teamMood.team}: {teamMood.voteCount} votos ({percentage.toFixed(1)}%)
-                          </span>
-                        </div>
-                        <Progress 
-                          value={percentage} 
-                          variant={teamColors[index % teamColors.length]} 
-                          className="h-2" 
-                        />
-                      </div>
-                    );
-                  })}
+                <div key={mood} className="space-y-2">
+                  <div className="flex items-center justify-end">
+                    <span className="text-sm font-medium">
+                      {moodLabels[mood] || mood}: {count} ({percentage.toFixed(1)}%)
+                    </span>
+                  </div>
+                  <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-2" />
                 </div>
               );
-            })()}
+            })}
           </CardContent>
         </Card>
-      )}
+
+        {/* Team Comparison */}
+        {summary.teamMoods && summary.teamMoods.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Comparação por Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                // Calcular total de votos de todas as equipes
+                const totalVotes = summary.teamMoods.reduce((acc: number, team: any) => acc + (team.voteCount || 0), 0);
+                
+                return (
+                  <div className="space-y-4">
+                    {summary.teamMoods.map((teamMood: any, index: number) => {
+                      const percentage = totalVotes > 0 ? (teamMood.voteCount / totalVotes) * 100 : 0;
+                      
+                      return (
+                        <div key={teamMood.team} className="space-y-2">
+                          <div className="flex items-center justify-end">
+                            <span className="text-sm font-medium">
+                              {teamMood.team}: {teamMood.voteCount} votos ({percentage.toFixed(1)}%)
+                            </span>
+                          </div>
+                          <Progress 
+                            value={percentage} 
+                            variant={teamColors[index % teamColors.length]} 
+                            className="h-2" 
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Recent Moods Table */}
       <Card>
@@ -357,8 +366,8 @@ const MoodMetricsOptimized = React.memo(() => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className={filterLoading ? "opacity-50 transition-opacity" : ""}>
+          <Table key={`${selectedUserId}-${selectedTeam}-${currentPage}`}>
             <TableHeader>
               <TableRow>
                 <TableHead>Usuário</TableHead>
