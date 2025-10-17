@@ -200,47 +200,22 @@ export function AcademyMetrics() {
           </Card>
         )}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Conclusão</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.completionRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              das aulas visualizadas
-            </p>
-          </CardContent>
-        </Card>
+        {metrics.topUsers.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Corretores Mais Ativos</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">#{1}</div>
+              <p className="text-xs text-muted-foreground">
+                {metrics.topUsers[0]?.full_name}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {metrics.topUsers.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Corretores Mais Ativos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {metrics.topUsers.map((user, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold text-muted-foreground">
-                      #{index + 1}
-                    </span>
-                    <span className="font-medium">{user.full_name}</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {user.completions} {user.completions === 1 ? 'aula' : 'aulas'} concluídas
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
