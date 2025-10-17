@@ -116,7 +116,7 @@ export function AcademyMetrics() {
       <div>
         <h3 className="text-xl font-semibold mb-6">Métricas da Academy</h3>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-32" />
@@ -187,18 +187,31 @@ export function AcademyMetrics() {
         </Card>
 
         {metrics.topModule && (
-          <Card className="md:col-span-2">
-            <CardHeader>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Módulo Mais Popular</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xl font-bold">{metrics.topModule.title}</div>
+              <div className="text-2xl font-bold">{metrics.topModule.title}</div>
               <p className="text-xs text-muted-foreground">
                 {metrics.topModule.views} visualizações
               </p>
             </CardContent>
           </Card>
         )}
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Taxa de Conclusão</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.completionRate}%</div>
+            <p className="text-xs text-muted-foreground">
+              das aulas visualizadas
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {metrics.topUsers.length > 0 && (
