@@ -5,6 +5,7 @@ import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface BasicInfoSectionProps {
   data: PaymentFlowData;
@@ -13,8 +14,7 @@ interface BasicInfoSectionProps {
 
 export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
   const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const amount = parseInt(numbers || "0");
+    const amount = parseCurrencyInput(value);
     onChange("propertyValue", amount);
   };
 
@@ -47,7 +47,7 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           <Input
             type="text"
             placeholder="R$ 1.600.000,00"
-            value={data.propertyValue ? `R$ ${data.propertyValue.toLocaleString("pt-BR")}` : ""}
+            value={data.propertyValue ? `R$ ${formatCurrencyInput(data.propertyValue)}` : ""}
             onChange={(e) => formatCurrency(e.target.value)}
             className="text-lg h-11 font-semibold"
           />

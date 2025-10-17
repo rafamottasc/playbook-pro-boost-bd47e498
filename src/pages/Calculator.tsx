@@ -17,6 +17,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
+import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 export default function Calculator() {
   const navigate = useNavigate();
@@ -214,8 +215,7 @@ export default function Calculator() {
   };
 
   const formatKeysPayment = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const amount = parseInt(numbers || "0");
+    const amount = parseCurrencyInput(value);
     const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
     updateField("keysPayment", {
       ...data.keysPayment,
@@ -349,11 +349,10 @@ export default function Calculator() {
                     <div>
                       <Input
                         type="text"
-                        placeholder="R$ 50.000"
-                        value={data.constructionStartPayment?.value ? `R$ ${data.constructionStartPayment.value.toLocaleString("pt-BR")}` : ""}
+                        placeholder="R$ 50.000,00"
+                        value={data.constructionStartPayment?.value ? `R$ ${formatCurrencyInput(data.constructionStartPayment.value)}` : ""}
                         onChange={(e) => {
-                          const numbers = e.target.value.replace(/\D/g, "");
-                          const amount = parseInt(numbers || "0");
+                          const amount = parseCurrencyInput(e.target.value);
                           const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
                           updateField("constructionStartPayment", {
                             ...data.constructionStartPayment,
@@ -442,8 +441,8 @@ export default function Calculator() {
                     <div>
                       <Input
                         type="text"
-                        placeholder="R$ 128.000"
-                        value={data.keysPayment?.value ? `R$ ${data.keysPayment.value.toLocaleString("pt-BR")}` : ""}
+                        placeholder="R$ 128.000,00"
+                        value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
                         onChange={(e) => formatKeysPayment(e.target.value)}
                         className="text-base h-11 text-center"
                       />

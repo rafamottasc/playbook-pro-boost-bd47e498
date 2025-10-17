@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface DownPaymentSectionProps {
   data: PaymentFlowData;
@@ -26,8 +26,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   };
 
   const handleValueChange = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const amount = parseInt(numbers || "0");
+    const amount = parseCurrencyInput(value);
     const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
     onChange("downPayment", { 
       ...data.downPayment, 
@@ -106,8 +105,8 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
           <div>
             <Input
               type="text"
-              placeholder="R$ 160.000"
-              value={data.downPayment.value ? `R$ ${data.downPayment.value.toLocaleString("pt-BR")}` : ""}
+              placeholder="R$ 160.000,00"
+              value={data.downPayment.value ? `R$ ${formatCurrencyInput(data.downPayment.value)}` : ""}
               onChange={(e) => handleValueChange(e.target.value)}
               className="text-lg h-11 font-semibold text-center"
             />

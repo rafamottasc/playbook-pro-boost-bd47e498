@@ -61,3 +61,19 @@ export function divideIntoInstallments(total: number, count: number): number[] {
   
   return installments;
 }
+
+// Formata input de moeda considerando centavos
+export function parseCurrencyInput(value: string): number {
+  const numbers = value.replace(/\D/g, "");
+  // Os últimos 2 dígitos são centavos
+  const amount = parseInt(numbers || "0") / 100;
+  return amount;
+}
+
+// Formata para exibição no input
+export function formatCurrencyInput(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}

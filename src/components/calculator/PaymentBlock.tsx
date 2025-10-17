@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
+import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface PaymentBlockProps {
   type: "monthly" | "semiannual" | "annual";
@@ -53,8 +54,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
   };
 
   const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const amount = parseInt(numbers || "0");
+    const amount = parseCurrencyInput(value);
     onChange(fieldName, { ...paymentData, value: amount });
   };
 
@@ -199,10 +199,10 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
               <Label className="mb-2">Valor de cada reforço</Label>
               <Input
                 type="text"
-                placeholder="R$ 80.000"
+                placeholder="R$ 80.000,00"
                 value={
                   paymentData.value
-                    ? `R$ ${paymentData.value.toLocaleString("pt-BR")}`
+                    ? `R$ ${formatCurrencyInput(paymentData.value)}`
                     : ""
                 }
                 onChange={(e) => formatCurrency(e.target.value)}
@@ -222,7 +222,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                 placeholder="R$ 11.840,00"
                 value={
                   paymentData.value
-                    ? `R$ ${paymentData.value.toLocaleString("pt-BR")}`
+                    ? `R$ ${formatCurrencyInput(paymentData.value)}`
                     : ""
                 }
                 onChange={(e) => formatCurrency(e.target.value)}
