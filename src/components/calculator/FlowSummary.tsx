@@ -99,7 +99,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <span>🎯 Reforços Semestrais:</span>
               <span className="font-medium">
                 {result.semiannualReinforcement.count}x de {" "}
-                {Math.round((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100))}% = R$ {result.semiannualReinforcement.value.toLocaleString("pt-BR")} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
+                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {result.semiannualReinforcement.value.toLocaleString("pt-BR")} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
               </span>
             </div>
           )}
@@ -109,7 +109,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <span>🎯 Reforços Anuais:</span>
               <span className="font-medium">
                 {result.annualReinforcement.count}x de {" "}
-                {Math.round((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100))}% = R$ {result.annualReinforcement.value.toLocaleString("pt-BR")} ({result.annualReinforcement.percentage.toFixed(1)}%)
+                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {result.annualReinforcement.value.toLocaleString("pt-BR")} ({result.annualReinforcement.percentage.toFixed(1)}%)
               </span>
             </div>
           )}
