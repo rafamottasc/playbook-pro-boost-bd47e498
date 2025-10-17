@@ -499,7 +499,7 @@ export function UsersManager() {
           </div>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           {paginatedUsers.map((user) => {
             const isExpanded = expandedUsers.has(user.id);
             const activityStatus = getLastActivityStatus(user.last_sign_in_at);
