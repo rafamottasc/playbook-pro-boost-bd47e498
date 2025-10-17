@@ -68,6 +68,10 @@ const MoodMetricsOptimized = React.memo(() => {
   const [recordsPerPage, setRecordsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [users, setUsers] = useState<Array<{ id: string; full_name: string }>>([]);
+  const [teams, setTeams] = useState<string[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   
   const [summary, setSummary] = useState<MoodSummary>({
     totalUsers: 0,
@@ -80,8 +84,36 @@ const MoodMetricsOptimized = React.memo(() => {
   const [recentMoods, setRecentMoods] = useState<MoodData[]>([]);
 
   useEffect(() => {
+    loadUsers();
+    loadTeams();
+  }, []);
+
+  useEffect(() => {
     loadMoodData();
-  }, [period, recordsPerPage, currentPage]);
+  }, [period, recordsPerPage, currentPage, selectedUserId, selectedTeam]);
+
+  const loadUsers = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('approved', true)
+      .order('full_name');
+    
+    if (data) setUsers(data);
+  };
+
+  const loadTeams = async () => {
+    const { data } = await supabase
+      .from('daily_mood')
+      .select('team')
+      .not('team', 'is', null)
+      .order('team');
+    
+    if (data) {
+      const uniqueTeams = [...new Set(data.map(d => d.team).filter(Boolean))];
+      setTeams(uniqueTeams as string[]);
+    }
+  };
 
   const loadMoodData = async () => {
     try {
@@ -93,7 +125,9 @@ const MoodMetricsOptimized = React.memo(() => {
       const { data, error } = await supabase.rpc('get_mood_metrics', {
         days_period: parseInt(period),
         limit_records: recordsPerPage,
-        offset_records: offset
+        offset_records: offset,
+        filter_user_id: selectedUserId,
+        filter_team: selectedTeam
       });
 
       if (error) throw error;
@@ -247,27 +281,80 @@ const MoodMetricsOptimized = React.memo(() => {
 
       {/* Recent Moods Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col space-y-4">
           <CardTitle>Registros Recentes</CardTitle>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Exibir:</span>
-            <Select
-              value={recordsPerPage.toString()}
-              onValueChange={(value) => {
-                setRecordsPerPage(parseInt(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[100px] text-foreground">
-                <SelectValue className="text-foreground" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="30">30</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Filtro por Corretor */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Corretor:</span>
+              <Select
+                value={selectedUserId || "all"}
+                onValueChange={(value) => {
+                  setSelectedUserId(value === "all" ? null : value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[200px] text-foreground">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os corretores</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por Equipe */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Equipe:</span>
+              <Select
+                value={selectedTeam || "all"}
+                onValueChange={(value) => {
+                  setSelectedTeam(value === "all" ? null : value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[180px] text-foreground">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as equipes</SelectItem>
+                  {teams.map((team) => (
+                    <SelectItem key={team} value={team}>
+                      {team}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro de Exibir */}
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-sm text-muted-foreground">Exibir:</span>
+              <Select
+                value={recordsPerPage.toString()}
+                onValueChange={(value) => {
+                  setRecordsPerPage(parseInt(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[100px] text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="15">15</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

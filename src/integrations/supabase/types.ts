@@ -1678,11 +1678,19 @@ export type Database = {
         }[]
       }
       get_mood_metrics: {
-        Args: {
-          days_period?: number
-          limit_records?: number
-          offset_records?: number
-        }
+        Args:
+          | {
+              days_period?: number
+              filter_team?: string
+              filter_user_id?: string
+              limit_records?: number
+              offset_records?: number
+            }
+          | {
+              days_period?: number
+              limit_records?: number
+              offset_records?: number
+            }
         Returns: Json
       }
       get_public_profiles: {
