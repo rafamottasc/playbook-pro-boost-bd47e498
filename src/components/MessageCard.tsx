@@ -88,15 +88,11 @@ export function MessageCard({
         
         {/* Delivery Type Badge */}
         <Badge 
-          variant={
-            deliveryType === 'audio' ? 'default' :
-            deliveryType === 'call' ? 'destructive' :
-            'secondary'
-          }
+          variant={`delivery-${deliveryType}` as any}
           className="mb-3"
         >
-          {deliveryType === 'audio' ? '🎤 Áudio' :
-           deliveryType === 'call' ? '📱 Ligação' :
+          {deliveryType === 'audio' ? '🎵 Áudio' :
+           deliveryType === 'call' ? '📞 Ligação' :
            '💬 Texto'}
         </Badge>
 
