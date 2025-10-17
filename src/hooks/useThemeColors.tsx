@@ -72,10 +72,6 @@ export function useThemeColors() {
     // Gradiente dinâmico
     const gradient = `linear-gradient(135deg, hsl(${primaryHSL}), hsl(${secondaryHSL}))`;
     root.style.setProperty('--gradient-primary', gradient);
-    
-    // Aplicar também para dark mode card gradient
-    const darkGradient = `linear-gradient(135deg, hsl(240 10% 7%), hsl(240 3.7% 12%))`;
-    root.style.setProperty('--gradient-card', gradient); // Light mode usa o gradiente colorido
   };
 
   const updateTheme = async (newColors: ThemeColors) => {

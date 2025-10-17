@@ -70,7 +70,7 @@ export function MessageCard({
   const approvalRate = totalFeedback > 0 ? Math.round((likes / totalFeedback) * 100) : 0;
 
   return (
-    <Card className="group relative overflow-hidden border bg-gradient-card transition-smooth hover:shadow-lg hover:border-primary/50">
+    <Card className="group relative overflow-hidden border bg-card transition-smooth hover:shadow-lg hover:border-primary/50">
       <div className="p-4">
         {/* WhatsApp Icon + Title */}
         <div className="flex items-center gap-3 mb-2">
