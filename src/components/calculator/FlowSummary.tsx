@@ -52,7 +52,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         {/* Breakdown */}
         <div className="space-y-0">
           {result.downPayment.value > 0 && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 🏁 Entrada
               </div>
@@ -74,7 +74,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.constructionStartPayment && result.constructionStartPayment.value > 0 && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 🏗️ Início da Obra
               </div>
@@ -86,7 +86,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.monthly && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 📆 Mensais
               </div>
@@ -99,7 +99,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.semiannualReinforcement && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 🎯 Reforços Semestrais
               </div>
@@ -111,7 +111,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.annualReinforcement && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 🎯 Reforços Anuais
               </div>
@@ -123,7 +123,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.keysPayment && result.keysPayment.value > 0 && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 🔑 Chaves
               </div>
@@ -135,7 +135,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.pricePerSqm && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 📐 Valor total m²
               </div>
@@ -146,7 +146,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.totalInCub && (
-            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 📊 Valor total em CUB
               </div>
@@ -166,7 +166,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         <div className="p-4 bg-muted/30 rounded-lg border border-border">
           <p className="text-sm font-semibold text-foreground mb-3">📅 Distribuição Temporal</p>
           <div className="space-y-0">
-            <div className="py-3 border-b border-border hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 Até Entrega
               </div>
@@ -175,7 +175,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 {result.timeline.percentageUntilDelivery.toFixed(1)}%)
               </div>
             </div>
-            <div className="py-3 hover:bg-muted/20 transition-colors">
+            <div className="py-2">
               <div className="text-sm text-muted-foreground mb-1">
                 Após Entrega
               </div>
