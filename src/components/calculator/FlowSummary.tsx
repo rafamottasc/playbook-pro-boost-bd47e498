@@ -13,14 +13,14 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
 
   return (
     <Card className="animate-fade-in border-border bg-card">
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="text-xl flex items-center gap-2">
           ✨ RESUMO PROPOSTA
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 pt-0">
         {/* Total Calculado */}
-        <div className="p-4 bg-card rounded-lg border border-border">
+        <div className="p-3 bg-card rounded-lg border border-border">
           <p className="text-sm text-muted-foreground">Total Calculado</p>
           <p className="text-3xl font-bold text-primary">
             R$ {formatMoney(result.totalPaid)}
@@ -52,8 +52,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         {/* Breakdown */}
         <div className="space-y-0">
           {result.downPayment.value > 0 && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 🏁 Entrada
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -74,8 +74,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.constructionStartPayment && result.constructionStartPayment.value > 0 && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 🏗️ Início da Obra
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -86,8 +86,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.monthly && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 📆 Mensais
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -99,8 +99,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.semiannualReinforcement && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 🎯 Reforços Semestrais
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -111,8 +111,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.annualReinforcement && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 🎯 Reforços Anuais
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -123,8 +123,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.keysPayment && result.keysPayment.value > 0 && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 🔑 Chaves
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -135,8 +135,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.pricePerSqm && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 📐 Valor total m²
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -146,8 +146,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           )}
 
           {result.totalInCub && (
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 📊 Valor total em CUB
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -163,11 +163,11 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         </div>
 
         {/* Distribuição Temporal */}
-        <div className="p-4 bg-muted/30 rounded-lg border border-border">
-          <p className="text-sm font-semibold text-foreground mb-3">📅 Distribuição Temporal</p>
+        <div className="p-3 bg-muted/30 rounded-lg border border-border">
+          <p className="text-sm font-semibold text-foreground mb-2">📅 Distribuição Temporal</p>
           <div className="space-y-0">
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 Até Entrega
               </div>
               <div className="text-sm font-semibold text-foreground">
@@ -175,8 +175,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 {result.timeline.percentageUntilDelivery.toFixed(1)}%)
               </div>
             </div>
-            <div className="py-2">
-              <div className="text-sm text-muted-foreground mb-1">
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
                 Após Entrega
               </div>
               <div className="text-sm font-semibold text-foreground">
