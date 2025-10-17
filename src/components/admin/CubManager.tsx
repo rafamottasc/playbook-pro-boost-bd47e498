@@ -120,112 +120,114 @@ export function CubManager() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            CUB Atual
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {currentCub ? (
-            <div className="space-y-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-primary">
-                  R$ {formatCurrency(currentCub.value)}
-                </span>
-                <span className="text-muted-foreground">
-                  {monthName(currentCub.month)}/{currentCub.year}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Última atualização: {format(new Date(currentCub.created_at), "dd/MM/yyyy 'às' HH:mm")}
-              </p>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-4">
-                Nenhum valor cadastrado para o mês atual
-              </p>
-            </div>
-          )}
-
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full mt-4">
-                <Calendar className="mr-2 h-4 w-4" />
-                {currentCub ? "Atualizar CUB" : "Cadastrar CUB"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  CUB/SC - {format(new Date(), "MMMM/yyyy", { locale: ptBR })}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div>
-                  <label className="text-sm font-medium">Valor do CUB/SC</label>
-                  <Input
-                    type="text"
-                    placeholder="2847,50"
-                    value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
-                    className="mt-2"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Formato: 2847,50 (use vírgula para decimais)
-                  </p>
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              CUB Atual
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {currentCub ? (
+              <div className="space-y-4">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-primary">
+                    R$ {formatCurrency(currentCub.value)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {monthName(currentCub.month)}/{currentCub.year}
+                  </span>
                 </div>
-                <Button 
-                  onClick={handleUpdateCub} 
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  {isLoading ? "Salvando..." : "Confirmar Atualização"}
-                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Última atualização: {format(new Date(currentCub.created_at), "dd/MM/yyyy 'às' HH:mm")}
+                </p>
               </div>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="text-center py-8">
+                <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground mb-4">
+                  Nenhum valor cadastrado para o mês atual
+                </p>
+              </div>
+            )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico (Últimos 6 meses)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {history.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mês/Ano</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Atualizado em</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {history.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      {monthName(item.month)}/{item.year}
-                    </TableCell>
-                    <TableCell>R$ {formatCurrency(item.value)}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(item.created_at), "dd/MM/yyyy")}
-                    </TableCell>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full mt-4">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {currentCub ? "Atualizar CUB" : "Cadastrar CUB"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    CUB/SC - {format(new Date(), "MMMM/yyyy", { locale: ptBR })}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <label className="text-sm font-medium">Valor do CUB/SC</label>
+                    <Input
+                      type="text"
+                      placeholder="2847,50"
+                      value={newValue}
+                      onChange={(e) => setNewValue(e.target.value)}
+                      className="mt-2"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Formato: 2847,50 (use vírgula para decimais)
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleUpdateCub} 
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    {isLoading ? "Salvando..." : "Confirmar Atualização"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Histórico (Últimos 6 meses)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {history.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mês/Ano</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Atualizado em</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-center text-muted-foreground py-8">
-              Nenhum histórico disponível
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {history.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">
+                        {monthName(item.month)}/{item.year}
+                      </TableCell>
+                      <TableCell>R$ {formatCurrency(item.value)}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(item.created_at), "dd/MM/yyyy")}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum histórico disponível
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
