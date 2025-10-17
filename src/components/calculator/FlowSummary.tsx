@@ -50,123 +50,139 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         </div>
 
         {/* Breakdown */}
-        <div className="space-y-2">
+        <div className="space-y-0">
           {result.downPayment.value > 0 && (
-            <div className="flex justify-between text-sm">
-              <span>🏁 Entrada:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                🏁 Entrada
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 {result.downPayment.installments && result.downPayment.installments > 1 ? (
-                  // Parcelada
                   <>
                     {result.downPayment.installments}x de R${" "}
                     {formatMoney(result.downPayment.installmentValue || result.downPayment.value)} (
                     {result.downPayment.percentage.toFixed(1)}%)
                   </>
                 ) : (
-                  // À vista
                   <>
                     R$ {formatMoney(result.downPayment.value)} (
                     {result.downPayment.percentage.toFixed(1)}%)
                   </>
                 )}
-              </span>
+              </div>
             </div>
           )}
 
           {result.constructionStartPayment && result.constructionStartPayment.value > 0 && (
-            <div className="flex justify-between text-sm">
-              <span>🏗️ Início da Obra:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                🏗️ Início da Obra
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 R$ {formatMoney(result.constructionStartPayment.value)} (
                 {result.constructionStartPayment.percentage.toFixed(1)}%)
-              </span>
+              </div>
             </div>
           )}
 
           {result.monthly && (
-            <div className="flex justify-between text-sm">
-              <span>📆 Mensais:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                📆 Mensais
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 {result.monthly.count}x de R${" "}
                 {formatMoney(result.monthly.value)} (
                 {result.monthly.percentage.toFixed(1)}%)
-              </span>
+              </div>
             </div>
           )}
 
           {result.semiannualReinforcement && (
-            <div className="flex justify-between text-sm">
-              <span>🎯 Reforços Semestrais:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                🎯 Reforços Semestrais
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 {result.semiannualReinforcement.count}x de {" "}
                 {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {formatMoney(result.semiannualReinforcement.value)} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
-              </span>
+              </div>
             </div>
           )}
 
           {result.annualReinforcement && (
-            <div className="flex justify-between text-sm">
-              <span>🎯 Reforços Anuais:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                🎯 Reforços Anuais
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 {result.annualReinforcement.count}x de {" "}
                 {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {formatMoney(result.annualReinforcement.value)} ({result.annualReinforcement.percentage.toFixed(1)}%)
-              </span>
+              </div>
             </div>
           )}
 
           {result.keysPayment && result.keysPayment.value > 0 && (
-            <div className="flex justify-between text-sm">
-              <span>🔑 Chaves:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                🔑 Chaves
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 R$ {formatMoney(result.keysPayment.value)} (
                 {result.keysPayment.percentage.toFixed(1)}%)
-              </span>
+              </div>
             </div>
           )}
 
           {result.pricePerSqm && (
-            <div className="flex justify-between text-sm">
-              <span>📐 Valor total m²:</span>
-              <span className="font-medium">
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                📐 Valor total m²
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 R$ {formatCurrency(result.pricePerSqm)}
-              </span>
+              </div>
             </div>
           )}
 
           {result.totalInCub && (
-            <>
-              <div className="flex justify-between text-sm">
-                <span>📊 Valor total em CUB:</span>
-                <span className="font-medium">
-                  {result.totalInCub.toFixed(5)}
-                </span>
+            <div className="py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                📊 Valor total em CUB
+              </div>
+              <div className="text-sm font-semibold text-foreground">
+                {result.totalInCub.toFixed(5)}
               </div>
               {result.cubWarning && (
                 <p className="text-xs text-yellow-600 mt-1">
                   {result.cubWarning}
                 </p>
               )}
-            </>
+            </div>
           )}
         </div>
 
         {/* Distribuição Temporal */}
         <div className="p-4 bg-muted/30 rounded-lg border border-border">
           <p className="text-sm font-semibold text-foreground mb-3">📅 Distribuição Temporal</p>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Até Entrega:</span>
-              <span className="font-semibold text-foreground">
+          <div className="space-y-0">
+            <div className="py-3 border-b border-border hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                Até Entrega
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 R$ {formatMoney(result.timeline.totalUntilDelivery)} (
                 {result.timeline.percentageUntilDelivery.toFixed(1)}%)
-              </span>
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Após Entrega:</span>
-              <span className="font-semibold text-foreground">
+            <div className="py-3 hover:bg-muted/20 transition-colors">
+              <div className="text-sm text-muted-foreground mb-1">
+                Após Entrega
+              </div>
+              <div className="text-sm font-semibold text-foreground">
                 R$ {formatMoney(result.timeline.totalAfterDelivery)} (
                 {result.timeline.percentageAfterDelivery.toFixed(1)}%)
-              </span>
+              </div>
             </div>
           </div>
         </div>
