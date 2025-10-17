@@ -8,10 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function PartnersView() {
-  const { isAdmin } = useAuth();
   const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,7 +166,6 @@ export default function PartnersView() {
                       <PartnerCard
                         key={partner.id}
                         partner={partner}
-                        isAdmin={isAdmin}
                         isPrioritaria={true}
                       />
                     ))}
@@ -199,7 +196,6 @@ export default function PartnersView() {
                       <PartnerCard
                         key={partner.id}
                         partner={partner}
-                        isAdmin={isAdmin}
                         isPrioritaria={false}
                       />
                     ))}
