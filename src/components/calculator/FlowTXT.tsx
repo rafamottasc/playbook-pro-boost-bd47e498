@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { CalculatedResult } from "@/hooks/usePaymentFlow";
+import { formatCurrency } from "@/lib/utils";
 
 export function generateFlowTXT(
   data: PaymentFlowData,
@@ -107,12 +108,11 @@ export function generateFlowTXT(
     txt += `━━━━━━━\n`;
     
     if (result.pricePerSqm) {
-      txt += `📐 Valor por m²: R$ ${result.pricePerSqm.toFixed(2)}/m²\n`;
+      txt += `📐 Valor por m²: R$ ${formatCurrency(result.pricePerSqm)} / m²\n`;
     }
     
     if (result.totalInCub && result.cubValue) {
-      txt += `📊 Valor em CUB: ${result.totalInCub.toFixed(5)} CUB\n`;
-      txt += `   (Base: R$ ${result.cubValue.toFixed(2)})\n`;
+      txt += `📊 Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})\n`;
     }
     
     if (result.cubWarning) {

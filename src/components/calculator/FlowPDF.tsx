@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { PaymentFlowData, CalculatedResult } from "@/hooks/usePaymentFlow";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 export async function generateFlowPDF(
   data: PaymentFlowData,
@@ -204,7 +205,7 @@ export async function generateFlowPDF(
     
     if (result.pricePerSqm) {
       doc.text(
-        `Valor por m²: R$ ${result.pricePerSqm.toFixed(2)}/m²`,
+        `Valor por m²: R$ ${formatCurrency(result.pricePerSqm)} / m²`,
         15,
         additionalY
       );
@@ -213,7 +214,7 @@ export async function generateFlowPDF(
     
     if (result.totalInCub && result.cubValue) {
       doc.text(
-        `Valor em CUB: ${result.totalInCub.toFixed(5)} CUB (Base: R$ ${result.cubValue.toFixed(2)})`,
+        `Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})`,
         15,
         additionalY
       );
