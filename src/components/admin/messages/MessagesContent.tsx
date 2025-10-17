@@ -213,7 +213,10 @@ export function MessagesContent() {
 
   const { toast } = useToast();
   const { funnels, loading: funnelsLoading } = useFunnels();
-  const { stages, loading: stagesLoading } = useStages(formData.funnel_slug);
+  const selectedFormFunnel = funnels.find(f => f.slug === formData.funnel_slug);
+  const { stages, loading: stagesLoading } = useStages(selectedFormFunnel?.id);
+  const selectedFilterFunnel = funnels.find(f => f.slug === filterFunnel);
+  const { stages: filterStages } = useStages(selectedFilterFunnel?.id);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -427,8 +430,8 @@ export function MessagesContent() {
     return true;
   });
 
-  const availableStages = filterFunnel !== "all" && stages.length > 0
-    ? stages
+  const availableStages = filterFunnel !== "all" && filterStages.length > 0
+    ? filterStages
     : [];
 
   return (
