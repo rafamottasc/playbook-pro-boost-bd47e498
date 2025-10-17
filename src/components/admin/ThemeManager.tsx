@@ -8,13 +8,15 @@ import { ThemePreview } from './ThemePreview';
 import { Palette, RotateCcw } from 'lucide-react';
 
 const PRESET_COLORS = [
-  { name: 'COMARC Verde', hue: 160, sat: 84, light: 39 },
+  { name: 'Dourado', hue: 38, sat: 75, light: 50 },
+  { name: 'Verde', hue: 160, sat: 84, light: 39 },
   { name: 'Azul Petróleo', hue: 195, sat: 80, light: 35 },
-  { name: 'Azul Royal', hue: 220, sat: 90, light: 45 },
+  { name: 'Azul Facebook', hue: 221, sat: 79, light: 53 },
+  { name: 'Azul Instagram', hue: 225, sat: 90, light: 55 },
   { name: 'Roxo Moderno', hue: 270, sat: 70, light: 50 },
   { name: 'Laranja Energia', hue: 25, sat: 85, light: 50 },
   { name: 'Vermelho Corporativo', hue: 5, sat: 75, light: 45 },
-  { name: 'Verde Esmeralda', hue: 150, sat: 80, light: 40 },
+  { name: 'Cinza Prata', hue: 210, sat: 15, light: 50 },
   { name: 'Azul Marinho', hue: 210, sat: 70, light: 30 },
 ];
 
@@ -48,7 +50,7 @@ export function ThemeManager() {
   };
 
   const handleReset = () => {
-    const defaultColors = { hue: 160, saturation: 84, lightness: 39 };
+    const defaultColors = { hue: 38, saturation: 75, lightness: 50 };
     setPreview(defaultColors);
     applyTheme(defaultColors);
     updateTheme(defaultColors);
@@ -215,7 +217,7 @@ export function ThemeManager() {
           size="lg"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Resetar para Verde COMARC
+          Resetar para Cor Padrão
         </Button>
       </div>
 

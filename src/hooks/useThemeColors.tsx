@@ -10,9 +10,9 @@ interface ThemeColors {
 
 export function useThemeColors() {
   const [colors, setColors] = useState<ThemeColors>({
-    hue: 160,
-    saturation: 84,
-    lightness: 39
+    hue: 38,
+    saturation: 75,
+    lightness: 50
   });
   const [loading, setLoading] = useState(true);
 
