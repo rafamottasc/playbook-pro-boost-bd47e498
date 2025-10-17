@@ -49,13 +49,6 @@ const moodLabels: Record<string, string> = {
   terrible: "Péssimo",
 };
 
-const moodColors: Record<string, string> = {
-  great: "bg-green-500 text-white",
-  good: "bg-blue-500 text-white",
-  okay: "bg-yellow-500 text-white",
-  bad: "bg-orange-500 text-white",
-  terrible: "bg-red-500 text-white",
-};
 
 const MoodMetricsOptimized = React.memo(() => {
   const [loading, setLoading] = useState(true);
@@ -267,7 +260,7 @@ const MoodMetricsOptimized = React.memo(() => {
                 <TableRow key={`${mood.user_id}-${mood.created_at}-${index}`}>
                   <TableCell>{mood.full_name || "Usuário Desconhecido"}</TableCell>
                   <TableCell>
-                    <Badge className={moodColors[mood.mood] || ""}>
+                    <Badge variant={`mood-${mood.mood}` as any}>
                       {moodLabels[mood.mood] || mood.mood}
                     </Badge>
                   </TableCell>
