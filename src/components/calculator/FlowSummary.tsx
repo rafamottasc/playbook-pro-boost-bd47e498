@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, formatMoney } from "@/lib/utils";
 import { CalculatedResult } from "@/hooks/usePaymentFlow";
 
 interface FlowSummaryProps {
@@ -23,7 +23,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
         <div className="p-4 bg-card rounded-lg border border-border">
           <p className="text-sm text-muted-foreground">Total Calculado</p>
           <p className="text-3xl font-bold text-primary">
-            R$ {result.totalPaid.toLocaleString("pt-BR")}
+            R$ {formatMoney(result.totalPaid)}
           </p>
           <p
             className={cn(
@@ -43,7 +43,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <>
                 <span className="text-green-600">⚠️ Pago {result.totalPercentage.toFixed(1)}%</span>
                 {" "}
-                <span className="text-red-600">🚨 Falta R$ {((propertyValue * remaining) / 100).toLocaleString("pt-BR")}</span>
+                <span className="text-red-600">🚨 Falta R$ {formatMoney((propertyValue * remaining) / 100)}</span>
               </>
             )}
           </p>
@@ -59,13 +59,13 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                   // Parcelada
                   <>
                     {result.downPayment.installments}x de R${" "}
-                    {(result.downPayment.value / result.downPayment.installments).toLocaleString("pt-BR")} (
+                    {formatMoney(result.downPayment.installmentValue || result.downPayment.value)} (
                     {result.downPayment.percentage.toFixed(1)}%)
                   </>
                 ) : (
                   // À vista
                   <>
-                    R$ {result.downPayment.value.toLocaleString("pt-BR")} (
+                    R$ {formatMoney(result.downPayment.value)} (
                     {result.downPayment.percentage.toFixed(1)}%)
                   </>
                 )}
@@ -77,7 +77,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
             <div className="flex justify-between text-sm">
               <span>🏗️ Início da Obra:</span>
               <span className="font-medium">
-                R$ {result.constructionStartPayment.value.toLocaleString("pt-BR")} (
+                R$ {formatMoney(result.constructionStartPayment.value)} (
                 {result.constructionStartPayment.percentage.toFixed(1)}%)
               </span>
             </div>
@@ -88,7 +88,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <span>📆 Mensais:</span>
               <span className="font-medium">
                 {result.monthly.count}x de R${" "}
-                {result.monthly.value.toLocaleString("pt-BR")} (
+                {formatMoney(result.monthly.value)} (
                 {result.monthly.percentage.toFixed(1)}%)
               </span>
             </div>
@@ -99,7 +99,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <span>🎯 Reforços Semestrais:</span>
               <span className="font-medium">
                 {result.semiannualReinforcement.count}x de {" "}
-                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {result.semiannualReinforcement.value.toLocaleString("pt-BR")} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
+                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {formatMoney(result.semiannualReinforcement.value)} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
               </span>
             </div>
           )}
@@ -109,7 +109,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <span>🎯 Reforços Anuais:</span>
               <span className="font-medium">
                 {result.annualReinforcement.count}x de {" "}
-                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {result.annualReinforcement.value.toLocaleString("pt-BR")} ({result.annualReinforcement.percentage.toFixed(1)}%)
+                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {formatMoney(result.annualReinforcement.value)} ({result.annualReinforcement.percentage.toFixed(1)}%)
               </span>
             </div>
           )}
@@ -118,7 +118,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
             <div className="flex justify-between text-sm">
               <span>🔑 Chaves:</span>
               <span className="font-medium">
-                R$ {result.keysPayment.value.toLocaleString("pt-BR")} (
+                R$ {formatMoney(result.keysPayment.value)} (
                 {result.keysPayment.percentage.toFixed(1)}%)
               </span>
             </div>
@@ -157,14 +157,14 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Até Entrega:</span>
               <span className="font-semibold text-foreground">
-                R$ {result.timeline.totalUntilDelivery.toLocaleString("pt-BR")} (
+                R$ {formatMoney(result.timeline.totalUntilDelivery)} (
                 {result.timeline.percentageUntilDelivery.toFixed(1)}%)
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Após Entrega:</span>
               <span className="font-semibold text-foreground">
-                R$ {result.timeline.totalAfterDelivery.toLocaleString("pt-BR")} (
+                R$ {formatMoney(result.timeline.totalAfterDelivery)} (
                 {result.timeline.percentageAfterDelivery.toFixed(1)}%)
               </span>
             </div>

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
+import { formatMoney } from "@/lib/utils";
 
 interface DownPaymentSectionProps {
   data: PaymentFlowData;
@@ -97,7 +98,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
             />
             {data.propertyValue > 0 && (
               <p className="text-sm text-muted-foreground text-center mt-2">
-                = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                = R$ {formatMoney(displayValue)}
               </p>
             )}
           </div>
@@ -130,7 +131,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
           />
           {installmentValue > 0 && (
             <p className="text-sm text-muted-foreground mt-2">
-              {data.downPayment.installments}x de R$ {installmentValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {data.downPayment.installments}x de R$ {formatMoney(installmentValue)}
             </p>
           )}
         </div>

@@ -33,3 +33,31 @@ export function formatCurrency(value: number): string {
     maximumFractionDigits: 2,
   });
 }
+
+// Formata valores monetários com SEMPRE 2 casas decimais para exibição
+export function formatMoney(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+// Arredonda valores monetários para 2 casas decimais
+export function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+// Divide valor em parcelas, garantindo que a soma fecha exato
+export function divideIntoInstallments(total: number, count: number): number[] {
+  if (count <= 0) return [];
+  
+  const baseValue = Math.floor((total * 100) / count) / 100;
+  const installments = new Array(count).fill(baseValue);
+  
+  // Calcula diferença e adiciona na última parcela
+  const sum = baseValue * count;
+  const difference = roundMoney(total - sum);
+  installments[count - 1] = roundMoney(baseValue + difference);
+  
+  return installments;
+}

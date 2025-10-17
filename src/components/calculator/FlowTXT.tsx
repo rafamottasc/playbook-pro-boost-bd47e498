@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { CalculatedResult } from "@/hooks/usePaymentFlow";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatMoney } from "@/lib/utils";
 
 export function generateFlowTXT(
   data: PaymentFlowData,
@@ -41,7 +41,7 @@ export function generateFlowTXT(
     txt += `Entrega: ${deliveryDate}\n`;
   }
   
-  txt += `Valor Total: R$ ${data.propertyValue.toLocaleString("pt-BR")}\n\n`;
+  txt += `Valor Total: R$ ${formatMoney(data.propertyValue)}\n\n`;
 
   txt += `━━━━━━━\n`;
   txt += `💰 CONDIÇÕES DE PAGAMENTO\n`;
@@ -51,54 +51,54 @@ export function generateFlowTXT(
   if (result.downPayment.value > 0) {
     const installmentValue = result.downPayment.installmentValue || result.downPayment.value;
     txt += `🏁 Entrada\n`;
-    txt += `   ${result.downPayment.installments}x de R$ ${installmentValue.toLocaleString("pt-BR")}`;
+    txt += `   ${result.downPayment.installments}x de R$ ${formatMoney(installmentValue)}`;
     txt += ` (${result.downPayment.percentage.toFixed(1)}%)\n\n`;
   }
 
   // Início da Obra
   if (result.constructionStartPayment && result.constructionStartPayment.value > 0) {
     txt += `🏗️ Início da Obra\n`;
-    txt += `   1x de R$ ${result.constructionStartPayment.value.toLocaleString("pt-BR")}`;
+    txt += `   1x de R$ ${formatMoney(result.constructionStartPayment.value)}`;
     txt += ` (${result.constructionStartPayment.percentage.toFixed(1)}%)\n\n`;
   }
 
   // Mensais
   if (result.monthly && result.monthly.total > 0) {
     txt += `📅 Mensais\n`;
-    txt += `   ${result.monthly.count}x de R$ ${result.monthly.value.toLocaleString("pt-BR")}`;
+    txt += `   ${result.monthly.count}x de R$ ${formatMoney(result.monthly.value)}`;
     txt += ` (${result.monthly.percentage.toFixed(1)}%)\n\n`;
   }
 
   // Reforços Semestrais
   if (result.semiannualReinforcement && result.semiannualReinforcement.total > 0) {
     txt += `💎 Reforços Semestrais\n`;
-    txt += `   ${result.semiannualReinforcement.count}x de R$ ${result.semiannualReinforcement.value.toLocaleString("pt-BR")}`;
+    txt += `   ${result.semiannualReinforcement.count}x de R$ ${formatMoney(result.semiannualReinforcement.value)}`;
     txt += ` (${result.semiannualReinforcement.percentage.toFixed(1)}%)\n\n`;
   }
 
   // Reforços Anuais
   if (result.annualReinforcement && result.annualReinforcement.total > 0) {
     txt += `💎 Reforços Anuais\n`;
-    txt += `   ${result.annualReinforcement.count}x de R$ ${result.annualReinforcement.value.toLocaleString("pt-BR")}`;
+    txt += `   ${result.annualReinforcement.count}x de R$ ${formatMoney(result.annualReinforcement.value)}`;
     txt += ` (${result.annualReinforcement.percentage.toFixed(1)}%)\n\n`;
   }
 
   // Chaves
   if (result.keysPayment && result.keysPayment.value > 0) {
     txt += `🔑 Chaves\n`;
-    txt += `   1x de R$ ${result.keysPayment.value.toLocaleString("pt-BR")}`;
+    txt += `   1x de R$ ${formatMoney(result.keysPayment.value)}`;
     txt += ` (${result.keysPayment.percentage.toFixed(1)}%)\n\n`;
   }
 
   txt += `━━━━━━━\n`;
-  txt += `📊 TOTAL: R$ ${result.totalPaid.toLocaleString("pt-BR")} (${result.totalPercentage.toFixed(1)}%)\n`;
+  txt += `📊 TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)\n`;
   txt += `━━━━━━━\n\n`;
 
   txt += `📅 DISTRIBUIÇÃO TEMPORAL\n`;
   txt += `━━━━━━━\n`;
-  txt += `✓ Até Entrega: R$ ${result.timeline.totalUntilDelivery.toLocaleString("pt-BR")}`;
+  txt += `✓ Até Entrega: R$ ${formatMoney(result.timeline.totalUntilDelivery)}`;
   txt += ` (${result.timeline.percentageUntilDelivery.toFixed(1)}%)\n`;
-  txt += `✓ Após Entrega: R$ ${result.timeline.totalAfterDelivery.toLocaleString("pt-BR")}`;
+  txt += `✓ Após Entrega: R$ ${formatMoney(result.timeline.totalAfterDelivery)}`;
   txt += ` (${result.timeline.percentageAfterDelivery.toFixed(1)}%)\n\n`;
 
   // Valores adicionais (m² e CUB)

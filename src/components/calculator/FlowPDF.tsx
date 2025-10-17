@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { PaymentFlowData, CalculatedResult } from "@/hooks/usePaymentFlow";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatMoney } from "@/lib/utils";
 
 // Helper function to load image and get its dimensions
 async function loadImageWithDimensions(url: string): Promise<{ img: HTMLImageElement; width: number; height: number }> {
@@ -89,7 +89,7 @@ export async function generateFlowPDF(
   doc.text(`Entrega: ${deliveryFormatted}`, 15, yPosition);
   yPosition += 5;
   doc.text(
-    `Valor Total: R$ ${data.propertyValue.toLocaleString("pt-BR")}`,
+    `Valor Total: R$ ${formatMoney(data.propertyValue)}`,
     15,
     yPosition
   );
@@ -110,7 +110,7 @@ export async function generateFlowPDF(
   tableData.push([
     "Entrada",
     `${downPaymentInstallments}x`,
-    `R$ ${downPaymentValue.toLocaleString("pt-BR")}`,
+    `R$ ${formatMoney(downPaymentValue)}`,
     `${result.downPayment.percentage.toFixed(1)}%`,
   ]);
 
@@ -119,7 +119,7 @@ export async function generateFlowPDF(
     tableData.push([
       "Inicio da Obra",
       "1x",
-      `R$ ${result.constructionStartPayment.value.toLocaleString("pt-BR")}`,
+      `R$ ${formatMoney(result.constructionStartPayment.value)}`,
       `${result.constructionStartPayment.percentage.toFixed(1)}%`,
     ]);
   }
@@ -129,7 +129,7 @@ export async function generateFlowPDF(
     tableData.push([
       "Mensais",
       `${result.monthly.count}x`,
-      `R$ ${result.monthly.value.toLocaleString("pt-BR")}`,
+      `R$ ${formatMoney(result.monthly.value)}`,
       `${result.monthly.percentage.toFixed(1)}%`,
     ]);
   }
@@ -139,7 +139,7 @@ export async function generateFlowPDF(
     tableData.push([
       "Reforcos Semestrais",
       `${result.semiannualReinforcement.count}x`,
-      `R$ ${result.semiannualReinforcement.value.toLocaleString("pt-BR")}`,
+      `R$ ${formatMoney(result.semiannualReinforcement.value)}`,
       `${result.semiannualReinforcement.percentage.toFixed(1)}%`,
     ]);
   }
@@ -149,7 +149,7 @@ export async function generateFlowPDF(
     tableData.push([
       "Reforcos Anuais",
       `${result.annualReinforcement.count}x`,
-      `R$ ${result.annualReinforcement.value.toLocaleString("pt-BR")}`,
+      `R$ ${formatMoney(result.annualReinforcement.value)}`,
       `${result.annualReinforcement.percentage.toFixed(1)}%`,
     ]);
   }
@@ -159,7 +159,7 @@ export async function generateFlowPDF(
     tableData.push([
       "Chaves",
       "1x",
-      `R$ ${result.keysPayment.value.toLocaleString("pt-BR")}`,
+      `R$ ${formatMoney(result.keysPayment.value)}`,
       `${result.keysPayment.percentage.toFixed(1)}%`,
     ]);
   }
@@ -177,7 +177,7 @@ export async function generateFlowPDF(
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text(
-    `TOTAL: R$ ${result.totalPaid.toLocaleString("pt-BR")} (${result.totalPercentage.toFixed(1)}%)`,
+    `TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)`,
     15,
     finalY
   );
@@ -195,12 +195,12 @@ export async function generateFlowPDF(
     body: [
       [
         "Ate Entrega",
-        `R$ ${result.timeline.totalUntilDelivery.toLocaleString("pt-BR")}`,
+        `R$ ${formatMoney(result.timeline.totalUntilDelivery)}`,
         `${result.timeline.percentageUntilDelivery.toFixed(1)}%`
       ],
       [
         "Apos Entrega",
-        `R$ ${result.timeline.totalAfterDelivery.toLocaleString("pt-BR")}`,
+        `R$ ${formatMoney(result.timeline.totalAfterDelivery)}`,
         `${result.timeline.percentageAfterDelivery.toFixed(1)}%`
       ]
     ],
