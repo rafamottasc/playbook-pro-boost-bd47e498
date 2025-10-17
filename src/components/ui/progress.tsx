@@ -9,13 +9,13 @@ const Progress = React.forwardRef<
     variant?: 'default' | 'great' | 'good' | 'okay' | 'bad' | 'terrible';
   }
 >(({ className, value, variant = 'default', ...props }, ref) => {
-  const variantStyles = {
-    default: 'bg-primary',
-    great: 'bg-green-500',
-    good: 'bg-blue-500',
-    okay: 'bg-yellow-500',
-    bad: 'bg-orange-500',
-    terrible: 'bg-red-500',
+  const variantColors = {
+    default: 'hsl(var(--primary))',
+    great: 'hsl(142.1 76.2% 36.3%)',
+    good: 'hsl(221.2 83.2% 53.3%)',
+    okay: 'hsl(47.9 95.8% 53.1%)',
+    bad: 'hsl(24.6 95% 53.1%)',
+    terrible: 'hsl(0 84.2% 60.2%)',
   };
 
   return (
@@ -25,11 +25,11 @@ const Progress = React.forwardRef<
       {...props}
     >
       <ProgressPrimitive.Indicator
-        className={cn(
-          "h-full w-full flex-1 transition-all duration-500 ease-out",
-          variantStyles[variant]
-        )}
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        className="h-full w-full flex-1 transition-all duration-500 ease-out"
+        style={{ 
+          transform: `translateX(-${100 - (value || 0)}%)`,
+          backgroundColor: variantColors[variant]
+        }}
       />
     </ProgressPrimitive.Root>
   );
