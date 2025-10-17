@@ -1399,6 +1399,33 @@ export type Database = {
           },
         ]
       }
+      theme_settings: {
+        Row: {
+          created_at: string
+          id: string
+          primary_hue: number
+          primary_lightness: number
+          primary_saturation: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          primary_hue?: number
+          primary_lightness?: number
+          primary_saturation?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          primary_hue?: number
+          primary_lightness?: number
+          primary_saturation?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_lesson_progress: {
         Row: {
           completed_percentage: number | null

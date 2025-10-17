@@ -34,15 +34,15 @@ All colors MUST be HSL.
     /* Neutral Gray - Secondary Text */
     --neutral-gray: 0 0% 45%;
 
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
+    --accent: var(--primary);
+    --accent-foreground: var(--primary-foreground);
 
     --destructive: 6 78% 57%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 160 84% 39%;
+    --ring: var(--primary);
 
     --radius: 0.625rem;
 
@@ -79,8 +79,8 @@ All colors MUST be HSL.
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
+    --accent: var(--primary);
+    --accent-foreground: var(--primary-foreground);
 
     --destructive: 6 78% 57%;
     --destructive-foreground: 0 0% 98%;
@@ -89,7 +89,7 @@ All colors MUST be HSL.
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 160 84% 39%;
+    --ring: var(--primary);
 
     --gradient-primary: linear-gradient(135deg, hsl(160 84% 39%), hsl(142 70% 49%));
     --gradient-card: linear-gradient(135deg, hsl(240 10% 7%), hsl(240 3.7% 12%));

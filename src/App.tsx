@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageTransition } from "@/components/PageTransition";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import Home from "./pages/Home";
 import Playbooks from "./pages/Playbooks";
 import Auth from "./pages/Auth";
@@ -39,6 +40,11 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function ThemeLoader() {
+  useThemeColors();
+  return null;
+}
 
 function AppRoutes() {
   return (
@@ -214,6 +220,7 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
+              <ThemeLoader />
               <AppRoutes />
             </AuthProvider>
           </BrowserRouter>
