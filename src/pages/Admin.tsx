@@ -11,7 +11,7 @@ import PartnersManager from "@/pages/admin/PartnersManager";
 import MoodMetricsOptimized from "@/components/admin/MoodMetricsOptimized";
 import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
 import { PollsManager } from "@/components/admin/PollsManager";
-import { MessageSquare, BookOpen, GraduationCap, Building2, Users, Megaphone, Smile, MessageCircle, ListOrdered, PieChart, Calculator, Palette } from "lucide-react";
+import { BookOpen, Building2, Users, Settings, TrendingUp, Heart } from "lucide-react";
 import { CubManager } from "@/components/admin/CubManager";
 import { ThemeManager } from "@/components/admin/ThemeManager";
 
@@ -23,104 +23,128 @@ export default function Admin() {
       <main className="container py-6 px-4">
         <h1 className="text-3xl font-bold mb-6">Painel Administrativo</h1>
 
-        <Tabs defaultValue="funnels" className="w-full">
-          <TabsList className="mb-6 w-full justify-start">
-            <TabsTrigger value="funnels" className="gap-2">
-              <ListOrdered className="h-4 w-4" />
-              <span className="hidden sm:inline">Funis</span>
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Mensagens</span>
-            </TabsTrigger>
-            <TabsTrigger value="resources" className="gap-2">
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="mb-6 w-full justify-start flex-wrap gap-2">
+            <TabsTrigger value="content" className="gap-2">
               <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Recursos</span>
+              <span className="hidden sm:inline">Conteúdo</span>
             </TabsTrigger>
-            <TabsTrigger value="academy" className="gap-2">
-              <GraduationCap className="h-4 w-4" />
-              <span className="hidden sm:inline">Academy</span>
+            <TabsTrigger value="communication" className="gap-2">
+              <Heart className="h-4 w-4" />
+              <span className="hidden sm:inline">Comunicação</span>
             </TabsTrigger>
-            <TabsTrigger value="partners" className="gap-2">
+            <TabsTrigger value="engagement" className="gap-2">
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Engajamento</span>
+            </TabsTrigger>
+            <TabsTrigger value="sales" className="gap-2">
               <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Construtoras</span>
+              <span className="hidden sm:inline">Vendas</span>
             </TabsTrigger>
-            <TabsTrigger value="announcements" className="gap-2">
-              <Megaphone className="h-4 w-4" />
-              <span className="hidden sm:inline">Avisos</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Usuários</span>
-            </TabsTrigger>
-            <TabsTrigger value="mood" className="gap-2">
-              <Smile className="h-4 w-4" />
-              <span className="hidden sm:inline">Clima</span>
-            </TabsTrigger>
-            <TabsTrigger value="feedbacks" className="gap-2">
-              <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Feedbacks</span>
-            </TabsTrigger>
-            <TabsTrigger value="polls" className="gap-2">
-              <PieChart className="h-4 w-4" />
-              <span className="hidden sm:inline">Enquetes</span>
-            </TabsTrigger>
-            <TabsTrigger value="calculator" className="gap-2">
-              <Calculator className="h-4 w-4" />
-              <span className="hidden sm:inline">Calculadora</span>
-            </TabsTrigger>
-            <TabsTrigger value="theme" className="gap-2">
-              <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Aparência</span>
+            <TabsTrigger value="system" className="gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Sistema</span>
             </TabsTrigger>
           </TabsList>
 
-        <TabsContent value="funnels">
-          <FunnelsManager />
-        </TabsContent>
-
-        <TabsContent value="messages">
-          <MessagesManager />
-        </TabsContent>
-
-          <TabsContent value="resources">
-            <ResourcesManager />
+          {/* CONTEÚDO & TREINAMENTO */}
+          <TabsContent value="content" className="space-y-4">
+            <Tabs defaultValue="resources" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="resources">Recursos</TabsTrigger>
+                <TabsTrigger value="academy">Academy</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="resources">
+                <ResourcesManager />
+              </TabsContent>
+              
+              <TabsContent value="academy">
+                <AcademyManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="academy">
-            <AcademyManager />
+          {/* COMUNICAÇÃO */}
+          <TabsContent value="communication" className="space-y-4">
+            <Tabs defaultValue="messages" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="messages">Mensagens</TabsTrigger>
+                <TabsTrigger value="announcements">Avisos</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="messages">
+                <MessagesManager />
+              </TabsContent>
+              
+              <TabsContent value="announcements">
+                <AnnouncementsManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="partners">
-            <PartnersManager />
+          {/* ENGAJAMENTO & CULTURA */}
+          <TabsContent value="engagement" className="space-y-4">
+            <Tabs defaultValue="feedbacks" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="feedbacks">Feedbacks</TabsTrigger>
+                <TabsTrigger value="polls">Enquetes</TabsTrigger>
+                <TabsTrigger value="mood">Clima</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="feedbacks">
+                <FeedbacksManager />
+              </TabsContent>
+              
+              <TabsContent value="polls">
+                <PollsManager />
+              </TabsContent>
+              
+              <TabsContent value="mood">
+                <MoodMetricsOptimized />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="announcements">
-            <AnnouncementsManager />
+          {/* VENDAS & PARCEIROS */}
+          <TabsContent value="sales" className="space-y-4">
+            <Tabs defaultValue="funnels" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="funnels">Funis</TabsTrigger>
+                <TabsTrigger value="partners">Construtoras</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="funnels">
+                <FunnelsManager />
+              </TabsContent>
+              
+              <TabsContent value="partners">
+                <PartnersManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="users">
-            <UsersManager />
-          </TabsContent>
-
-          <TabsContent value="mood">
-            <MoodMetricsOptimized />
-          </TabsContent>
-
-          <TabsContent value="feedbacks">
-            <FeedbacksManager />
-          </TabsContent>
-
-          <TabsContent value="polls">
-            <PollsManager />
-          </TabsContent>
-
-          <TabsContent value="calculator">
-            <CubManager />
-          </TabsContent>
-
-          <TabsContent value="theme">
-            <ThemeManager />
+          {/* SISTEMA */}
+          <TabsContent value="system" className="space-y-4">
+            <Tabs defaultValue="users" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="users">Usuários</TabsTrigger>
+                <TabsTrigger value="calculator">Calculadora</TabsTrigger>
+                <TabsTrigger value="theme">Aparência</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="users">
+                <UsersManager />
+              </TabsContent>
+              
+              <TabsContent value="calculator">
+                <CubManager />
+              </TabsContent>
+              
+              <TabsContent value="theme">
+                <ThemeManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </main>
