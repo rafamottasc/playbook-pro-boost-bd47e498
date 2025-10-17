@@ -203,12 +203,11 @@ const MoodMetricsOptimized = React.memo(() => {
             return (
               <div key={mood} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{moodLabels[mood]}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {count} ({percentage.toFixed(1)}%)
+                  <span className="text-sm font-medium">
+                    {moodLabels[mood]} {count} ({percentage.toFixed(1)}%)
                   </span>
                 </div>
-                <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-3" />
+                <Progress value={percentage} variant={moodVariantMap[mood] as any} className="h-2" />
               </div>
             );
           })}

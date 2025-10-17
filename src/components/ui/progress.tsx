@@ -11,11 +11,11 @@ const Progress = React.forwardRef<
 >(({ className, value, variant = 'default', ...props }, ref) => {
   const variantColors = {
     default: 'hsl(var(--primary))',
-    great: 'hsl(142.1 70% 45%)',      // Verde mais vibrante
-    good: 'hsl(221.2 83.2% 58%)',     // Azul mais claro
-    okay: 'hsl(47.9 95.8% 55%)',      // Amarelo ajustado
-    bad: 'hsl(24.6 95% 58%)',         // Laranja ajustado
-    terrible: 'hsl(0 84.2% 65%)',     // Vermelho ajustado
+    great: 'hsl(142.1 76% 45%)',      // Verde (igual badge)
+    good: 'hsl(221.2 83% 53%)',       // Azul (igual badge)
+    okay: 'hsl(47.9 96% 53%)',        // Amarelo (igual badge)
+    bad: 'hsl(24.6 95% 53%)',         // Laranja (igual badge)
+    terrible: 'hsl(0 84% 60%)',       // Vermelho (igual badge)
   };
 
   return (
