@@ -65,7 +65,6 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           <span>Selecionado:</span>
           <div className="flex items-center gap-2 px-2 py-1 bg-muted rounded">
             <DynamicIcon name={value} className="h-4 w-4 text-primary" />
-            <span className="font-mono text-xs">{value}</span>
           </div>
         </div>
       )}
