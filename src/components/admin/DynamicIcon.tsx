@@ -15,7 +15,7 @@ export const DynamicIcon = ({ name, ...props }: DynamicIconProps) => {
   const IconComponent = (LucideIcons as any)[name];
   
   // Se não encontrar, usa Circle como fallback
-  if (!IconComponent || typeof IconComponent !== 'function') {
+  if (!IconComponent) {
     return <LucideIcons.Circle {...props} />;
   }
   
