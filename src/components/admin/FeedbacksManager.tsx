@@ -21,6 +21,7 @@ import {
   Filter,
   Trash2,
 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useFeedbacks, Feedback, FeedbackType, FeedbackCategory, FeedbackStatus } from "@/hooks/useFeedbacks";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -59,6 +60,8 @@ export function FeedbacksManager() {
   const [loading, setLoading] = useState(true);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesValue, setNotesValue] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [feedbackToDelete, setFeedbackToDelete] = useState<string | null>(null);
 
   // Filters
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -101,15 +104,21 @@ export function FeedbacksManager() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este feedback? Esta ação não pode ser desfeita.")) {
-      return;
-    }
+  const handleDelete = (id: string) => {
+    setFeedbackToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!feedbackToDelete) return;
     
-    const result = await deleteFeedback(id);
+    const result = await deleteFeedback(feedbackToDelete);
     if (result.success) {
       loadFeedbacks();
     }
+    
+    setDeleteConfirmOpen(false);
+    setFeedbackToDelete(null);
   };
 
   // Calculate summary
@@ -413,6 +422,23 @@ export function FeedbacksManager() {
           ))
         )}
       </div>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este feedback? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

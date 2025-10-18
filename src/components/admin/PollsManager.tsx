@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, BarChart3, X } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { PollMetrics } from "./PollMetrics";
 
@@ -37,6 +38,8 @@ export function PollsManager() {
   const [isMetricsOpen, setIsMetricsOpen] = useState(false);
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pollToDelete, setPollToDelete] = useState<Poll | null>(null);
   const { toast } = useToast();
 
   // Form state
@@ -293,13 +296,18 @@ export function PollsManager() {
     fetchPolls();
   };
 
-  const handleDelete = async (poll: Poll) => {
-    if (!confirm(`Tem certeza que deseja excluir a enquete "${poll.title}"?`)) return;
+  const handleDelete = (poll: Poll) => {
+    setPollToDelete(poll);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pollToDelete) return;
 
     const { error } = await supabase
       .from("polls")
       .delete()
-      .eq("id", poll.id);
+      .eq("id", pollToDelete.id);
 
     if (error) {
       toast({
@@ -314,6 +322,9 @@ export function PollsManager() {
       title: "Enquete excluída",
       description: "A enquete foi removida com sucesso.",
     });
+
+    setDeleteConfirmOpen(false);
+    setPollToDelete(null);
     fetchPolls();
   };
 
@@ -524,6 +535,23 @@ export function PollsManager() {
           }}
         />
       )}
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a enquete "{pollToDelete?.title}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
