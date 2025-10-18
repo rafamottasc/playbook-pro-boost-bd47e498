@@ -438,7 +438,6 @@ export function MessagesContent() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Mensagens do Playbook</h2>
           <p className="text-sm text-muted-foreground">
             {filteredMessages.length} mensagen{filteredMessages.length !== 1 ? 's' : 's'}
           </p>

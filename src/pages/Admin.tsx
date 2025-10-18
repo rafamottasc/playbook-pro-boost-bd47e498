@@ -65,9 +65,9 @@ export default function Admin() {
           <TabsContent value="playbook" className="space-y-4">
             <Tabs defaultValue="messages" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="messages">Mensagens</TabsTrigger>
-                <TabsTrigger value="funis">Funis</TabsTrigger>
-                <TabsTrigger value="construtoras">Construtoras</TabsTrigger>
+                <TabsTrigger value="messages">📝 Mensagens</TabsTrigger>
+                <TabsTrigger value="funis">🚀 Funis</TabsTrigger>
+                <TabsTrigger value="construtoras">🏢 Construtoras</TabsTrigger>
               </TabsList>
               
               <TabsContent value="messages">
