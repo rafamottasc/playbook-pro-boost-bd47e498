@@ -121,7 +121,8 @@ export function MessageCard({
           {/* Copy Button - Full Width */}
           <Button
             onClick={handleCopy}
-            className="w-full bg-whatsapp hover:bg-whatsapp/90 text-whatsapp-foreground shadow-comarc hover:shadow-comarc-hover"
+            variant="default"
+            className="w-full"
             size="sm"
           >
             {copied ? (
