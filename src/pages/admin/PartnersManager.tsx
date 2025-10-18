@@ -124,12 +124,30 @@ export default function PartnersManager() {
   const confirmDelete = async () => {
     if (!partnerToDelete) return;
     try {
+      // Buscar e deletar arquivos do storage
+      const { data: files } = await supabase
+        .from('partner_files')
+        .select('file_url')
+        .eq('partner_id', partnerToDelete);
+
+      if (files && files.length > 0) {
+        const filePaths = files
+          .map(f => f.file_url.split('/partner-files/')[1])
+          .filter(Boolean);
+        
+        if (filePaths.length > 0) {
+          await supabase.storage.from('partner-files').remove(filePaths);
+        }
+      }
+
+      // Deletar parceiro (CASCADE deleta registros relacionados)
       const { error } = await supabase
         .from("partners")
         .delete()
         .eq("id", partnerToDelete);
+      
       if (error) throw error;
-      toast.success("Construtora excluída");
+      toast.success("Construtora e arquivos excluídos");
       setDeleteDialogOpen(false);
     } catch (error: any) {
       toast.error(error.message);

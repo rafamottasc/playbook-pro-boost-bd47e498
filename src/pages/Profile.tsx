@@ -99,6 +99,14 @@ export default function Profile() {
     setUploading(true);
 
     try {
+      // Deletar avatar antigo se existir
+      if (profile?.avatar_url) {
+        const oldPath = profile.avatar_url.split('/avatars/')[1];
+        if (oldPath) {
+          await supabase.storage.from("avatars").remove([oldPath]);
+        }
+      }
+
       const fileName = `${user.id}-${Date.now()}.jpg`;
       const filePath = `${user.id}/${fileName}`;
 

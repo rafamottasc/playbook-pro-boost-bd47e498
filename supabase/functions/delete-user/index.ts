@@ -114,6 +114,20 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Deletar avatar do storage antes de deletar usuário
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single()
+
+    if (profile?.avatar_url) {
+      const avatarPath = profile.avatar_url.split('/avatars/')[1]
+      if (avatarPath) {
+        await supabaseClient.storage.from('avatars').remove([avatarPath])
+      }
+    }
+
     // Deletar o usuário usando Admin API
     // Isso vai automaticamente deletar o perfil em cascata (ON DELETE CASCADE)
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
