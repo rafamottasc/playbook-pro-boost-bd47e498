@@ -11,7 +11,13 @@ import PartnersManager from "@/pages/admin/PartnersManager";
 import MoodMetricsOptimized from "@/components/admin/MoodMetricsOptimized";
 import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
 import { PollsManager } from "@/components/admin/PollsManager";
-import { BookOpen, Rocket, Heart, Settings } from "lucide-react";
+import { 
+  BookOpen, Rocket, Heart, Settings,
+  FolderOpen, GraduationCap,
+  MessageSquare, Workflow, Building2,
+  Megaphone, Vote, MessageCircle, Smile,
+  Users, Calculator, Palette
+} from "lucide-react";
 import { CubManager } from "@/components/admin/CubManager";
 import { ThemeManager } from "@/components/admin/ThemeManager";
 
@@ -47,8 +53,14 @@ export default function Admin() {
           <TabsContent value="content" className="space-y-4">
             <Tabs defaultValue="resources" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="resources">Recursos</TabsTrigger>
-                <TabsTrigger value="academy">Academy</TabsTrigger>
+                <TabsTrigger value="resources" className="gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Recursos
+                </TabsTrigger>
+                <TabsTrigger value="academy" className="gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Academy
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="resources">
@@ -65,9 +77,18 @@ export default function Admin() {
           <TabsContent value="playbook" className="space-y-4">
             <Tabs defaultValue="messages" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="messages">📝 Mensagens</TabsTrigger>
-                <TabsTrigger value="funis">🚀 Funis</TabsTrigger>
-                <TabsTrigger value="construtoras">🏢 Construtoras</TabsTrigger>
+                <TabsTrigger value="messages" className="gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Mensagens
+                </TabsTrigger>
+                <TabsTrigger value="funis" className="gap-2">
+                  <Workflow className="h-4 w-4" />
+                  Funis
+                </TabsTrigger>
+                <TabsTrigger value="construtoras" className="gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Construtoras
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="messages">
@@ -88,10 +109,22 @@ export default function Admin() {
           <TabsContent value="cultura" className="space-y-4">
             <Tabs defaultValue="avisos" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="avisos">Avisos</TabsTrigger>
-                <TabsTrigger value="enquetes">Enquetes</TabsTrigger>
-                <TabsTrigger value="feedbacks">Feedbacks</TabsTrigger>
-                <TabsTrigger value="clima">Clima</TabsTrigger>
+                <TabsTrigger value="avisos" className="gap-2">
+                  <Megaphone className="h-4 w-4" />
+                  Avisos
+                </TabsTrigger>
+                <TabsTrigger value="enquetes" className="gap-2">
+                  <Vote className="h-4 w-4" />
+                  Enquetes
+                </TabsTrigger>
+                <TabsTrigger value="feedbacks" className="gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  Feedbacks
+                </TabsTrigger>
+                <TabsTrigger value="clima" className="gap-2">
+                  <Smile className="h-4 w-4" />
+                  Clima
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="avisos">
@@ -116,9 +149,18 @@ export default function Admin() {
           <TabsContent value="system" className="space-y-4">
             <Tabs defaultValue="users" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="users">Usuários</TabsTrigger>
-                <TabsTrigger value="calculator">Calculadora</TabsTrigger>
-                <TabsTrigger value="theme">Aparência</TabsTrigger>
+                <TabsTrigger value="users" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Usuários
+                </TabsTrigger>
+                <TabsTrigger value="calculator" className="gap-2">
+                  <Calculator className="h-4 w-4" />
+                  Calculadora
+                </TabsTrigger>
+                <TabsTrigger value="theme" className="gap-2">
+                  <Palette className="h-4 w-4" />
+                  Aparência
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="users">
