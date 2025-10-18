@@ -61,11 +61,20 @@ export default function Auth() {
       setLoading(false);
 
       if (error) {
-        toast({
-          title: "Erro no login",
-          description: translateAuthError(error.message),
-          variant: "destructive",
-        });
+        // Tratamento específico para conta bloqueada
+        if (error.message === "blocked_account") {
+          toast({
+            title: "Acesso Bloqueado",
+            description: "Sua conta foi bloqueada. Entre em contato com o administrador.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro no login",
+            description: translateAuthError(error.message),
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       if (error instanceof ZodError) {

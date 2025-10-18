@@ -180,7 +180,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
     
-    if (!error && data.session) {
+    if (error) return { error };
+    
+    // ✅ Verificar bloqueio ANTES de estabelecer sessão completa
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("blocked")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      
+      // Se bloqueado, fazer logout imediato
+      if (profile?.blocked) {
+        await supabase.auth.signOut();
+        return { 
+          error: {
+            message: "blocked_account",
+            status: 403
+          } as any
+        };
+      }
+    }
+    
+    if (data.session) {
       // If user doesn't want to be remembered, move session to sessionStorage
       if (!rememberMe) {
         // Get all supabase auth keys from localStorage
@@ -201,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Navigation is handled by Auth.tsx after initializing completes
     }
     
-    return { error };
+    return { error: null };
   };
 
   const signUp = async (email: string, password: string, fullName: string, whatsapp: string) => {
