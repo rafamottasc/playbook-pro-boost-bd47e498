@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload, FolderOpen } from "lucide-react";
+import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload, FolderOpen, Image } from "lucide-react";
 import {
   Dialog,
   DraggableDialogContent,
@@ -67,7 +67,7 @@ const RESOURCE_TYPES = [
   { id: "pdf", name: "PDF", icon: FileText },
   { id: "link", name: "Link", icon: Link },
   { id: "video", name: "Vídeo", icon: Video },
-  { id: "image", name: "Imagem", icon: FileText },
+  { id: "image", name: "Imagem", icon: Image },
 ];
 
 export function ResourcesManager() {
@@ -583,12 +583,27 @@ export function ResourcesManager() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>
+                      {formData.resource_type && (
+                        <div className="flex items-center gap-2">
+                          {React.createElement(
+                            RESOURCE_TYPES.find(t => t.id === formData.resource_type)?.icon || FileText,
+                            { className: "h-4 w-4" }
+                          )}
+                          <span>
+                            {RESOURCE_TYPES.find(t => t.id === formData.resource_type)?.name}
+                          </span>
+                        </div>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {RESOURCE_TYPES.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
-                        {type.name}
+                        <div className="flex items-center gap-2">
+                          {React.createElement(type.icon, { className: "h-4 w-4" })}
+                          <span>{type.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -598,29 +613,34 @@ export function ResourcesManager() {
               {requiresFileUpload() ? (
                 <div className="space-y-2">
                   <Label htmlFor="file">Upload de Arquivo</Label>
-                  <div className="flex gap-2">
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
                     <Input
                       id="file"
                       type="file"
                       accept={formData.resource_type === "pdf" ? ".pdf" : "image/*"}
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="flex-1"
+                      className="pl-10"
                     />
-                    {selectedFile && (
+                  </div>
+                  {selectedFile && (
+                    <div className="flex items-center justify-between p-3 bg-accent/50 rounded-md border">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm font-medium truncate">{selectedFile.name}</span>
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         onClick={() => setSelectedFile(null)}
+                        className="flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
-                  </div>
-                  {selectedFile && (
-                    <p className="text-sm text-muted-foreground">
-                      Arquivo selecionado: {selectedFile.name}
-                    </p>
+                    </div>
                   )}
                 </div>
               ) : (
