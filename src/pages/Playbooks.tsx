@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useFunnels } from "@/hooks/useFunnels";
 import { useStages } from "@/hooks/useStages";
+import { DynamicIcon } from "@/components/admin/DynamicIcon";
 
 interface Message {
   id: string;
@@ -300,8 +301,9 @@ export default function Index() {
           <ScrollArea className="w-full">
             <TabsList className="mb-6 w-full justify-start inline-flex">
               {funnels.map((funnel) => (
-                <TabsTrigger key={funnel.id} value={funnel.id} className="whitespace-nowrap">
-                  {funnel.emoji} {funnel.name}
+                <TabsTrigger key={funnel.id} value={funnel.id} className="whitespace-nowrap gap-2">
+                  <DynamicIcon name={funnel.emoji} className="h-4 w-4" />
+                  {funnel.name}
                 </TabsTrigger>
               ))}
             </TabsList>

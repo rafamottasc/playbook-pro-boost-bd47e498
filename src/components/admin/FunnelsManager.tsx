@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Edit, GripVertical } from "lucide-react";
+import { IconPicker } from "@/components/admin/IconPicker";
+import { DynamicIcon } from "@/components/admin/DynamicIcon";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -197,7 +199,7 @@ export function FunnelsManager() {
                         className="flex-1 justify-start"
                         onClick={() => setSelectedFunnelId(funnel.id)}
                       >
-                        <span className="mr-2">{funnel.emoji}</span>
+                        <DynamicIcon name={funnel.emoji} className="h-4 w-4 mr-2" />
                         {funnel.name}
                       </Button>
                       <Button
@@ -232,7 +234,13 @@ export function FunnelsManager() {
         {/* Coluna 2: Etapas do Funil Selecionado */}
         <Card>
           <CardHeader>
-            <CardTitle>Etapas {selectedFunnel && `- ${selectedFunnel.emoji} ${selectedFunnel.name}`}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Etapas {selectedFunnel && (
+                <>
+                  - <DynamicIcon name={selectedFunnel.emoji} className="h-4 w-4" /> {selectedFunnel.name}
+                </>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {!selectedFunnelId ? (
@@ -299,11 +307,10 @@ export function FunnelsManager() {
             {isCreatingFunnel || isEditingFunnel ? (
               <div className="space-y-4">
                 <div>
-                  <Label>Emoji</Label>
-                  <Input
+                  <Label>Ícone</Label>
+                  <IconPicker
                     value={funnelForm.emoji}
-                    onChange={(e) => setFunnelForm({ ...funnelForm, emoji: e.target.value })}
-                    placeholder="📊"
+                    onChange={(iconName) => setFunnelForm({ ...funnelForm, emoji: iconName })}
                   />
                 </div>
                 <div>
