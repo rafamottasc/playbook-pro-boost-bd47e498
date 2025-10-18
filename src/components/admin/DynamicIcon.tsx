@@ -1,5 +1,5 @@
 import { icons, LucideProps } from 'lucide-react';
-import { createElement } from 'react';
+import * as LucideIcons from 'lucide-react';
 
 interface DynamicIconProps extends Omit<LucideProps, 'ref'> {
   name: string;
@@ -11,15 +11,14 @@ export const DynamicIcon = ({ name, ...props }: DynamicIconProps) => {
     return <span className="text-lg">{name}</span>;
   }
   
-  // Busca o ícone no objeto icons
-  const IconComponent = icons[name as keyof typeof icons];
+  // Busca o ícone no pacote lucide-react usando notação de ponto
+  const IconComponent = (LucideIcons as any)[name];
   
-  // Validação: verifica se é uma função válida (componente React)
+  // Se não encontrar, usa Circle como fallback
   if (!IconComponent || typeof IconComponent !== 'function') {
-    console.warn(`Icon "${name}" not found, using fallback`);
-    return createElement(icons.Circle, props);
+    return <LucideIcons.Circle {...props} />;
   }
   
-  // Renderiza usando createElement para evitar problemas com displayName
-  return createElement(IconComponent, props);
+  // Renderiza o ícone diretamente
+  return <IconComponent {...props} />;
 };
