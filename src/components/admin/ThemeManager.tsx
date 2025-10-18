@@ -187,14 +187,16 @@ export function ThemeManager() {
       </Card>
 
       {/* Ações */}
-      <Button 
-        onClick={handleSave} 
-        className="w-full h-12 text-base font-semibold gap-2"
-        size="lg"
-      >
-        <Save className="w-4 h-4" />
-        Salvar Tema
-      </Button>
+      <div className="flex justify-start">
+        <Button 
+          onClick={handleSave} 
+          className="h-12 text-base font-semibold gap-2"
+          size="lg"
+        >
+          <Save className="w-4 h-4" />
+          Salvar Tema
+        </Button>
+      </div>
 
       {/* Aviso */}
       <Card className="border-primary/50 bg-primary/5">
