@@ -32,7 +32,7 @@ export function KanbanColumn({
   return (
     <div className="flex w-full flex-col">
       {/* Column Header */}
-      <div className="mb-4 rounded-lg bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/30 p-4 shadow-sm">
+      <div className="mb-4 rounded-lg bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-base text-primary">{stage}</h3>
           <span className="rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-bold shadow-sm">
