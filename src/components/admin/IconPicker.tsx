@@ -11,7 +11,7 @@ interface IconPickerProps {
 
 const AVAILABLE_ICONS = [
   // Negócios & Análise
-  "TrendingUp", "TrendingDown", "BarChart3", "LineChart", "PieChart", 
+  "TrendingUp", "TrendingDown", "LineChart", "PieChart", 
   "Activity", "Target", "Award", "TrendingUpDown",
   
   // Comunicação
