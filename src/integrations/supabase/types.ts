@@ -1350,6 +1350,33 @@ export type Database = {
           },
         ]
       }
+      storage_cleanup_logs: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          executed_by: string | null
+          files_deleted: number
+          id: string
+          space_freed_bytes: number
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          executed_by?: string | null
+          files_deleted?: number
+          id?: string
+          space_freed_bytes?: number
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          executed_by?: string | null
+          files_deleted?: number
+          id?: string
+          space_freed_bytes?: number
+        }
+        Relationships: []
+      }
       suggestions: {
         Row: {
           created_at: string | null

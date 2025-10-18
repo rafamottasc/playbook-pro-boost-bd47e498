@@ -38,16 +38,16 @@ export function StorageCleanup() {
     queryKey: ["cleanup-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("storage_cleanup_logs")
+        .from("storage_cleanup_logs" as any)
         .select(`
           *,
-          profiles (full_name)
+          profiles!storage_cleanup_logs_executed_by_fkey (full_name)
         `)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) throw error;
-      return data as CleanupLog[];
+      return data as unknown as CleanupLog[];
     },
   });
 
