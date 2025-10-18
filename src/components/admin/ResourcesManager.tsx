@@ -6,10 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload, FolderOpen } from "lucide-react";
-import { CategoriesManager } from "./resources/CategoriesManager";
 import {
   Dialog,
   DraggableDialogContent,
@@ -79,6 +78,19 @@ export function ResourcesManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<string | null>(null);
+  
+  // Estados para categorias
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ResourceCategory | null>(null);
+  const [deleteCategoryConfirmOpen, setDeleteCategoryConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: "",
+    description: "",
+    display_order: 0,
+    active: true,
+  });
+  
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -125,7 +137,6 @@ export function ResourcesManager() {
       const { data, error } = await supabase
         .from("resource_categories")
         .select("*")
-        .eq("active", true)
         .order("display_order", { ascending: true });
 
       if (error) throw error;
@@ -316,6 +327,112 @@ export function ResourcesManager() {
     });
   };
 
+  // Funções para categorias
+  const handleSaveCategory = async () => {
+    try {
+      if (!categoryFormData.name.trim()) {
+        toast({
+          title: "Erro",
+          description: "O nome da categoria é obrigatório",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (editingCategory) {
+        const { error } = await supabase
+          .from("resource_categories")
+          .update(categoryFormData)
+          .eq("id", editingCategory.id);
+        if (error) throw error;
+        toast({ title: "Categoria atualizada!" });
+      } else {
+        const { error } = await supabase
+          .from("resource_categories")
+          .insert([categoryFormData]);
+        if (error) throw error;
+        toast({ title: "Categoria criada!" });
+      }
+
+      setCategoryDialogOpen(false);
+      resetCategoryForm();
+      loadCategories();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao salvar categoria",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditCategory = (category: ResourceCategory) => {
+    setEditingCategory(category);
+    setCategoryFormData({
+      name: category.name,
+      description: category.description || "",
+      display_order: category.display_order,
+      active: category.active,
+    });
+    setCategoryDialogOpen(true);
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    setCategoryToDelete(id);
+    setDeleteCategoryConfirmOpen(true);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    try {
+      // Verificar se há recursos vinculados
+      const { count } = await supabase
+        .from("resources")
+        .select("*", { count: "exact", head: true })
+        .eq("category_id", categoryToDelete);
+
+      if (count && count > 0) {
+        toast({
+          title: "Erro ao deletar",
+          description: `Existem ${count} recursos vinculados a esta categoria.`,
+          variant: "destructive",
+        });
+        setDeleteCategoryConfirmOpen(false);
+        setCategoryToDelete(null);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("resource_categories")
+        .delete()
+        .eq("id", categoryToDelete);
+
+      if (error) throw error;
+      toast({ title: "Categoria excluída!" });
+      loadCategories();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir categoria",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteCategoryConfirmOpen(false);
+      setCategoryToDelete(null);
+    }
+  };
+
+  const resetCategoryForm = () => {
+    setEditingCategory(null);
+    setCategoryFormData({
+      name: "",
+      description: "",
+      display_order: categories.length,
+      active: true,
+    });
+  };
+
   const requiresFileUpload = () => {
     return formData.resource_type === "pdf" || formData.resource_type === "image";
   };
@@ -331,26 +448,84 @@ export function ResourcesManager() {
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Gerenciar Recursos</h2>
-      <Tabs defaultValue="resources" className="w-full">
-        <TabsList>
-          <TabsTrigger value="resources">Recursos</TabsTrigger>
-          <TabsTrigger value="categories">Categorias</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="resources" className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <div>
-              <h3 className="text-xl font-semibold">Recursos Educativos</h3>
-              <p className="text-sm text-muted-foreground">
-                {resources.length} {resources.length === 1 ? "recurso" : "recursos"} cadastrado
-                {resources.length !== 1 ? "s" : ""}
-              </p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Recursos</h2>
+        <p className="text-muted-foreground">
+          Organize materiais digitais e administrativos para os corretores.
+        </p>
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-3 justify-end">
+        <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" onClick={resetCategoryForm}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Categoria
+            </Button>
+          </DialogTrigger>
+          <DraggableDialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingCategory ? "Editar Categoria" : "Nova Categoria"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingCategory
+                  ? "Edite os campos abaixo"
+                  : "Preencha para adicionar uma nova categoria"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cat_name">Nome</Label>
+                <Input
+                  id="cat_name"
+                  value={categoryFormData.name}
+                  onChange={(e) =>
+                    setCategoryFormData({ ...categoryFormData, name: e.target.value })
+                  }
+                  placeholder="Ex: Documentos Jurídicos"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cat_description">Descrição (opcional)</Label>
+                <Textarea
+                  id="cat_description"
+                  value={categoryFormData.description}
+                  onChange={(e) =>
+                    setCategoryFormData({ ...categoryFormData, description: e.target.value })
+                  }
+                  placeholder="Descreva o tipo de recursos..."
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cat_order">Ordem de Exibição</Label>
+                <Input
+                  id="cat_order"
+                  type="number"
+                  value={categoryFormData.display_order}
+                  onChange={(e) =>
+                    setCategoryFormData({
+                      ...categoryFormData,
+                      display_order: parseInt(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveCategory}>Salvar</Button>
+              </div>
             </div>
+          </DraggableDialogContent>
+        </Dialog>
+        
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="w-full sm:w-auto">
+            <Button onClick={resetForm}>
               <Plus className="mr-2 h-4 w-4" />
               Novo Recurso
             </Button>
@@ -496,6 +671,73 @@ export function ResourcesManager() {
         </Dialog>
       </div>
 
+      {/* Seção de Categorias */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <FolderOpen className="h-5 w-5" />
+          Categorias
+        </h3>
+        
+        {categories.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">Nenhuma categoria cadastrada ainda</p>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            {categories.map((category) => (
+              <Card key={category.id} className="p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold">{category.name}</h4>
+                      <Badge variant={category.active ? "default" : "secondary"}>
+                        {category.active ? "Ativa" : "Inativa"}
+                      </Badge>
+                    </div>
+                    {category.description && (
+                      <p className="text-sm text-muted-foreground">
+                        {category.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditCategory(category)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Editar</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteCategory(category.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Excluir</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
       {resources.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
@@ -517,11 +759,11 @@ export function ResourcesManager() {
             
             return (
               <div key={category.id} className="space-y-3">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <FolderOpen className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">{category.name}</h3>
+                <div className="flex items-center gap-2 pb-2 border-b mt-8">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">📁 {category.name}</h3>
                   <span className="text-sm text-muted-foreground">
-                    ({categoryResources.length})
+                    ({categoryResources.length} {categoryResources.length === 1 ? 'recurso' : 'recursos'})
                   </span>
                 </div>
                 
@@ -613,6 +855,7 @@ export function ResourcesManager() {
         </div>
       )}
 
+      {/* AlertDialog para excluir recurso */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -629,12 +872,27 @@ export function ResourcesManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        </TabsContent>
 
-        <TabsContent value="categories">
-          <CategoriesManager />
-        </TabsContent>
-      </Tabs>
+      {/* AlertDialog para excluir categoria */}
+      <AlertDialog open={deleteCategoryConfirmOpen} onOpenChange={setDeleteCategoryConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão de categoria</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta categoria? Se houver recursos vinculados, a categoria não poderá ser excluída.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteCategory}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
