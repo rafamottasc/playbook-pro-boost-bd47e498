@@ -21,7 +21,7 @@ export function useDailyMood() {
     if (!user) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       
       const { data, error } = await supabase
         .from("daily_mood")
@@ -53,7 +53,7 @@ export function useDailyMood() {
         .eq("id", user.id)
         .single();
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
 
       const { error } = await supabase
         .from("daily_mood")
