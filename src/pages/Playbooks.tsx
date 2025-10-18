@@ -299,9 +299,13 @@ export default function Index() {
         {/* Funnels Tabs */}
         <Tabs value={activeFunnel} onValueChange={setActiveFunnel} className="w-full">
           <ScrollArea className="w-full">
-            <TabsList className="mb-6 w-full justify-start inline-flex">
+            <TabsList className="mb-6 bg-transparent border-0 gap-2 p-0 h-auto justify-start inline-flex">
               {funnels.map((funnel) => (
-                <TabsTrigger key={funnel.id} value={funnel.id} className="whitespace-nowrap gap-2">
+                <TabsTrigger 
+                  key={funnel.id} 
+                  value={funnel.id} 
+                  className="whitespace-nowrap gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary data-[state=inactive]:bg-background data-[state=inactive]:border-border border rounded-lg px-4 py-2 hover:shadow-sm hover:bg-muted/50 transition-smooth"
+                >
                   <DynamicIcon name={funnel.emoji} className="h-4 w-4" />
                   {funnel.name}
                 </TabsTrigger>
@@ -314,7 +318,7 @@ export default function Index() {
             <TabsContent key={funnel.id} value={funnel.id}>
               {/* Kanban Board */}
               <ScrollArea className="w-full">
-                <div className="grid gap-4 pb-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                <div className="grid gap-5 pb-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {currentStages.map((stage) => {
                     const stageMessages = messages.filter(
                       (msg) => msg.funnel_slug === activeFunnelSlug && msg.stage_name === stage.name

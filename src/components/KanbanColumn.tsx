@@ -32,17 +32,17 @@ export function KanbanColumn({
   return (
     <div className="flex w-full flex-col">
       {/* Column Header */}
-      <div className="mb-4 rounded-lg bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 p-4 shadow-sm">
+      <div className="mb-4 rounded-lg bg-background border-t-[3px] border-t-primary border border-border p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-base text-primary">{stage}</h3>
-          <span className="rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-bold shadow-sm">
+          <h3 className="font-bold text-base text-foreground">{stage}</h3>
+          <span className="rounded-full bg-muted text-muted-foreground px-2.5 py-0.5 text-xs font-semibold">
             {messages.length}
           </span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="space-y-3 flex-1">
+      <div className="space-y-4 flex-1">
         {messages.map((message) => (
           <MessageCard
             key={message.id}
