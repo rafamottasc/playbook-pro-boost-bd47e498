@@ -331,13 +331,31 @@ export function LessonsManager() {
     if (!lessonToDelete) return;
 
     try {
+      // Buscar e deletar materiais anexos do storage
+      const { data: attachments } = await supabase
+        .from('lesson_attachments')
+        .select('file_url, file_type')
+        .eq('lesson_id', lessonToDelete);
+
+      if (attachments && attachments.length > 0) {
+        const materialPaths = attachments
+          .filter(att => att.file_type === 'pdf')
+          .map(att => att.file_url.split('/lesson-materials/')[1])
+          .filter(Boolean);
+        
+        if (materialPaths.length > 0) {
+          await supabase.storage.from('lesson-materials').remove(materialPaths);
+        }
+      }
+
+      // Deletar aula (CASCADE deleta anexos)
       const { error } = await supabase
         .from('academy_lessons')
         .delete()
         .eq('id', lessonToDelete);
 
       if (error) throw error;
-      toast({ title: "Aula excluída!" });
+      toast({ title: "Aula e materiais excluídos!" });
       fetchAllLessons();
     } catch (error: any) {
       toast({

@@ -185,6 +185,14 @@ export function ModulesManager() {
     e.preventDefault();
 
     try {
+      // Se está editando e tem nova capa, deletar a antiga
+      if (editingModule && coverFile && editingModule.cover_url) {
+        const oldCoverPath = editingModule.cover_url.split('/academy-covers/')[1];
+        if (oldCoverPath) {
+          await supabase.storage.from('academy-covers').remove([oldCoverPath]);
+        }
+      }
+
       // Upload da capa se houver
       const coverUrl = await uploadCover();
       if (coverFile && !coverUrl) return; // Falhou no upload
@@ -274,13 +282,28 @@ export function ModulesManager() {
     if (!moduleToDelete) return;
 
     try {
+      // Buscar e deletar capa do storage
+      const { data: module } = await supabase
+        .from('academy_modules')
+        .select('cover_url')
+        .eq('id', moduleToDelete)
+        .single();
+
+      if (module?.cover_url) {
+        const coverPath = module.cover_url.split('/academy-covers/')[1];
+        if (coverPath) {
+          await supabase.storage.from('academy-covers').remove([coverPath]);
+        }
+      }
+
+      // Deletar módulo
       const { error } = await supabase
         .from('academy_modules')
         .delete()
         .eq('id', moduleToDelete);
 
       if (error) throw error;
-      toast({ title: "Módulo excluído!" });
+      toast({ title: "Módulo e arquivos excluídos!" });
       fetchModules();
     } catch (error: any) {
       toast({

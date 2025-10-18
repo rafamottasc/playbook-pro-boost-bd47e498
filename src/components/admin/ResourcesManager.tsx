@@ -282,10 +282,25 @@ export function ResourcesManager() {
     if (!resourceToDelete) return;
 
     try {
+      // Buscar e deletar arquivo do storage se for PDF ou imagem
+      const { data: resource } = await supabase
+        .from("resources")
+        .select('url, resource_type')
+        .eq("id", resourceToDelete)
+        .single();
+
+      if (resource && ['pdf', 'image'].includes(resource.resource_type)) {
+        const filePath = resource.url.split('/resources/')[1];
+        if (filePath) {
+          await supabase.storage.from('resources').remove([filePath]);
+        }
+      }
+
+      // Deletar recurso
       const { error } = await supabase.from("resources").delete().eq("id", resourceToDelete);
       if (error) throw error;
 
-      toast({ title: "Recurso excluído com sucesso!" });
+      toast({ title: "Recurso e arquivos excluídos!" });
       loadResources();
     } catch (error: any) {
       logger.error("Erro ao excluir recurso", { 
