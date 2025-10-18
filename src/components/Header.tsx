@@ -105,7 +105,7 @@ export const Header = React.memo(function Header() {
               </div>
             ) : profile ? (
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-primary">{getWelcomeMessage()}</p>
+                <p className="text-sm font-medium text-foreground">{getWelcomeMessage()}</p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
                     {currentBadge.name}
