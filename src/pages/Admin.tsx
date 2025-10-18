@@ -11,7 +11,7 @@ import PartnersManager from "@/pages/admin/PartnersManager";
 import MoodMetricsOptimized from "@/components/admin/MoodMetricsOptimized";
 import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
 import { PollsManager } from "@/components/admin/PollsManager";
-import { BookOpen, Building2, Users, Settings, TrendingUp, Heart } from "lucide-react";
+import { BookOpen, Rocket, Heart, Settings } from "lucide-react";
 import { CubManager } from "@/components/admin/CubManager";
 import { ThemeManager } from "@/components/admin/ThemeManager";
 
@@ -29,17 +29,13 @@ export default function Admin() {
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Conteúdo</span>
             </TabsTrigger>
-            <TabsTrigger value="communication" className="gap-2">
+            <TabsTrigger value="playbook" className="gap-2">
+              <Rocket className="h-4 w-4" />
+              <span className="hidden sm:inline">Playbook</span>
+            </TabsTrigger>
+            <TabsTrigger value="cultura" className="gap-2">
               <Heart className="h-4 w-4" />
-              <span className="hidden sm:inline">Comunicação</span>
-            </TabsTrigger>
-            <TabsTrigger value="engagement" className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Engajamento</span>
-            </TabsTrigger>
-            <TabsTrigger value="sales" className="gap-2">
-              <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Vendas</span>
+              <span className="hidden sm:inline">Cultura</span>
             </TabsTrigger>
             <TabsTrigger value="system" className="gap-2">
               <Settings className="h-4 w-4" />
@@ -47,7 +43,7 @@ export default function Admin() {
             </TabsTrigger>
           </TabsList>
 
-          {/* CONTEÚDO & TREINAMENTO */}
+          {/* CONTEÚDO */}
           <TabsContent value="content" className="space-y-4">
             <Tabs defaultValue="resources" className="w-full">
               <TabsList className="mb-4">
@@ -65,61 +61,53 @@ export default function Admin() {
             </Tabs>
           </TabsContent>
 
-          {/* COMUNICAÇÃO */}
-          <TabsContent value="communication" className="space-y-4">
+          {/* PLAYBOOK */}
+          <TabsContent value="playbook" className="space-y-4">
             <Tabs defaultValue="messages" className="w-full">
               <TabsList className="mb-4">
                 <TabsTrigger value="messages">Mensagens</TabsTrigger>
-                <TabsTrigger value="announcements">Avisos</TabsTrigger>
+                <TabsTrigger value="funis">Funis</TabsTrigger>
+                <TabsTrigger value="construtoras">Construtoras</TabsTrigger>
               </TabsList>
               
               <TabsContent value="messages">
                 <MessagesManager />
               </TabsContent>
               
-              <TabsContent value="announcements">
-                <AnnouncementsManager />
+              <TabsContent value="funis">
+                <FunnelsManager />
+              </TabsContent>
+              
+              <TabsContent value="construtoras">
+                <PartnersManager />
               </TabsContent>
             </Tabs>
           </TabsContent>
 
-          {/* ENGAJAMENTO & CULTURA */}
-          <TabsContent value="engagement" className="space-y-4">
-            <Tabs defaultValue="feedbacks" className="w-full">
+          {/* CULTURA */}
+          <TabsContent value="cultura" className="space-y-4">
+            <Tabs defaultValue="avisos" className="w-full">
               <TabsList className="mb-4">
+                <TabsTrigger value="avisos">Avisos</TabsTrigger>
+                <TabsTrigger value="enquetes">Enquetes</TabsTrigger>
                 <TabsTrigger value="feedbacks">Feedbacks</TabsTrigger>
-                <TabsTrigger value="polls">Enquetes</TabsTrigger>
-                <TabsTrigger value="mood">Clima</TabsTrigger>
+                <TabsTrigger value="clima">Clima</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="avisos">
+                <AnnouncementsManager />
+              </TabsContent>
+              
+              <TabsContent value="enquetes">
+                <PollsManager />
+              </TabsContent>
               
               <TabsContent value="feedbacks">
                 <FeedbacksManager />
               </TabsContent>
               
-              <TabsContent value="polls">
-                <PollsManager />
-              </TabsContent>
-              
-              <TabsContent value="mood">
+              <TabsContent value="clima">
                 <MoodMetricsOptimized />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-
-          {/* VENDAS & PARCEIROS */}
-          <TabsContent value="sales" className="space-y-4">
-            <Tabs defaultValue="funnels" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="funnels">Funis</TabsTrigger>
-                <TabsTrigger value="partners">Construtoras</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="funnels">
-                <FunnelsManager />
-              </TabsContent>
-              
-              <TabsContent value="partners">
-                <PartnersManager />
               </TabsContent>
             </Tabs>
           </TabsContent>
