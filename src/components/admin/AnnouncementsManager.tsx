@@ -131,12 +131,20 @@ export function AnnouncementsManager() {
   const [confirmationDetails, setConfirmationDetails] = useState<ConfirmationDetail[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
   
+  // Função auxiliar para obter data/hora local formatada para datetime-local input
+  const getLocalDateTimeString = () => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+  };
+
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     priority: "info",
     icon: "megaphone",
-    start_date: new Date().toISOString().slice(0, 16),
+    start_date: getLocalDateTimeString(),
     end_date: "",
     cta_text: "",
     cta_link: "",
@@ -309,7 +317,7 @@ export function AnnouncementsManager() {
       message: announcement.message,
       priority: announcement.priority,
       icon: announcement.icon,
-      start_date: new Date().toISOString().slice(0, 16),
+      start_date: getLocalDateTimeString(),
       end_date: "",
       cta_text: announcement.cta_text || "",
       cta_link: announcement.cta_link || "",
@@ -363,7 +371,7 @@ export function AnnouncementsManager() {
       message: "",
       priority: "info",
       icon: "megaphone",
-      start_date: new Date().toISOString().slice(0, 16),
+      start_date: getLocalDateTimeString(),
       end_date: "",
       cta_text: "",
       cta_link: "",

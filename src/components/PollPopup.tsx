@@ -42,6 +42,10 @@ export function PollPopup() {
       if (!user) return;
 
       // Buscar enquetes ativas
+      // Usar hora local do Brasil (sem conversão para UTC)
+      const now = new Date();
+      const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
+      
       const { data: polls, error: pollError } = await supabase
         .from("polls")
         .select(`
@@ -57,8 +61,8 @@ export function PollPopup() {
           )
         `)
         .eq("active", true)
-        .gte("end_date", new Date().toISOString())
-        .lte("start_date", new Date().toISOString())
+        .gte("end_date", localNow)
+        .lte("start_date", localNow)
         .order("created_at", { ascending: false });
 
       if (pollError) throw pollError;

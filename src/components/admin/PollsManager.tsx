@@ -180,13 +180,17 @@ export function PollsManager() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Converter datetime-local para ISO mantendo o timezone local (sem converter para UTC)
+      const startLocal = new Date(startDate);
+      const endLocal = new Date(endDate);
+      
       const pollData = {
         title: title.trim(),
         description: description.trim() || null,
         allow_multiple: allowMultiple,
         target_audience: targetAudience,
-        start_date: new Date(startDate).toISOString(),
-        end_date: new Date(endDate).toISOString(),
+        start_date: new Date(startLocal.getTime() - startLocal.getTimezoneOffset() * 60000).toISOString(),
+        end_date: new Date(endLocal.getTime() - endLocal.getTimezoneOffset() * 60000).toISOString(),
         active: true,
         created_by: user.id,
       };

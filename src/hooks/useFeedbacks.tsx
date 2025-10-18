@@ -118,7 +118,9 @@ export function useFeedbacks() {
       if (filters?.period) {
         const date = new Date();
         date.setDate(date.getDate() - filters.period);
-        query = query.gte("created_at", date.toISOString());
+        // Usar timezone local para comparação (sem converter para UTC)
+        const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
+        query = query.gte("created_at", localDate);
       }
 
       const { data, error } = await query;
