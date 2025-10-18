@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { Palette, RotateCcw } from 'lucide-react';
+import { Palette, Save } from 'lucide-react';
 import { SketchPicker, ColorResult } from 'react-color';
 
 // Funções de conversão HSL ↔ HEX
@@ -187,24 +187,14 @@ export function ThemeManager() {
       </Card>
 
       {/* Ações */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button 
-          onClick={handleSave} 
-          className="flex-1 h-12 text-base font-semibold"
-          size="lg"
-        >
-          💾 Salvar Tema
-        </Button>
-        <Button 
-          onClick={handleReset} 
-          variant="outline"
-          className="h-12"
-          size="lg"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Resetar para Cor Padrão
-        </Button>
-      </div>
+      <Button 
+        onClick={handleSave} 
+        className="w-full h-12 text-base font-semibold gap-2"
+        size="lg"
+      >
+        <Save className="w-4 h-4" />
+        Salvar Tema
+      </Button>
 
       {/* Aviso */}
       <Card className="border-primary/50 bg-primary/5">
