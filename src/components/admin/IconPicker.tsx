@@ -51,7 +51,6 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
                   "h-10 w-10 p-0 hover:bg-primary/10 transition-all",
                   value === iconName && "border-2 border-primary bg-primary/10"
                 )}
-                title={iconName}
               >
                 <DynamicIcon name={iconName} className="h-5 w-5 text-primary" />
               </Button>
