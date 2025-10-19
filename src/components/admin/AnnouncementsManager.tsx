@@ -90,25 +90,25 @@ const iconOptions = [
 
 const priorityStyles = {
   urgent: {
-    container: "bg-white dark:bg-card",
+    container: "bg-gradient-to-br from-white/95 to-[#FFF5F5]/90 dark:from-[#1E1E23]/95 dark:to-[#281919]/90 backdrop-blur-[12px] saturate-150",
     borderColor: "border-l-[#E74C3C]",
     icon: "text-[#E74C3C]",
     button: "bg-[#E74C3C] hover:bg-[#E74C3C]/90 text-white",
   },
   warning: {
-    container: "bg-white dark:bg-card",
+    container: "bg-gradient-to-br from-white/95 to-[#FFFCF5]/90 dark:from-[#1E1E23]/95 dark:to-[#282619]/90 backdrop-blur-[12px] saturate-150",
     borderColor: "border-l-[#F1C40F]",
     icon: "text-[#F1C40F]",
     button: "bg-[#F1C40F] hover:bg-[#F1C40F]/90 text-white",
   },
   info: {
-    container: "bg-white dark:bg-card",
+    container: "bg-gradient-to-br from-white/95 to-[#F5FAFF]/90 dark:from-[#1E1E23]/95 dark:to-[#192328]/90 backdrop-blur-[12px] saturate-150",
     borderColor: "border-l-[#2E86DE]",
     icon: "text-[#2E86DE]",
     button: "bg-[#2E86DE] hover:bg-[#2E86DE]/90 text-white",
   },
   success: {
-    container: "bg-white dark:bg-card",
+    container: "bg-gradient-to-br from-white/95 to-[#F5FFFA]/90 dark:from-[#1E1E23]/95 dark:to-[#192822]/90 backdrop-blur-[12px] saturate-150",
     borderColor: "border-l-[#00A884]",
     icon: "text-[#00A884]",
     button: "bg-[#00A884] hover:bg-[#00A884]/90 text-white",

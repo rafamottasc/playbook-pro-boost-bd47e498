@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator } from "lucide-react";
+import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator, Hand } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { PageTransition } from "@/components/PageTransition";
@@ -104,8 +104,9 @@ export default function Home() {
         <main className="container mx-auto px-4 py-8">
           {/* Welcome Section */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold mb-2 text-foreground">
-              {greeting}, {firstName}! 👋
+            <h1 className="text-4xl font-bold mb-2 text-foreground flex items-center justify-center gap-2">
+              {greeting}, {firstName}!
+              <Hand className="h-8 w-8 text-primary" />
             </h1>
             <p className="text-muted-foreground text-lg">
               Selecione uma seção para começar
