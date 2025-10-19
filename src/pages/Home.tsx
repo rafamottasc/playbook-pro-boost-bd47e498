@@ -124,7 +124,7 @@ export default function Home() {
             {visibleCards.map((card, index) => (
               <Card
                 key={card.route}
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in border-2 hover:border-primary/50"
+                className="cursor-pointer animate-fade-in transition-all duration-300 border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px]"
                 style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => navigate(card.route)}
               >
