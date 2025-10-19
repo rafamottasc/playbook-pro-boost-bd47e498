@@ -198,9 +198,9 @@ export function MessageCard({
           {/* Botão copiar à direita */}
           <Button
             onClick={handleCopy}
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="text-primary hover:bg-primary/5 gap-1.5"
+            className="text-primary border-primary/30 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-smooth gap-1.5"
           >
             {copied ? (
               <>

@@ -32,9 +32,9 @@ export function KanbanColumn({
   return (
     <div className="flex w-full flex-col">
       {/* Column Header */}
-      <div className="mb-4 rounded-lg bg-background border-t-[3px] border-t-primary border border-border p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+      <div className="mb-4 rounded-lg bg-background border-t-[3px] border-t-primary border border-border py-2.5 px-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-base text-foreground">{stage}</h3>
+          <h3 className="font-bold text-sm text-foreground">{stage}</h3>
           <span className="rounded-full bg-muted text-muted-foreground px-2.5 py-0.5 text-xs font-semibold">
             {messages.length}
           </span>

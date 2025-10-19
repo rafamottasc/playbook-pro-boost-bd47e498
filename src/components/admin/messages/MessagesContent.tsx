@@ -120,13 +120,16 @@ function SortableMessageCard({
                 <div className="flex flex-wrap gap-2 text-xs">
                   <Badge variant="outline">{funnelName}</Badge>
                   <Badge variant="secondary">{message.stage_name}</Badge>
-                  {message.delivery_type && (
-                    <Badge variant={`delivery-${message.delivery_type}` as any} className="capitalize">
-                      {message.delivery_type === 'audio' ? '🎵 Áudio' : 
-                       message.delivery_type === 'call' ? '📞 Ligação' : 
-                       '💬 Texto'}
-                    </Badge>
-                  )}
+              {message.delivery_type && (
+                <Badge 
+                  variant="outline"
+                  className="border-primary text-primary bg-transparent rounded-md capitalize"
+                >
+                  {message.delivery_type === 'audio' ? '🎵 Áudio' : 
+                   message.delivery_type === 'call' ? '📞 Ligação' : 
+                   '💬 Texto'}
+                </Badge>
+              )}
                 </div>
               </div>
               
