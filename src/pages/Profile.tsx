@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Award } from "lucide-react";
+import { Upload, Award, User } from "lucide-react";
 import { profileUpdateSchema } from "@/lib/validations";
 import { ZodError } from "zod";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
@@ -32,6 +32,7 @@ export default function Profile() {
     avatar_url: "",
     gender: "",
     team: "",
+    creci: "",
     points: 0,
   });
 
@@ -163,6 +164,7 @@ export default function Profile() {
         whatsapp: profile.whatsapp,
         gender: profile.gender || "",
         team: profile.team || "",
+        creci: profile.creci || "",
       });
 
       setLoading(true);
@@ -174,6 +176,7 @@ export default function Profile() {
           whatsapp: unformatPhone(validated.whatsapp),
           gender: validated.gender || null,
           team: validated.team || null,
+          creci: validated.creci || null,
           profile_onboarding_completed: true,
         })
         .eq("id", user.id);
@@ -220,32 +223,37 @@ export default function Profile() {
           <TabsContent value="profile">
             <Card>
               <CardHeader>
-                <CardTitle>Meu Perfil</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Meu Perfil
+                </CardTitle>
                 <CardDescription>
                   Gerencie suas informações pessoais e foto de perfil
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name} />
-                <AvatarFallback className="text-2xl">
-                  {profile.full_name?.charAt(0)?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              
-              {/* Points and Ranking Display */}
-              <div className="flex flex-col items-center gap-2">
-                <Badge variant={rankingBadge.variant} className={`text-sm ${rankingBadge.color}`}>
-                  {rankingBadge.label}
-                </Badge>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Award className="h-4 w-4" />
-                  <span className="text-sm font-medium">{profile.points} pontos</span>
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name} />
+                  <AvatarFallback className="text-2xl">
+                    {profile.full_name?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {/* Points and Ranking Display */}
+                <div className="flex flex-col items-center gap-2">
+                  <Badge variant={rankingBadge.variant} className={`text-sm ${rankingBadge.color}`}>
+                    {rankingBadge.label}
+                  </Badge>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Award className="h-4 w-4" />
+                    <span className="text-sm font-medium">{profile.points} pontos</span>
+                  </div>
                 </div>
               </div>
 
-              <div>
+              <div className="flex md:ml-auto">
                 <input
                   type="file"
                   id="avatar-upload"
@@ -263,94 +271,108 @@ export default function Profile() {
                   <Upload className="h-4 w-4 mr-2" />
                   {uploading ? "Enviando..." : "Alterar Foto"}
                 </Button>
-              </div>
 
-              <ImageCropDialog
-                open={cropDialogOpen}
-                onOpenChange={setCropDialogOpen}
-                imageSrc={selectedImage}
-                onCropComplete={handleCropComplete}
-              />
+                <ImageCropDialog
+                  open={cropDialogOpen}
+                  onOpenChange={setCropDialogOpen}
+                  imageSrc={selectedImage}
+                  onCropComplete={handleCropComplete}
+                />
+              </div>
             </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Nome Completo</Label>
-                <Input
-                  id="full_name"
-                  value={profile.full_name}
-                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                  disabled={loading}
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Nome Completo</Label>
+                  <Input
+                    id="full_name"
+                    value={profile.full_name}
+                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gênero</Label>
-                <Select
-                  value={profile.gender || ""}
-                  onValueChange={(value) => setProfile({ ...profile, gender: value })}
-                  disabled={loading}
-                >
-                  <SelectTrigger id="gender">
-                    <SelectValue placeholder="Selecione seu gênero" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="masculino">Masculino</SelectItem>
-                    <SelectItem value="feminino">Feminino</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Usado para personalizar mensagens de boas-vindas
-                </p>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="creci">CRECI (Opcional)</Label>
+                  <Input
+                    id="creci"
+                    placeholder="Ex: F123456 ou 123456"
+                    value={profile.creci}
+                    onChange={(e) => setProfile({ ...profile, creci: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp">WhatsApp</Label>
-                <Input
-                  id="whatsapp"
-                  placeholder="(47) 9 9999-9999"
-                  value={profile.whatsapp}
-                  onChange={(e) => {
-                    const formatted = formatPhone(e.target.value);
-                    setProfile({ ...profile, whatsapp: formatted });
-                  }}
-                  disabled={loading}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gênero</Label>
+                  <Select
+                    value={profile.gender || ""}
+                    onValueChange={(value) => setProfile({ ...profile, gender: value })}
+                    disabled={loading}
+                  >
+                    <SelectTrigger id="gender">
+                      <SelectValue placeholder="Selecione seu gênero" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="feminino">Feminino</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Usado para personalizar mensagens (qualquer identidade é válida)
+                  </p>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="team">Equipe</Label>
-                <Select
-                  value={profile.team || "none"}
-                  onValueChange={(value) => setProfile({ ...profile, team: value === "none" ? "" : value })}
-                  disabled={loading}
-                >
-                  <SelectTrigger id="team">
-                    <SelectValue placeholder="Selecione sua equipe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhuma equipe</SelectItem>
-                    <SelectItem value="Equipe Leão">🦁 Equipe Leão</SelectItem>
-                    <SelectItem value="Equipe Lobo">🐺 Equipe Lobo</SelectItem>
-                    <SelectItem value="Equipe Águia">🦅 Equipe Águia</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Identifica sua equipe dentro da imobiliária
-                </p>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    placeholder="(47) 9 9999-9999"
+                    value={profile.whatsapp}
+                    onChange={(e) => {
+                      const formatted = formatPhone(e.target.value);
+                      setProfile({ ...profile, whatsapp: formatted });
+                    }}
+                    disabled={loading}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  value={user?.email || ""}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">
-                  O e-mail não pode ser alterado
-                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="team">Equipe</Label>
+                  <Select
+                    value={profile.team || "none"}
+                    onValueChange={(value) => setProfile({ ...profile, team: value === "none" ? "" : value })}
+                    disabled={loading}
+                  >
+                    <SelectTrigger id="team">
+                      <SelectValue placeholder="Selecione sua equipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhuma equipe</SelectItem>
+                      <SelectItem value="Equipe Leão">🦁 Equipe Leão</SelectItem>
+                      <SelectItem value="Equipe Lobo">🐺 Equipe Lobo</SelectItem>
+                      <SelectItem value="Equipe Águia">🦅 Equipe Águia</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Identifica sua equipe dentro da imobiliária
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    value={user?.email || ""}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    O e-mail não pode ser alterado
+                  </p>
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>

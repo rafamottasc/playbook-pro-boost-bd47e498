@@ -8,6 +8,7 @@ interface Profile {
   gender: string | null;
   points: number;
   team: string | null;
+  creci: string | null;
 }
 
 const CACHE_KEY = "user_profile_cache";
@@ -71,7 +72,7 @@ export const useProfile = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, gender, points, team")
+        .select("full_name, avatar_url, gender, points, team, creci")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -82,6 +83,7 @@ export const useProfile = () => {
           gender: data.gender,
           points: data.points || 0,
           team: data.team,
+          creci: data.creci,
         };
         setProfile(profileData);
         setCachedProfile(user.id, profileData);

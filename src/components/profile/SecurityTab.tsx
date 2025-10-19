@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Check, Circle, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Check, Circle, Eye, EyeOff, AlertCircle, Shield } from "lucide-react";
 
 export function SecurityTab() {
   const [isLoading, setIsLoading] = useState(false);
@@ -97,7 +97,10 @@ export function SecurityTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Segurança</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Segurança
+        </CardTitle>
         <CardDescription>
           Altere sua senha para manter sua conta segura
         </CardDescription>

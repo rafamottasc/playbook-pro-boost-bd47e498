@@ -1179,6 +1179,7 @@ export type Database = {
           avatar_url: string | null
           blocked: boolean | null
           created_at: string | null
+          creci: string | null
           email: string | null
           full_name: string
           gender: string | null
@@ -1195,6 +1196,7 @@ export type Database = {
           avatar_url?: string | null
           blocked?: boolean | null
           created_at?: string | null
+          creci?: string | null
           email?: string | null
           full_name: string
           gender?: string | null
@@ -1211,6 +1213,7 @@ export type Database = {
           avatar_url?: string | null
           blocked?: boolean | null
           created_at?: string | null
+          creci?: string | null
           email?: string | null
           full_name?: string
           gender?: string | null
