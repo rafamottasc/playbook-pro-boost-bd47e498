@@ -180,14 +180,17 @@ export function AnnouncementBanner() {
         "hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px]"
       )}>
         <CardContent className="p-5 sm:p-6">
-          <div className="flex gap-4">
+          <div className={cn(
+            "flex gap-4",
+            isMobile ? "flex-col" : "flex-row items-start"
+          )}>
             {/* Icon Section */}
             <div className="flex-shrink-0 pt-1">
-              <Icon className={cn("h-6 w-6", styles.icon)} />
+              <Icon className={cn("h-12 w-12", styles.icon)} />
             </div>
 
             {/* Content Section */}
-            <div className="flex-1 min-w-0 pr-10">
+            <div className="flex-1 min-w-0">
               <h3 className={cn(
                 "font-semibold mb-1",
                 isMobile ? "text-lg" : "text-[1.125rem]",
@@ -207,11 +210,13 @@ export function AnnouncementBanner() {
                 )}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(announcement.message) }}
               />
+            </div>
 
-              {/* Actions */}
+            {/* Actions Section - À direita no desktop */}
+            {(announcement.requires_confirmation || (announcement.cta_text && announcement.cta_link)) && (
               <div className={cn(
-                "flex gap-2",
-                isMobile ? "flex-col w-full mt-3" : "flex-row flex-wrap mt-4"
+                "flex gap-2 flex-shrink-0",
+                isMobile ? "flex-row flex-wrap w-full mt-3" : "flex-col items-end pr-8"
               )}>
                 {announcement.requires_confirmation && (
                   <Button
@@ -219,8 +224,8 @@ export function AnnouncementBanner() {
                     disabled={isConfirming}
                     size={isMobile ? "sm" : "default"}
                     className={cn(
-                      "bg-transparent border-2 border-[#222] dark:border-white text-[#222] dark:text-white hover:bg-[#222] hover:text-white dark:hover:bg-white dark:hover:text-[#222] transition-all duration-300 font-medium shadow-sm flex-shrink-0 gap-2",
-                      isMobile ? "w-full text-sm px-3" : "px-6 text-base"
+                      "bg-transparent border-2 border-[#222] dark:border-white text-[#222] dark:text-white hover:bg-[#222] hover:text-white dark:hover:bg-white dark:hover:text-[#222] transition-all duration-300 font-medium shadow-sm gap-2",
+                      isMobile ? "flex-1 text-sm px-3" : "px-6 text-base min-w-[180px]"
                     )}
                   >
                     <CheckCircle className="h-4 w-4" />
@@ -232,9 +237,9 @@ export function AnnouncementBanner() {
                     onClick={handleCtaClick}
                     size={isMobile ? "sm" : "default"}
                     className={cn(
-                      "font-medium shadow-sm flex-shrink-0 gap-2",
+                      "font-medium shadow-sm gap-2",
                       styles.button,
-                      isMobile ? "w-full text-sm px-3" : "px-6 text-base"
+                      isMobile ? "flex-1 text-sm px-3" : "px-6 text-base min-w-[180px]"
                     )}
                   >
                     {announcement.cta_text}
@@ -242,7 +247,7 @@ export function AnnouncementBanner() {
                   </Button>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Close Button */}
             <Button

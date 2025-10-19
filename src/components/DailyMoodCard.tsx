@@ -59,7 +59,7 @@ export function DailyMoodCard() {
 
   return (
     <div className="max-w-4xl mx-auto mb-6 px-4">
-      <Card className="border border-border/50 bg-card hover:border-primary/30 transition-colors animate-fade-in">
+      <Card className="border border-border/50 bg-card shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px] transition-all duration-300 animate-fade-in">
         <CardHeader className="text-center pb-2 pt-4 px-4">
           <CardDescription className="text-lg font-medium text-foreground">
             Como você está se sentindo hoje?

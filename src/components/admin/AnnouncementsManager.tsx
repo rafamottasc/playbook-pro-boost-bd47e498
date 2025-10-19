@@ -589,7 +589,7 @@ export function AnnouncementsManager() {
                     <div className="flex gap-4">
                       {/* Icon Section */}
                       <div className="flex-shrink-0 pt-1">
-                        <SelectedIcon className={cn("h-6 w-6", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)} />
+                        <SelectedIcon className={cn("h-12 w-12", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)} />
                       </div>
 
                       {/* Content Section */}
