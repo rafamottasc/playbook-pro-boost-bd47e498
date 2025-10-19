@@ -1690,6 +1690,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      extract_storage_path: {
+        Args: { file_url: string }
+        Returns: string
+      }
       get_active_announcements: {
         Args: Record<PropertyKey, never>
         Returns: {
