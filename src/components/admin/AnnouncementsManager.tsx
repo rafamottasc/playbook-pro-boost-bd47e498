@@ -90,24 +90,28 @@ const iconOptions = [
 
 const priorityStyles = {
   urgent: {
-    container: "border-destructive/60 bg-gradient-to-br from-destructive/5 via-background to-destructive/10",
-    icon: "text-destructive",
-    button: "bg-destructive hover:bg-destructive/90 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#E74C3C]",
+    icon: "text-[#E74C3C]",
+    button: "bg-[#E74C3C] hover:bg-[#E74C3C]/90 text-white",
   },
   warning: {
-    container: "border-orange-500/60 bg-gradient-to-br from-orange-50/50 via-background to-orange-100/50 dark:from-orange-950/10 dark:via-background dark:to-orange-900/20",
-    icon: "text-orange-600 dark:text-orange-400",
-    button: "bg-orange-600 hover:bg-orange-700 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#F1C40F]",
+    icon: "text-[#F1C40F]",
+    button: "bg-[#F1C40F] hover:bg-[#F1C40F]/90 text-white",
   },
   info: {
-    container: "border-blue-500/60 bg-gradient-to-br from-blue-50/50 via-background to-blue-100/50 dark:from-blue-950/10 dark:via-background dark:to-blue-900/20",
-    icon: "text-blue-600 dark:text-blue-400",
-    button: "bg-blue-600 hover:bg-blue-700 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#2E86DE]",
+    icon: "text-[#2E86DE]",
+    button: "bg-[#2E86DE] hover:bg-[#2E86DE]/90 text-white",
   },
   success: {
-    container: "border-green-500/60 bg-gradient-to-br from-green-50/50 via-background to-green-100/50 dark:from-green-950/10 dark:via-background dark:to-green-900/20",
-    icon: "text-green-600 dark:text-green-400",
-    button: "bg-green-600 hover:bg-green-700 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#00A884]",
+    icon: "text-[#00A884]",
+    button: "bg-[#00A884] hover:bg-[#00A884]/90 text-white",
   },
 };
 
@@ -575,25 +579,26 @@ export function AnnouncementsManager() {
               <div className="space-y-2">
                 <Label>Preview</Label>
                 <Card className={cn(
-                  "relative shadow-comarc border-2 rounded-xl overflow-hidden",
-                  priorityStyles[formData.priority as keyof typeof priorityStyles].container
+                  "relative rounded-xl overflow-hidden transition-all duration-300",
+                  priorityStyles[formData.priority as keyof typeof priorityStyles].container,
+                  "border border-border/50 border-l-4",
+                  priorityStyles[formData.priority as keyof typeof priorityStyles].borderColor,
+                  "shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
                 )}>
                   <CardContent className="p-6">
                     <div className="flex gap-4">
                       {/* Icon Section */}
                       <div className="flex-shrink-0 pt-1">
-                        <div className={cn("p-2 rounded-lg bg-background/50 backdrop-blur-sm", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
-                          <SelectedIcon className="h-10 w-10" />
-                        </div>
+                        <SelectedIcon className={cn("h-6 w-6", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)} />
                       </div>
 
                       {/* Content Section */}
                       <div className="flex-1 min-w-0 pr-10">
-                        <h3 className={cn("text-2xl font-bold mb-1", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)}>
+                        <h3 className="font-semibold text-[1.125rem] mb-1 text-[#222] dark:text-foreground">
                           {formData.title || "Título do aviso"}
                         </h3>
                         <div 
-                          className="text-base text-foreground/90 leading-relaxed prose prose-sm max-w-none [&>p]:m-0 [&>p]:mb-2 [&>ul]:my-2 [&>ol]:my-2"
+                          className="text-[0.95rem] leading-relaxed prose prose-sm max-w-none text-[#666] dark:text-muted-foreground [&>p]:m-0 [&>p]:mb-2 [&>ul]:my-2 [&>ol]:my-2"
                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.message) || "<p>Mensagem do aviso aparecerá aqui...</p>" }}
                         />
                         <div className="flex gap-2 mt-4 flex-wrap">
@@ -624,7 +629,7 @@ export function AnnouncementsManager() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-3 right-3 h-8 w-8 rounded-full text-foreground/60 hover:text-foreground hover:bg-background/90"
+                        className="absolute top-3 right-3 h-8 w-8 rounded-full bg-transparent text-[#999] hover:text-[#333] dark:text-muted-foreground dark:hover:text-foreground transition-colors duration-200"
                       >
                         <X className="h-4 w-4" />
                       </Button>

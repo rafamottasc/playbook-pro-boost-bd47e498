@@ -36,24 +36,28 @@ const iconMap = {
 
 const priorityStyles = {
   urgent: {
-    container: "border-destructive/60 bg-gradient-to-br from-destructive/5 via-background to-destructive/10",
-    icon: "text-destructive",
-    button: "bg-destructive hover:bg-destructive/90 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#E74C3C]",
+    icon: "text-[#E74C3C]",
+    button: "bg-[#E74C3C] hover:bg-[#E74C3C]/90 text-white",
   },
   warning: {
-    container: "border-orange-500/60 bg-gradient-to-br from-orange-50/50 via-background to-orange-100/50 dark:from-orange-950/10 dark:via-background dark:to-orange-900/20",
-    icon: "text-orange-600 dark:text-orange-400",
-    button: "bg-orange-600 hover:bg-orange-700 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#F1C40F]",
+    icon: "text-[#F1C40F]",
+    button: "bg-[#F1C40F] hover:bg-[#F1C40F]/90 text-white",
   },
   info: {
-    container: "border-blue-500/60 bg-gradient-to-br from-blue-50/50 via-background to-blue-100/50 dark:from-blue-950/10 dark:via-background dark:to-blue-900/20",
-    icon: "text-blue-600 dark:text-blue-400",
-    button: "bg-blue-600 hover:bg-blue-700 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#2E86DE]",
+    icon: "text-[#2E86DE]",
+    button: "bg-[#2E86DE] hover:bg-[#2E86DE]/90 text-white",
   },
   success: {
-    container: "border-green-500/60 bg-gradient-to-br from-green-50/50 via-background to-green-100/50 dark:from-green-950/10 dark:via-background dark:to-green-900/20",
-    icon: "text-green-600 dark:text-green-400",
-    button: "bg-green-600 hover:bg-green-700 text-white",
+    container: "bg-white dark:bg-card",
+    borderColor: "border-l-[#00A884]",
+    icon: "text-[#00A884]",
+    button: "bg-[#00A884] hover:bg-[#00A884]/90 text-white",
   },
 };
 
@@ -168,31 +172,38 @@ export function AnnouncementBanner() {
   return (
     <div className="max-w-7xl mx-auto mb-8 px-4">
       <Card className={cn(
-        "relative animate-fade-in shadow-comarc border-2 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-        styles.container
+        "relative animate-fade-in rounded-xl overflow-hidden transition-all duration-300",
+        styles.container,
+        "border border-border/50 border-l-4",
+        styles.borderColor,
+        "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+        "hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px]"
       )}>
-        <CardContent className="p-6">
+        <CardContent className="p-5 sm:p-6">
           <div className="flex gap-4">
             {/* Icon Section */}
             <div className="flex-shrink-0 pt-1">
-              <div className={cn("p-2 rounded-lg bg-background/50 backdrop-blur-sm", styles.icon)}>
-                <Icon className="h-10 w-10" />
-              </div>
+              <Icon className={cn("h-6 w-6", styles.icon)} />
             </div>
 
             {/* Content Section */}
             <div className="flex-1 min-w-0 pr-10">
-              <h3 className={cn("font-bold mb-1", isMobile ? "text-xl" : "text-2xl", styles.icon)}>
+              <h3 className={cn(
+                "font-semibold mb-1",
+                isMobile ? "text-lg" : "text-[1.125rem]",
+                "text-[#222] dark:text-foreground"
+              )}>
                 {announcement.title}
               </h3>
               <div 
                 className={cn(
                   "leading-relaxed prose prose-sm max-w-none",
+                  "text-[0.95rem]",
+                  "text-[#666] dark:text-muted-foreground",
                   "[&>p]:m-0 [&>p]:mb-2 [&>p:last-child]:mb-0",
                   "[&>ul]:my-2 [&>ul]:pl-0 [&>ol]:my-2 [&>ol]:pl-0",
-                  "[&>strong]:font-bold [&>a]:text-primary [&>a]:underline",
-                  isMobile ? "text-sm" : "text-base",
-                  "text-foreground/90"
+                  "[&>strong]:font-semibold [&>strong]:text-[#222] dark:[&>strong]:text-foreground",
+                  "[&>a]:text-primary [&>a]:underline hover:[&>a]:text-primary/80"
                 )}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(announcement.message) }}
               />
@@ -236,7 +247,7 @@ export function AnnouncementBanner() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-3 right-3 h-8 w-8 rounded-full text-foreground/60 hover:text-foreground hover:bg-background/90 hover:shadow-sm"
+              className="absolute top-3 right-3 h-8 w-8 rounded-full bg-transparent text-[#999] hover:text-[#333] dark:text-muted-foreground dark:hover:text-foreground transition-colors duration-200"
               onClick={announcement.requires_confirmation ? undefined : handleDismiss}
               disabled={announcement.requires_confirmation}
               title={announcement.requires_confirmation ? "Confirme a leitura para fechar" : "Fechar"}
