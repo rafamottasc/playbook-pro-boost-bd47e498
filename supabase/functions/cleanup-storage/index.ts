@@ -1,4 +1,4 @@
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,9 +7,10 @@ const corsHeaders = {
 
 interface CleanupResult {
   bucket: string;
-  filesDeleted: number;
-  spaceFreeBytes: number;
+  orphansFound: number;
+  orphansDeleted: number;
   errors: string[];
+  files: string[];
 }
 
 Deno.serve(async (req) => {
@@ -18,234 +19,215 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     console.log('🧹 Iniciando limpeza automática de storage...');
 
+    // Configuração dos buckets e suas respectivas tabelas/colunas
+    const bucketsConfig = [
+      {
+        bucket: 'partner-files',
+        table: 'partner_files',
+        urlColumn: 'file_url'
+      },
+      {
+        bucket: 'lesson-materials',
+        table: 'lesson_attachments',
+        urlColumn: 'file_url'
+      },
+      {
+        bucket: 'academy-covers',
+        table: 'academy_modules',
+        urlColumn: 'cover_url'
+      },
+      {
+        bucket: 'resources',
+        table: 'resources',
+        urlColumn: 'url'
+      },
+      {
+        bucket: 'avatars',
+        table: 'profiles',
+        urlColumn: 'avatar_url'
+      }
+    ];
+
     const results: CleanupResult[] = [];
+    let totalOrphansDeleted = 0;
 
-    // ============================================
-    // 1️⃣ Bucket: partner-files
-    // ============================================
-    const partnerFilesResult = await cleanupBucket({
-      supabase,
-      bucketName: 'partner-files',
-      tableName: 'partner_files',
-      urlColumn: 'file_url',
-    });
-    results.push(partnerFilesResult);
+    // Processar cada bucket
+    for (const config of bucketsConfig) {
+      console.log(`\n📦 Processando bucket: ${config.bucket}`);
+      
+      const result: CleanupResult = {
+        bucket: config.bucket,
+        orphansFound: 0,
+        orphansDeleted: 0,
+        errors: [],
+        files: []
+      };
 
-    // ============================================
-    // 2️⃣ Bucket: lesson-materials
-    // ============================================
-    const lessonMaterialsResult = await cleanupBucket({
-      supabase,
-      bucketName: 'lesson-materials',
-      tableName: 'lesson_attachments',
-      urlColumn: 'file_url',
-    });
-    results.push(lessonMaterialsResult);
+      try {
+        // 1. Listar todos os arquivos no storage
+        const { data: storageFiles, error: storageError } = await supabase
+          .storage
+          .from(config.bucket)
+          .list('', {
+            limit: 1000,
+            sortBy: { column: 'name', order: 'asc' }
+          });
 
-    // ============================================
-    // 3️⃣ Bucket: academy-covers
-    // ============================================
-    const academyCoversResult = await cleanupBucket({
-      supabase,
-      bucketName: 'academy-covers',
-      tableName: 'academy_modules',
-      urlColumn: 'cover_url',
-      whereClause: 'cover_url IS NOT NULL',
-    });
-    results.push(academyCoversResult);
+        if (storageError) {
+          console.error(`❌ Erro ao listar ${config.bucket}:`, storageError);
+          result.errors.push(`Storage error: ${storageError.message}`);
+          results.push(result);
+          continue;
+        }
 
-    // ============================================
-    // 4️⃣ Bucket: resources
-    // ============================================
-    const resourcesResult = await cleanupBucket({
-      supabase,
-      bucketName: 'resources',
-      tableName: 'resources',
-      urlColumn: 'url',
-      whereClause: "resource_type = 'file'",
-    });
-    results.push(resourcesResult);
+        if (!storageFiles || storageFiles.length === 0) {
+          console.log(`✅ Bucket ${config.bucket} vazio ou sem arquivos`);
+          results.push(result);
+          continue;
+        }
 
-    // ============================================
-    // 5️⃣ Bucket: avatars
-    // ============================================
-    const avatarsResult = await cleanupBucket({
-      supabase,
-      bucketName: 'avatars',
-      tableName: 'profiles',
-      urlColumn: 'avatar_url',
-      whereClause: 'avatar_url IS NOT NULL',
-    });
-    results.push(avatarsResult);
+        console.log(`📂 Encontrados ${storageFiles.length} arquivos no storage`);
 
-    // ============================================
-    // 📊 Salvar log no banco (SEM notificação)
-    // ============================================
-    const totalDeleted = results.reduce((sum, r) => sum + r.filesDeleted, 0);
-    const totalSpaceFreed = results.reduce((sum, r) => sum + r.spaceFreeBytes, 0);
+        // 2. Buscar todas as URLs válidas no banco
+        const { data: dbRecords, error: dbError } = await supabase
+          .from(config.table)
+          .select(config.urlColumn);
 
-    await supabase.from('storage_cleanup_logs').insert({
-      files_deleted: totalDeleted,
-      space_freed_bytes: totalSpaceFreed,
-      details: { buckets: results },
-    });
+        if (dbError) {
+          console.error(`❌ Erro ao buscar ${config.table}:`, dbError);
+          result.errors.push(`Database error: ${dbError.message}`);
+          results.push(result);
+          continue;
+        }
 
-    console.log('✅ Limpeza concluída:', {
-      totalDeleted,
-      totalSpaceMB: (totalSpaceFreed / 1024 / 1024).toFixed(2),
-    });
+        // Extrair paths válidos das URLs
+        const validPaths = new Set<string>();
+        if (dbRecords) {
+          for (const record of dbRecords) {
+            const url = (record as any)[config.urlColumn] as string | null;
+            if (url) {
+              // Extrair path: /storage/v1/object/public/bucket/path → path
+              const pathMatch = url.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+              if (pathMatch) {
+                validPaths.add(pathMatch[1]);
+              }
+            }
+          }
+        }
+
+        console.log(`✅ ${validPaths.size} arquivos válidos no banco`);
+
+        // 3. Identificar órfãos
+        const orphanFiles: string[] = [];
+        for (const file of storageFiles) {
+          // Ignorar placeholder de pastas vazias
+          if (file.name === '.emptyFolderPlaceholder') {
+            continue;
+          }
+
+          // Processar subpastas recursivamente
+          if (file.id === null) {
+            // É uma pasta, listar conteúdo
+            const { data: subFiles } = await supabase
+              .storage
+              .from(config.bucket)
+              .list(file.name, { limit: 100 });
+
+            if (subFiles) {
+              for (const subFile of subFiles) {
+                if (subFile.name === '.emptyFolderPlaceholder') continue;
+                
+                const fullPath = `${file.name}/${subFile.name}`;
+                if (!validPaths.has(fullPath)) {
+                  orphanFiles.push(fullPath);
+                }
+              }
+            }
+          } else {
+            // É arquivo direto na raiz
+            if (!validPaths.has(file.name)) {
+              orphanFiles.push(file.name);
+            }
+          }
+        }
+
+        result.orphansFound = orphanFiles.length;
+        console.log(`🔍 Órfãos encontrados: ${orphanFiles.length}`);
+
+        // 4. Deletar órfãos
+        if (orphanFiles.length > 0) {
+          const { data: deleteData, error: deleteError } = await supabase
+            .storage
+            .from(config.bucket)
+            .remove(orphanFiles);
+
+          if (deleteError) {
+            console.error(`❌ Erro ao deletar órfãos:`, deleteError);
+            result.errors.push(`Delete error: ${deleteError.message}`);
+          } else {
+            result.orphansDeleted = orphanFiles.length;
+            result.files = orphanFiles;
+            totalOrphansDeleted += orphanFiles.length;
+            console.log(`🗑️ Deletados ${orphanFiles.length} órfãos de ${config.bucket}`);
+          }
+        }
+
+      } catch (error) {
+        console.error(`❌ Erro ao processar ${config.bucket}:`, error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        result.errors.push(errorMessage);
+      }
+
+      results.push(result);
+    }
+
+    // 5. Salvar log de limpeza
+    const { error: logError } = await supabase
+      .from('storage_cleanup_logs')
+      .insert({
+        files_deleted: totalOrphansDeleted,
+        space_freed_bytes: 0, // Não temos info de tamanho
+        details: { results }
+      });
+
+    if (logError) {
+      console.error('❌ Erro ao salvar log:', logError);
+    }
+
+    console.log(`\n✅ Limpeza concluída! Total deletado: ${totalOrphansDeleted} arquivos`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        totalDeleted,
-        totalSpaceFreedMB: (totalSpaceFreed / 1024 / 1024).toFixed(2),
-        buckets: results,
+        totalOrphansDeleted,
+        results,
+        message: `Limpeza concluída. ${totalOrphansDeleted} arquivos órfãos removidos.`
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
     );
+
   } catch (error) {
-    console.error('❌ Erro na limpeza:', error);
+    console.error('❌ Erro geral:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        success: false,
+        error: errorMessage
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
     );
   }
 });
-
-// ============================================
-// 🔧 Função auxiliar genérica de limpeza
-// ============================================
-async function cleanupBucket({
-  supabase,
-  bucketName,
-  tableName,
-  urlColumn,
-  whereClause = 'TRUE',
-}: {
-  supabase: any;
-  bucketName: string;
-  tableName: string;
-  urlColumn: string;
-  whereClause?: string;
-}): Promise<CleanupResult> {
-  const result: CleanupResult = {
-    bucket: bucketName,
-    filesDeleted: 0,
-    spaceFreeBytes: 0,
-    errors: [],
-  };
-
-  try {
-    console.log(`\n🗂️ Processando bucket: ${bucketName}`);
-
-    // 1. Listar TODOS os arquivos no storage
-    const { data: storageFiles, error: listError } = await supabase.storage
-      .from(bucketName)
-      .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
-
-    if (listError) {
-      result.errors.push(`Erro ao listar ${bucketName}: ${listError.message}`);
-      return result;
-    }
-
-    if (!storageFiles || storageFiles.length === 0) {
-      console.log(`  ℹ️ Nenhum arquivo encontrado em ${bucketName}`);
-      return result;
-    }
-
-    // Buscar recursivamente subpastas (formato: partnerId/arquivo.pdf)
-    const allFiles: string[] = [];
-    for (const item of storageFiles) {
-      if (item.id === null) {
-        // É uma pasta, listar conteúdo
-        const { data: subFiles } = await supabase.storage
-          .from(bucketName)
-          .list(item.name, { limit: 1000 });
-        
-        if (subFiles) {
-          subFiles.forEach((file: any) => {
-            if (file.id) {
-              allFiles.push(`${item.name}/${file.name}`);
-            }
-          });
-        }
-      } else {
-        allFiles.push(item.name);
-      }
-    }
-
-    console.log(`  📁 Total de arquivos no storage: ${allFiles.length}`);
-
-    // 2. Buscar URLs válidas do banco de dados
-    const { data: dbRecords, error: dbError } = await supabase
-      .from(tableName)
-      .select(urlColumn)
-      .neq(urlColumn, null);
-
-    if (dbError) {
-      result.errors.push(`Erro ao consultar ${tableName}: ${dbError.message}`);
-      return result;
-    }
-
-    // Extrair paths válidos das URLs
-    const validPaths = new Set<string>();
-    dbRecords?.forEach((record: any) => {
-      const url = record[urlColumn];
-      if (url) {
-        // Extrai path: .../bucket/path/file.jpg → path/file.jpg
-        const match = url.match(new RegExp(`${bucketName}/(.+)$`));
-        if (match) {
-          validPaths.add(match[1]);
-        }
-      }
-    });
-
-    console.log(`  ✅ Arquivos válidos no banco: ${validPaths.size}`);
-
-    // 3. Identificar órfãos (storage - banco)
-    const orphans = allFiles.filter((path) => {
-      // Ignora placeholder do bucket avatars
-      if (bucketName === 'avatars' && path === '.emptyFolderPlaceholder') {
-        return false;
-      }
-      return !validPaths.has(path);
-    });
-
-    console.log(`  🗑️ Arquivos órfãos identificados: ${orphans.length}`);
-
-    // 4. Deletar órfãos
-    for (const orphan of orphans) {
-      const { error: deleteError } = await supabase.storage
-        .from(bucketName)
-        .remove([orphan]);
-
-      if (deleteError) {
-        result.errors.push(`Erro ao deletar ${orphan}: ${deleteError.message}`);
-      } else {
-        result.filesDeleted++;
-        // Estimar tamanho (assumindo média de 100KB por arquivo)
-        result.spaceFreeBytes += 100 * 1024;
-        console.log(`    ✓ Deletado: ${orphan}`);
-      }
-    }
-
-    console.log(`  ✅ Concluído: ${result.filesDeleted} arquivos removidos`);
-  } catch (error) {
-    result.errors.push(`Erro geral em ${bucketName}: ${error.message}`);
-  }
-
-  return result;
-}
