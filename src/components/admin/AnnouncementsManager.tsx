@@ -586,14 +586,14 @@ export function AnnouncementsManager() {
                   "shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
                 )}>
                   <CardContent className="p-6">
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-col sm:flex-row sm:items-start">
                       {/* Icon Section */}
                       <div className="flex-shrink-0 pt-1">
                         <SelectedIcon className={cn("h-12 w-12", priorityStyles[formData.priority as keyof typeof priorityStyles].icon)} />
                       </div>
 
-                      {/* Content Section */}
-                      <div className="flex-1 min-w-0 pr-10">
+                      {/* Content Section - SEM OS BOTÕES */}
+                      <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-[1.125rem] mb-1 text-[#222] dark:text-foreground">
                           {formData.title || "Título do aviso"}
                         </h3>
@@ -601,20 +601,25 @@ export function AnnouncementsManager() {
                           className="text-[0.95rem] leading-relaxed prose prose-sm max-w-none text-[#666] dark:text-muted-foreground [&>p]:m-0 [&>p]:mb-2 [&>ul]:my-2 [&>ol]:my-2"
                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.message) || "<p>Mensagem do aviso aparecerá aqui...</p>" }}
                         />
-                        <div className="flex gap-2 mt-4 flex-wrap">
+                      </div>
+
+                      {/* Actions Section - AGORA À DIREITA NO DESKTOP */}
+                      {(formData.requires_confirmation || (formData.cta_text && formData.cta_link)) && (
+                        <div className="flex gap-2 flex-shrink-0 flex-row flex-wrap sm:flex-col sm:items-end sm:pr-8 mt-3 sm:mt-0">
                           {formData.requires_confirmation && (
                             <Button
                               size="default"
-                              className="font-medium shadow-sm gap-2 px-6 text-base bg-green-600 hover:bg-green-700 text-white"
+                              className="bg-transparent border-2 border-[#222] dark:border-white text-[#222] dark:text-white hover:bg-[#222] hover:text-white dark:hover:bg-white dark:hover:text-[#222] transition-all duration-300 font-medium shadow-sm gap-2 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-6 sm:min-w-[180px]"
                             >
-                              ✔️ Li e estou ciente
+                              <CheckCircle className="h-4 w-4" />
+                              Li e estou ciente
                             </Button>
                           )}
                           {formData.cta_text && formData.cta_link && (
                             <Button
                               size="default"
                               className={cn(
-                                "font-medium shadow-sm gap-2 px-6 text-base",
+                                "font-medium shadow-sm gap-2 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-6 sm:min-w-[180px]",
                                 priorityStyles[formData.priority as keyof typeof priorityStyles].button
                               )}
                             >
@@ -623,7 +628,7 @@ export function AnnouncementsManager() {
                             </Button>
                           )}
                         </div>
-                      </div>
+                      )}
 
                       {/* Close Button */}
                       <Button
