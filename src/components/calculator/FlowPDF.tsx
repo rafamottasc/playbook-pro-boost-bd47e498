@@ -170,7 +170,7 @@ export async function generateFlowPDF(
     head: [["Tipo", "Parcelas", "Valor", "% Total"]],
     body: tableData,
     theme: "striped",
-    headStyles: { fillColor: [0, 18, 45] },
+    headStyles: { fillColor: [9, 41, 89] },
   });
 
   // Total
@@ -206,7 +206,7 @@ export async function generateFlowPDF(
       ]
     ],
     theme: "grid",
-    headStyles: { fillColor: [0, 18, 45] },
+    headStyles: { fillColor: [9, 41, 89] },
   });
 
   // Valores Adicionais (m² e CUB)

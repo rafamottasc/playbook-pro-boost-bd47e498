@@ -26,7 +26,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [activeTab, setActiveTab] = useState("login");
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ export default function Auth() {
       const validated = signInSchema.parse({ email, password });
       
       setLoading(true);
-      const { error } = await signIn(validated.email, validated.password, rememberMe);
+      const { error } = await signIn(validated.email, validated.password);
       setLoading(false);
 
       if (error) {
@@ -279,7 +279,7 @@ export default function Auth() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Cadastro</TabsTrigger>
@@ -394,10 +394,7 @@ export default function Auth() {
                   Não tem uma conta?{" "}
                   <button
                     type="button"
-                    onClick={() => {
-                      const signupTab = document.querySelector('[value="signup"]') as HTMLButtonElement;
-                      signupTab?.click();
-                    }}
+                    onClick={() => setActiveTab("signup")}
                     className="font-bold text-primary hover:text-primary/80 transition-colors"
                   >
                     Cadastre-se
