@@ -6,7 +6,8 @@ import { formatCurrency, formatMoney } from "@/lib/utils";
 export function generateFlowTXT(
   data: PaymentFlowData,
   result: CalculatedResult,
-  correctorName: string
+  correctorName: string,
+  correctorCreci?: string | null
 ): void {
   const currentDate = format(new Date(), "dd/MM/yyyy");
   const currentTime = format(new Date(), "HH:mm");
@@ -124,13 +125,25 @@ export function generateFlowTXT(
   }
 
   txt += `━━━━━━━\n`;
-  txt += `ℹ️ Informações\n`;
+  
+  // Nome e CRECI
+  let correctorInfo = correctorName;
+  if (correctorCreci) {
+    correctorInfo += ` - CRECI ${correctorCreci}`;
+  }
+  txt += `${correctorInfo}\n`;
+  
+  // Cargo
+  txt += `Consultor de Investimentos\n`;
+  
+  // Empresa
+  txt += `COMARC - Negócios Imobiliários\n\n`;
+  
+  // Separador
   txt += `━━━━━━━\n`;
-  txt += `Gerado em: ${currentDate} às ${currentTime}\n`;
-  txt += `Corretor: ${correctorName}\n`;
-  txt += `Validade: 30 dias\n\n`;
-
-  txt += `COMARC - Negócios Imobiliários\n`;
+  
+  // Data de geração
+  txt += `Gerado em: ${currentDate}\n`;
 
   // Create and download the file
   const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });

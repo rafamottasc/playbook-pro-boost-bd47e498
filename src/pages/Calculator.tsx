@@ -143,11 +143,11 @@ export default function Calculator() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, creci")
         .eq("id", user?.id)
         .single();
 
-      generateFlowTXT(data, result, profile?.full_name || "Corretor");
+      generateFlowTXT(data, result, profile?.full_name || "Corretor", profile?.creci);
 
       toast({
         title: "TXT gerado com sucesso!",

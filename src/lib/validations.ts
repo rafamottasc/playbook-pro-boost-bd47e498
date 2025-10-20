@@ -65,7 +65,7 @@ export const profileUpdateSchema = z.object({
   creci: z
     .string()
     .trim()
-    .regex(/^[A-Z]?\d{4,7}$/, "CRECI inválido (ex: F123456 ou 123456)")
+    .max(20, "CRECI deve ter no máximo 20 caracteres")
     .optional()
     .or(z.literal("")),
 });
