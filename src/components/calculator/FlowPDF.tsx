@@ -17,7 +17,8 @@ async function loadImageWithDimensions(url: string): Promise<{ img: HTMLImageEle
 export async function generateFlowPDF(
   data: PaymentFlowData,
   result: CalculatedResult,
-  correctorName: string
+  correctorName: string,
+  correctorCreci?: string | null
 ) {
   const doc = new jsPDF();
   
@@ -169,7 +170,7 @@ export async function generateFlowPDF(
     head: [["Tipo", "Parcelas", "Valor", "% Total"]],
     body: tableData,
     theme: "striped",
-    headStyles: { fillColor: [41, 128, 185] },
+    headStyles: { fillColor: [0, 18, 45] },
   });
 
   // Total
@@ -205,7 +206,7 @@ export async function generateFlowPDF(
       ]
     ],
     theme: "grid",
-    headStyles: { fillColor: [52, 152, 219] },
+    headStyles: { fillColor: [0, 18, 45] },
   });
 
   // Valores Adicionais (m² e CUB)
@@ -241,14 +242,39 @@ export async function generateFlowPDF(
     additionalY += 5;
   }
 
-  // Rodapé
-  const footerY = additionalY;
-  doc.setFontSize(9);
+  // Rodapé centralizado
+  const footerY = additionalY + 10;
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
+  doc.setTextColor(0);
+
+  // Nome e CRECI (se disponível)
+  let correctorInfo = correctorName;
+  if (correctorCreci) {
+    correctorInfo += ` - CRECI ${correctorCreci}`;
+  }
+  doc.text(correctorInfo, 105, footerY, { align: "center" });
+
+  // Cargo
+  doc.text("Consultor de Investimentos", 105, footerY + 5, { align: "center" });
+
+  // Empresa
+  doc.text("COMARC - Negócios Imobiliários", 105, footerY + 10, { align: "center" });
+
+  // Separador
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(200, 200, 200);
+  doc.line(70, footerY + 15, 140, footerY + 15);
+
+  // Data de geração
+  doc.setFontSize(9);
   doc.setTextColor(100);
-  doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`, 15, footerY);
-  doc.text(`Corretor: ${correctorName}`, 15, footerY + 5);
-  doc.text("Validade: 30 dias", 15, footerY + 10);
+  doc.text(
+    `Gerado em: ${format(new Date(), "dd/MM/yyyy")}`, 
+    105, 
+    footerY + 20, 
+    { align: "center" }
+  );
 
   // Salvar PDF
   const fileName = `proposta_${data.clientName.replace(/\s+/g, "_")}_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;

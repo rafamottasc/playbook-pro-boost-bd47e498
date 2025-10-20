@@ -91,7 +91,7 @@ export default function CalculatorHistory() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, creci")
         .eq("id", user?.id)
         .single();
 
@@ -101,7 +101,8 @@ export default function CalculatorHistory() {
       await generateFlowPDF(
         proposal.calculation_data,
         result,
-        profile?.full_name || "Corretor"
+        profile?.full_name || "Corretor",
+        profile?.creci
       );
 
       toast({

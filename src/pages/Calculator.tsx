@@ -100,11 +100,11 @@ export default function Calculator() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, creci")
         .eq("id", user?.id)
         .single();
 
-      await generateFlowPDF(data, result, profile?.full_name || "Corretor");
+      await generateFlowPDF(data, result, profile?.full_name || "Corretor", profile?.creci);
 
       toast({
         title: "PDF gerado com sucesso!",

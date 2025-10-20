@@ -336,24 +336,6 @@ export default function Auth() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember-me"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  />
-                  <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer">
-                    Permanecer conectado
-                  </Label>
-                </div>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="w-full text-sm"
-                  onClick={() => setShowResetPassword(true)}
-                >
-                  Esqueci minha senha
-                </Button>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
@@ -394,6 +376,33 @@ export default function Auth() {
                   </svg>
                   Continuar com Google
                 </Button>
+
+                {/* Esqueci minha senha - NOVA POSIÇÃO */}
+                <div className="text-center mt-4">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm text-muted-foreground hover:text-foreground p-0 h-auto"
+                    onClick={() => setShowResetPassword(true)}
+                  >
+                    &gt; Esqueci minha senha
+                  </Button>
+                </div>
+
+                {/* Não tem conta? Cadastre-se - NOVO */}
+                <div className="text-center mt-2 text-sm text-muted-foreground">
+                  Não tem uma conta?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const signupTab = document.querySelector('[value="signup"]') as HTMLButtonElement;
+                      signupTab?.click();
+                    }}
+                    className="font-bold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Cadastre-se
+                  </button>
+                </div>
               </form>
             </TabsContent>
 

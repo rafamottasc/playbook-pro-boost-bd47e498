@@ -36,7 +36,9 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   };
 
   const handleInstallmentsChange = (value: string) => {
-    const installments = parseInt(value) || 1;
+    // Remove tudo que não é número
+    const sanitized = value.replace(/\D/g, '');
+    const installments = sanitized === '' ? 1 : parseInt(sanitized);
     onChange("downPayment", { 
       ...data.downPayment, 
       installments 
@@ -121,10 +123,10 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
         <div className="pt-3 border-t">
           <Label className="mb-2">Parcelar entrada em quantas vezes?</Label>
           <Input
-            type="number"
-            min="1"
+            type="text"
+            inputMode="numeric"
             placeholder="1 (à vista)"
-            value={data.downPayment.installments || 1}
+            value={data.downPayment.installments || ''}
             onChange={(e) => handleInstallmentsChange(e.target.value)}
             className="h-10"
           />
