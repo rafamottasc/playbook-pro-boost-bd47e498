@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ClipboardList } from "lucide-react";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface BasicInfoSectionProps {
@@ -52,7 +52,10 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
   return (
     <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
-        <CardTitle className="text-xl">📋 Informações Básicas</CardTitle>
+        <CardTitle className="text-xl flex items-center gap-2">
+          <ClipboardList className="h-5 w-5 text-primary" />
+          Informações Básicas
+        </CardTitle>
         <CardDescription>
           Dados essenciais para o cálculo
         </CardDescription>

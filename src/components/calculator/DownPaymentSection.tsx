@@ -70,7 +70,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Receipt className="h-5 w-5 text-primary" />
-          ENTRADA (quando assinar o contrato)
+          Entrada (quando assinar o contrato)
         </CardTitle>
         <CardDescription>
           Quanto o cliente vai dar de entrada?

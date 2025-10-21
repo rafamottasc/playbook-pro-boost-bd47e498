@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
-import { Calendar, Calculator, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
+import { Calendar, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 
 interface PaymentBlockProps {
   type: "monthly" | "semiannual" | "annual";
@@ -16,21 +16,21 @@ interface PaymentBlockProps {
 const CONFIG = {
   monthly: {
     icon: CalendarDays,
-    title: "PARCELAS MENSAIS",
+    title: "Parcelas Mensais",
     subtitle: "Cliente quer pagar mensalmente?",
     color: "blue",
     placeholder: "Ex: 100",
   },
   semiannual: {
     icon: CalendarRange,
-    title: "REFORÇOS SEMESTRAIS",
+    title: "Reforços Semestrais",
     subtitle: "Cliente quer reforços a cada 6 meses?",
     color: "purple",
     placeholder: "Ex: 10",
   },
   annual: {
     icon: TrendingUp,
-    title: "REFORÇOS ANUAIS",
+    title: "Reforços Anuais",
     subtitle: "Cliente quer reforços anuais?",
     color: "orange",
     placeholder: "Ex: 10",
@@ -50,10 +50,6 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
     onChange(fieldName, { ...paymentData, enabled: checked });
   };
 
-  const handleAutoCalculateToggle = (checked: boolean) => {
-    onChange(fieldName, { ...paymentData, autoCalculate: checked });
-  };
-
   const formatCurrency = (value: string) => {
     const amount = parseCurrencyInput(value);
     onChange(fieldName, { ...paymentData, value: amount });
@@ -68,64 +64,6 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       value: calculatedValue
     });
   };
-
-  // Calculate auto value for monthly
-  const calculateAutoMonthlyValue = () => {
-    if (type !== 'monthly' || !paymentData?.autoCalculate || !paymentData?.count) return 0;
-    
-    let downPaymentValue = 0;
-    if (data.downPayment.type === 'percentage' && data.downPayment.percentage) {
-      downPaymentValue = (data.downPayment.percentage / 100) * data.propertyValue;
-    } else if (data.downPayment.type === 'value' && data.downPayment.value) {
-      downPaymentValue = data.downPayment.value;
-    }
-
-    // Calcular valor do Ato
-    let atoValue = 0;
-    if (data.downPayment.ato) {
-      if (data.downPayment.ato.type === 'percentage' && data.downPayment.ato.percentage) {
-        atoValue = (data.downPayment.ato.percentage / 100) * data.propertyValue;
-      } else if (data.downPayment.ato.type === 'value' && data.downPayment.ato.value) {
-        atoValue = data.downPayment.ato.value;
-      }
-    }
-
-    // Calcular valor de início da obra
-    let constructionStartValue = 0;
-    if (data.constructionStartPayment) {
-      if (data.constructionStartPayment.type === 'percentage' && data.constructionStartPayment.percentage) {
-        constructionStartValue = (data.constructionStartPayment.percentage / 100) * data.propertyValue;
-      } else if (data.constructionStartPayment.type === 'value' && data.constructionStartPayment.value) {
-        constructionStartValue = data.constructionStartPayment.value;
-      }
-    }
-
-    let totalReinforcements = 0;
-    if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count) {
-      const value = data.semiannualReinforcement.value || 
-                    ((data.semiannualReinforcement.percentage || 0) / 100) * data.propertyValue;
-      totalReinforcements += value * data.semiannualReinforcement.count;
-    }
-    if (data.annualReinforcement?.enabled && data.annualReinforcement.count) {
-      const value = data.annualReinforcement.value || 
-                    ((data.annualReinforcement.percentage || 0) / 100) * data.propertyValue;
-      totalReinforcements += value * data.annualReinforcement.count;
-    }
-
-    let keysValue = 0;
-    if (data.keysPayment) {
-      if (data.keysPayment.type === 'percentage' && data.keysPayment.percentage) {
-        keysValue = (data.keysPayment.percentage / 100) * data.propertyValue;
-      } else if (data.keysPayment.type === 'value' && data.keysPayment.value) {
-        keysValue = data.keysPayment.value;
-      }
-    }
-
-    const remainingBalance = data.propertyValue - atoValue - downPaymentValue - constructionStartValue - totalReinforcements - keysValue;
-    return remainingBalance / paymentData.count;
-  };
-
-  const autoCalculatedValue = type === 'monthly' ? calculateAutoMonthlyValue() : 0;
 
   const handleDateChange = (date: string) => {
     onChange(fieldName, {
@@ -184,18 +122,31 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
               </Button>
             </div>
 
-            {/* Campo Valor: 4 colunas */}
-            <div className="md:col-span-4">
+            {/* Meses/Vezes: 2 colunas */}
+            <div className="md:col-span-2">
+              <Label className="text-xs mb-1">
+                {type === 'monthly' ? 'Meses' : 'Vezes'}
+              </Label>
+              <Input
+                type="number"
+                placeholder={config.placeholder}
+                value={paymentData.count || ""}
+                onChange={(e) =>
+                  onChange(fieldName, {
+                    ...paymentData,
+                    count: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="h-9"
+              />
+            </div>
+
+            {/* Campo Valor: 5 colunas */}
+            <div className="md:col-span-5">
               <Label className="text-xs mb-1">
                 {type === 'monthly' ? 'Valor/Mês' : 'Valor/Reforço'}
               </Label>
-              {type === 'monthly' && paymentData?.autoCalculate ? (
-                <div className="h-9 px-3 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-blue-700">
-                    R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              ) : paymentData?.type === 'percentage' ? (
+              {paymentData?.type === 'percentage' ? (
                 <div className="space-y-0.5">
                   <Input
                     type="number"
@@ -233,27 +184,8 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
               )}
             </div>
 
-            {/* Quantidade: 2 colunas */}
-            <div className="md:col-span-2">
-              <Label className="text-xs mb-1">
-                {type === 'monthly' ? 'Meses' : 'Vezes'}
-              </Label>
-              <Input
-                type="number"
-                placeholder={config.placeholder}
-                value={paymentData.count || ""}
-                onChange={(e) =>
-                  onChange(fieldName, {
-                    ...paymentData,
-                    count: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="h-9"
-              />
-            </div>
-
-            {/* Data: 2 colunas */}
-            <div className="md:col-span-2">
+            {/* Data: 3 colunas */}
+            <div className="md:col-span-3">
               <Label className="text-xs mb-1 flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 1º Venc.
@@ -265,39 +197,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                 className="h-9"
               />
             </div>
-
-            {/* Botão Auto: 2 colunas */}
-            <div className="md:col-span-2">
-              <Label className="text-xs mb-1 opacity-0">-</Label>
-              <Button 
-                type="button"
-                size="sm"
-                variant={paymentData?.autoCalculate ? 'default' : 'outline'}
-                onClick={() => handleAutoCalculateToggle(!paymentData?.autoCalculate)}
-                className="h-9 w-full text-xs flex items-center justify-center gap-1"
-                title={type === 'monthly' ? 'Calcular automaticamente' : 'Usar percentual'}
-              >
-                <Calculator className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
-
-          {/* Info adicional quando necessário */}
-          {type === 'monthly' && paymentData?.autoCalculate && paymentData.count > 0 && (
-            <p className="text-xs text-blue-600">
-              Saldo restante ÷ {paymentData.count} meses
-            </p>
-          )}
-          {type !== 'monthly' && paymentData?.autoCalculate && paymentData.percentage && paymentData.count && data.propertyValue > 0 && (
-            <p className="text-xs text-purple-600">
-              {paymentData.count}x {paymentData.percentage}% = R$ {((paymentData.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} cada
-            </p>
-          )}
-          {!paymentData?.autoCalculate && paymentData.value && data.propertyValue > 0 && (
-            <p className="text-xs text-muted-foreground">
-              = {((paymentData.value / data.propertyValue) * 100).toFixed(1)}% do total
-            </p>
-          )}
         </CardContent>
       )}
     </Card>
