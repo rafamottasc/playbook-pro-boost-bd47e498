@@ -62,7 +62,7 @@ export function generateFlowTXT(
   // Entrada
   if (result.downPayment.downPaymentParceladoValue && result.downPayment.downPaymentParceladoValue > 0) {
     const installmentValue = result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue;
-    txt += `🏁 Entrada Parcelada\n`;
+    txt += `🏁 Entrada\n`;
     txt += `   ${result.downPayment.installments}x de R$ ${formatMoney(installmentValue)}`;
     txt += ` (${result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)`;
     if (data.downPayment.firstDueDate) {
@@ -129,8 +129,9 @@ export function generateFlowTXT(
     txt += `🔑 Chaves\n`;
     txt += `   1x de R$ ${formatMoney(result.keysPayment.value)}`;
     txt += ` (${result.keysPayment.percentage.toFixed(1)}%)`;
-    if (data.keysPayment?.firstDueDate) {
-      txt += ` - Venc: ${format(new Date(data.keysPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    const keysVencDate = data.keysPayment?.firstDueDate || data.deliveryDate;
+    if (keysVencDate) {
+      txt += ` - Venc: ${format(new Date(keysVencDate + "T00:00:00"), "dd/MM/yyyy")}`;
     }
     txt += `\n\n`;
   }

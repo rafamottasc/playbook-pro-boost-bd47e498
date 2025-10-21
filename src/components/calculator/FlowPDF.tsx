@@ -4,12 +4,28 @@ import { PaymentFlowData, CalculatedResult } from "@/hooks/usePaymentFlow";
 import { format } from "date-fns";
 import { formatCurrency, formatMoney } from "@/lib/utils";
 
-// Helper function to load image and get its dimensions
-async function loadImageWithDimensions(url: string): Promise<{ img: HTMLImageElement; width: number; height: number }> {
-  return new Promise((resolve, reject) => {
+// Helper function to load image and get its dimensions with timeout
+async function loadImageWithDimensions(url: string, timeoutMs: number = 2000): Promise<{ img: HTMLImageElement; width: number; height: number } | null> {
+  return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => resolve({ img, width: img.width, height: img.height });
-    img.onerror = reject;
+    
+    // Timeout para não travar indefinidamente
+    const timeout = setTimeout(() => {
+      console.warn('Logo load timeout - continuando sem logo');
+      resolve(null);
+    }, timeoutMs);
+    
+    img.onload = () => {
+      clearTimeout(timeout);
+      resolve({ img, width: img.width, height: img.height });
+    };
+    
+    img.onerror = () => {
+      clearTimeout(timeout);
+      console.warn('Erro ao carregar logo - continuando sem logo');
+      resolve(null);
+    };
+    
     img.src = url;
   });
 }
@@ -24,16 +40,17 @@ export async function generateFlowPDF(
   
   // Adicionar logo COMARC (centralizada) - proporção automática
   const logoUrl = "/logo-comarc.png"; // Caminho relativo ao public
-  try {
-    const { img, width, height } = await loadImageWithDimensions(logoUrl);
+  const logoData = await loadImageWithDimensions(logoUrl, 2000); // 2 segundos de timeout
+  if (logoData) {
+    const { img, width, height } = logoData;
     const aspectRatio = width / height;
     const desiredWidth = 40; // Largura desejada em mm
     const calculatedHeight = desiredWidth / aspectRatio; // Altura proporcional
     const xPosition = (210 - desiredWidth) / 2; // Centralizar (A4 tem 210mm de largura)
     
     doc.addImage(img, "PNG", xPosition, 10, desiredWidth, calculatedHeight);
-  } catch (error) {
-    console.warn("Logo não pôde ser carregada:", error);
+  } else {
+    console.warn("Logo não carregada - PDF gerado sem logo");
   }
 
   // Título
@@ -147,7 +164,7 @@ export async function generateFlowPDF(
       : "";
     
     const entradaRow = [
-      "Entrada Parcelada",
+      "Entrada",
       `${downPaymentInstallments}x`,
       `R$ ${formatMoney(downPaymentValue)}`,
       `${result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%`,
@@ -264,7 +281,9 @@ export async function generateFlowPDF(
   if (result.keysPayment && result.keysPayment.value > 0) {
     const keysDate = data.keysPayment?.firstDueDate
       ? format(new Date(data.keysPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
-      : "";
+      : data.deliveryDate
+        ? format(new Date(data.deliveryDate + "T00:00:00"), "dd/MM/yyyy")
+        : "";
     
     const keysRow = [
       "Chaves",

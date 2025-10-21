@@ -498,14 +498,14 @@ export default function Calculator() {
               <div className="sticky top-20 space-y-4">
                 <FlowSummary result={result} propertyValue={data.propertyValue} />
                 <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <Button onClick={handleDownloadPDF} className="flex-1" size="lg" variant="outline">
-                      <Download className="mr-2 h-5 w-5" />
-                      Baixar PDF
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
+                      <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Baixar PDF</span>
                     </Button>
-                    <Button onClick={handleDownloadTXT} className="flex-1" size="lg" variant="outline">
-                      <FileText className="mr-2 h-5 w-5" />
-                      Baixar TXT
+                    <Button onClick={handleDownloadTXT} className="w-full" size="lg" variant="outline">
+                      <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Baixar TXT</span>
                     </Button>
                   </div>
                   <Button
@@ -525,14 +525,14 @@ export default function Calculator() {
             <div className="lg:hidden space-y-4">
               <FlowSummary result={result} propertyValue={data.propertyValue} />
               <div className="space-y-3">
-                <div className="flex gap-3">
-                  <Button onClick={handleDownloadPDF} className="flex-1" size="lg" variant="outline">
-                    <Download className="mr-2 h-5 w-5" />
-                    Baixar PDF
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                  <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
+                    <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-sm sm:text-base">Baixar PDF</span>
                   </Button>
-                  <Button onClick={handleDownloadTXT} className="flex-1" size="lg" variant="outline">
-                    <FileText className="mr-2 h-5 w-5" />
-                    Baixar TXT
+                  <Button onClick={handleDownloadTXT} className="w-full" size="lg" variant="outline">
+                    <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-sm sm:text-base">Baixar TXT</span>
                   </Button>
                 </div>
                 <Button
