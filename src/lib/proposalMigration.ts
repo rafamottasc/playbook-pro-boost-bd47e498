@@ -16,7 +16,7 @@ export function migrateProposalData(data: any): PaymentFlowData {
     downPayment: {
       ...data.downPayment,
       // Adicionar campos opcionais se não existirem
-      firstDueDate: data.downPayment?.firstDueDate || undefined,
+      firstDueDate: data.downPayment?.firstDueDate || data.constructionStartDate || undefined,
       ato: undefined, // Propostas antigas não têm Ato
     },
     constructionStartPayment: data.constructionStartPayment ? {

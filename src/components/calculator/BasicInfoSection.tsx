@@ -19,11 +19,27 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
   };
 
   const calculateMonthsUntilDelivery = () => {
-    if (data.constructionStartDate && data.deliveryDate) {
+    // Buscar primeiro pagamento
+    const dates: Date[] = [];
+    
+    if (data.downPayment.ato?.firstDueDate) {
+      try { dates.push(parseISO(data.downPayment.ato.firstDueDate)); } catch {}
+    }
+    if (data.downPayment.firstDueDate) {
+      try { dates.push(parseISO(data.downPayment.firstDueDate)); } catch {}
+    }
+    if (data.constructionStartPayment?.firstDueDate) {
+      try { dates.push(parseISO(data.constructionStartPayment.firstDueDate)); } catch {}
+    }
+    if (data.monthly?.firstDueDate) {
+      try { dates.push(parseISO(data.monthly.firstDueDate)); } catch {}
+    }
+    
+    if (dates.length > 0 && data.deliveryDate) {
       try {
-        const start = parseISO(data.constructionStartDate);
+        const firstDate = new Date(Math.min(...dates.map(d => d.getTime())));
         const end = parseISO(data.deliveryDate);
-        return Math.max(0, differenceInMonths(end, start));
+        return Math.max(0, differenceInMonths(end, firstDate));
       } catch (e) {
         return 0;
       }
@@ -53,26 +69,14 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <Label className="mb-2">🏗️ Início da Obra</Label>
-            <Input
-              type="date"
-              value={data.constructionStartDate}
-              onChange={(e) => onChange("constructionStartDate", e.target.value)}
-              className="h-10"
-            />
-          </div>
-
-          <div>
-            <Label className="mb-2">🔑 Entrega das Chaves</Label>
-            <Input
-              type="date"
-              value={data.deliveryDate}
-              onChange={(e) => onChange("deliveryDate", e.target.value)}
-              className="h-10"
-            />
-          </div>
+        <div>
+          <Label className="mb-2">🔑 Entrega das Chaves</Label>
+          <Input
+            type="date"
+            value={data.deliveryDate}
+            onChange={(e) => onChange("deliveryDate", e.target.value)}
+            className="h-10"
+          />
         </div>
 
         {monthsUntilDelivery > 0 && (

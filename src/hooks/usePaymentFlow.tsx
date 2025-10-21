@@ -171,13 +171,38 @@ export function usePaymentFlow() {
   }, []);
 
   const calculate = (): CalculatedResult => {
-    // 1. Calcular meses até entrega
+    // Helper: Buscar data do primeiro pagamento
+    const getFirstPaymentDate = (): Date | null => {
+      const dates: Date[] = [];
+      
+      if (data.downPayment.ato?.firstDueDate) {
+        try { dates.push(parseISO(data.downPayment.ato.firstDueDate)); } catch {}
+      }
+      if (data.downPayment.firstDueDate) {
+        try { dates.push(parseISO(data.downPayment.firstDueDate)); } catch {}
+      }
+      if (data.constructionStartPayment?.firstDueDate) {
+        try { dates.push(parseISO(data.constructionStartPayment.firstDueDate)); } catch {}
+      }
+      if (data.monthly?.firstDueDate) {
+        try { dates.push(parseISO(data.monthly.firstDueDate)); } catch {}
+      }
+      
+      if (dates.length > 0) {
+        return new Date(Math.min(...dates.map(d => d.getTime())));
+      }
+      
+      return null;
+    };
+
+    // 1. Calcular meses até entrega (do primeiro pagamento até a entrega)
     let monthsUntilDelivery = 0;
-    if (data.constructionStartDate && data.deliveryDate) {
+    const firstPaymentDate = getFirstPaymentDate();
+
+    if (firstPaymentDate && data.deliveryDate) {
       try {
-        const start = parseISO(data.constructionStartDate);
         const end = parseISO(data.deliveryDate);
-        monthsUntilDelivery = Math.max(0, differenceInMonths(end, start));
+        monthsUntilDelivery = Math.max(0, differenceInMonths(end, firstPaymentDate));
       } catch (e) {
         monthsUntilDelivery = 0;
       }
