@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
-import { Calendar, Calculator } from "lucide-react";
+import { Calendar, Calculator, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 
 interface PaymentBlockProps {
   type: "monthly" | "semiannual" | "annual";
@@ -15,21 +15,21 @@ interface PaymentBlockProps {
 
 const CONFIG = {
   monthly: {
-    emoji: "📅",
+    icon: CalendarDays,
     title: "PARCELAS MENSAIS",
     subtitle: "Cliente quer pagar mensalmente?",
     color: "blue",
     placeholder: "Ex: 100",
   },
   semiannual: {
-    emoji: "📆",
+    icon: CalendarRange,
     title: "REFORÇOS SEMESTRAIS",
     subtitle: "Cliente quer reforços a cada 6 meses?",
     color: "purple",
     placeholder: "Ex: 10",
   },
   annual: {
-    emoji: "📊",
+    icon: TrendingUp,
     title: "REFORÇOS ANUAIS",
     subtitle: "Cliente quer reforços anuais?",
     color: "orange",
@@ -134,13 +134,21 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
     });
   };
 
+  const handleTypeChange = (newType: 'percentage' | 'value') => {
+    onChange(fieldName, { 
+      ...paymentData, 
+      type: newType 
+    });
+  };
+
   return (
     <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl flex items-center gap-2">
-              {config.emoji} {config.title}
+              <config.icon className="h-5 w-5 text-primary" />
+              {config.title}
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               {config.subtitle}
@@ -154,9 +162,82 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
         <CardContent className="space-y-3">
           {/* Layout compacto em uma linha para desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-            {/* Quantidade: 3 colunas */}
-            <div className="md:col-span-3">
-              <Label className="text-xs mb-1">{type === 'monthly' ? 'Meses' : 'Vezes'}</Label>
+            {/* Botões %/R$: 2 colunas */}
+            <div className="md:col-span-2 grid grid-cols-2 gap-2">
+              <Button 
+                type="button"
+                size="sm"
+                variant={paymentData?.type === 'percentage' ? 'default' : 'outline'}
+                onClick={() => handleTypeChange('percentage')}
+                className="h-9 text-xs"
+              >
+                %
+              </Button>
+              <Button 
+                type="button"
+                size="sm"
+                variant={paymentData?.type === 'value' ? 'default' : 'outline'}
+                onClick={() => handleTypeChange('value')}
+                className="h-9 text-xs"
+              >
+                R$
+              </Button>
+            </div>
+
+            {/* Campo Valor: 4 colunas */}
+            <div className="md:col-span-4">
+              <Label className="text-xs mb-1">
+                {type === 'monthly' ? 'Valor/Mês' : 'Valor/Reforço'}
+              </Label>
+              {type === 'monthly' && paymentData?.autoCalculate ? (
+                <div className="h-9 px-3 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-blue-700">
+                    R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ) : paymentData?.type === 'percentage' ? (
+                <div className="space-y-0.5">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="10"
+                    value={paymentData.percentage || ""}
+                    onChange={(e) => handlePercentageChange(e.target.value)}
+                    className="h-9"
+                  />
+                  <div className="h-4 flex items-center">
+                    {data.propertyValue > 0 && paymentData.percentage && (
+                      <p className="text-xs text-muted-foreground">
+                        = R$ {((paymentData.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0.5">
+                  <Input
+                    type="text"
+                    placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
+                    value={paymentData.value ? `R$ ${formatCurrencyInput(paymentData.value)}` : ""}
+                    onChange={(e) => formatCurrency(e.target.value)}
+                    className="h-9"
+                  />
+                  <div className="h-4 flex items-center">
+                    {data.propertyValue > 0 && paymentData.value && (
+                      <p className="text-xs text-muted-foreground">
+                        = {((paymentData.value / data.propertyValue) * 100).toFixed(1)}%
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quantidade: 2 colunas */}
+            <div className="md:col-span-2">
+              <Label className="text-xs mb-1">
+                {type === 'monthly' ? 'Meses' : 'Vezes'}
+              </Label>
               <Input
                 type="number"
                 placeholder={config.placeholder}
@@ -171,8 +252,8 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
               />
             </div>
 
-            {/* Data: 3 colunas */}
-            <div className="md:col-span-3">
+            {/* Data: 2 colunas */}
+            <div className="md:col-span-2">
               <Label className="text-xs mb-1 flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 1º Venc.
@@ -185,58 +266,19 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
               />
             </div>
 
-            {/* Valor ou Toggle Auto: 4 colunas */}
-            {type === 'monthly' && paymentData?.autoCalculate ? (
-              <div className="md:col-span-4">
-                <Label className="text-xs mb-1">Valor Auto</Label>
-                <div className="h-9 px-3 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-blue-700">
-                    R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-            ) : type !== 'monthly' && paymentData?.autoCalculate ? (
-              <div className="md:col-span-4">
-                <Label className="text-xs mb-1">% cada</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="8"
-                  value={paymentData.percentage || ""}
-                  onChange={(e) => handlePercentageChange(e.target.value)}
-                  className="h-9"
-                />
-              </div>
-            ) : (
-              <div className="md:col-span-4">
-                <Label className="text-xs mb-1">{type === 'monthly' ? 'Valor/Parcela' : 'Valor/Reforço'}</Label>
-                <Input
-                  type="text"
-                  placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
-                  value={
-                    paymentData.value
-                      ? `R$ ${formatCurrencyInput(paymentData.value)}`
-                      : ""
-                  }
-                  onChange={(e) => formatCurrency(e.target.value)}
-                  className="h-9"
-                />
-              </div>
-            )}
-
             {/* Botão Auto: 2 colunas */}
             <div className="md:col-span-2">
               <Label className="text-xs mb-1 opacity-0">-</Label>
-      <Button 
-        type="button"
-        size="sm"
-        variant={paymentData?.autoCalculate ? 'default' : 'outline'}
-        onClick={() => handleAutoCalculateToggle(!paymentData?.autoCalculate)}
-        className="h-9 w-full text-xs flex items-center justify-center gap-1"
-        title={type === 'monthly' ? 'Calcular automaticamente' : 'Usar percentual'}
-      >
-        <Calculator className="h-4 w-4" />
-      </Button>
+              <Button 
+                type="button"
+                size="sm"
+                variant={paymentData?.autoCalculate ? 'default' : 'outline'}
+                onClick={() => handleAutoCalculateToggle(!paymentData?.autoCalculate)}
+                className="h-9 w-full text-xs flex items-center justify-center gap-1"
+                title={type === 'monthly' ? 'Calcular automaticamente' : 'Usar percentual'}
+              >
+                <Calculator className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
