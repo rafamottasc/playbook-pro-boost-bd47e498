@@ -304,35 +304,44 @@ export default function Calculator() {
               
               {/* Início da Obra */}
               <Card className="animate-fade-in border-l-4 border-l-primary">
-                <CardContent className="pt-6 space-y-3">
-                  <Label className="text-base mb-2 block">
-                    🏗️ Início da Obra (opcional)
-                  </Label>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      type="button"
-                      size="sm"
-                      variant={data.constructionStartPayment?.type === 'percentage' ? 'default' : 'outline'}
-                      onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'percentage' })}
-                      className="flex-1"
-                    >
-                      % Percentual
-                    </Button>
-                    <Button 
-                      type="button"
-                      size="sm"
-                      variant={data.constructionStartPayment?.type === 'value' ? 'default' : 'outline'}
-                      onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'value' })}
-                      className="flex-1"
-                    >
-                      R$ Valor
-                    </Button>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xl">🏗️</span>
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-base font-semibold">Início da Obra</Label>
+                      <p className="text-xs text-muted-foreground">Pagamento no início da construção (opcional)</p>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-sm mb-2">Valor</Label>
+                  {/* Linha única no desktop */}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                    {/* Botões: 3 colunas */}
+                    <div className="md:col-span-3 grid grid-cols-2 gap-2">
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant={data.constructionStartPayment?.type === 'percentage' ? 'default' : 'outline'}
+                        onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'percentage' })}
+                        className="h-9"
+                      >
+                        %
+                      </Button>
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant={data.constructionStartPayment?.type === 'value' ? 'default' : 'outline'}
+                        onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'value' })}
+                        className="h-9"
+                      >
+                        R$
+                      </Button>
+                    </div>
+
+                    {/* Campo Valor: 5 colunas */}
+                    <div className="md:col-span-5">
+                      <Label className="text-xs mb-1">Valor</Label>
                       {data.constructionStartPayment?.type === 'percentage' ? (
                         <div>
                           <Input
@@ -349,10 +358,10 @@ export default function Calculator() {
                                 value: calculatedValue 
                               });
                             }}
-                            className="text-base h-10 text-center"
+                            className="h-9"
                           />
                           {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
-                            <p className="text-sm text-muted-foreground text-center mt-2">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               = R$ {((data.constructionStartPayment.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           )}
@@ -372,10 +381,10 @@ export default function Calculator() {
                                 percentage: calculatedPercentage
                               });
                             }}
-                            className="text-base h-10 text-center"
+                            className="h-9"
                           />
                           {data.propertyValue > 0 && data.constructionStartPayment?.value && (
-                            <p className="text-sm text-muted-foreground text-center mt-2">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               = {((data.constructionStartPayment.value / data.propertyValue) * 100).toFixed(1)}%
                             </p>
                           )}
@@ -383,10 +392,11 @@ export default function Calculator() {
                       )}
                     </div>
 
-                    <div>
-                      <Label className="text-sm mb-2 flex items-center gap-1">
+                    {/* Data: 4 colunas */}
+                    <div className="md:col-span-4">
+                      <Label className="text-xs mb-1 flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        1º Vencimento (opcional)
+                        1º Vencimento
                       </Label>
                       <Input
                         type="date"
@@ -395,7 +405,7 @@ export default function Calculator() {
                           ...data.constructionStartPayment,
                           firstDueDate: e.target.value
                         })}
-                        className="h-10"
+                        className="h-9"
                       />
                     </div>
                   </div>
@@ -426,55 +436,58 @@ export default function Calculator() {
                   {data.keysPayment?.isSaldoMode && (
                     <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
                       <span>🔄</span>
-                      <span>Modo Saldo Automático - O valor será recalculado ao alterar outros campos</span>
+                      <span>Modo Saldo Automático</span>
                     </div>
                   )}
                   
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
+                  {/* Linha única no desktop */}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                    {/* Botões: 4 colunas */}
+                    <div className="md:col-span-4 grid grid-cols-3 gap-2">
                       <Button 
                         type="button"
                         size="sm"
                         variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
                         onClick={() => handleKeysTypeChange('percentage')}
+                        className="h-9 text-xs"
                       >
-                        % Percentual
+                        %
                       </Button>
                       <Button 
                         type="button"
                         size="sm"
                         variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
                         onClick={() => handleKeysTypeChange('value')}
+                        className="h-9 text-xs"
                       >
-                        R$ Valor
+                        R$
+                      </Button>
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={handleCalculateBalance}
+                        className="h-9 text-xs"
+                      >
+                        💰
                       </Button>
                     </div>
-                    <Button 
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={handleCalculateBalance}
-                      className="w-full"
-                    >
-                      💰 Saldo
-                    </Button>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-sm mb-2">Valor</Label>
+                    {/* Campo Valor: 8 colunas */}
+                    <div className="md:col-span-8">
+                      <Label className="text-xs mb-1">Valor das Chaves</Label>
                       {data.keysPayment?.type === 'percentage' ? (
                         <div>
                           <Input
                             type="number"
                             step="0.1"
-                            placeholder="8"
+                            placeholder="10"
                             value={data.keysPayment.percentage || ""}
                             onChange={(e) => handleKeysPercentageChange(e.target.value)}
-                            className="text-base h-10 text-center"
+                            className="h-9"
                           />
-                          {data.propertyValue > 0 && (
-                            <p className="text-sm text-muted-foreground text-center mt-2">
+                          {data.propertyValue > 0 && keysDisplayValue > 0 && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           )}
@@ -483,34 +496,18 @@ export default function Calculator() {
                         <div>
                           <Input
                             type="text"
-                            placeholder="R$ 128.000,00"
+                            placeholder="R$ 160.000,00"
                             value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
                             onChange={(e) => formatKeysPayment(e.target.value)}
-                            className="text-base h-10 text-center"
+                            className="h-9"
                           />
-                          {data.propertyValue > 0 && (
-                            <p className="text-sm text-muted-foreground text-center mt-2">
+                          {data.propertyValue > 0 && keysDisplayValue > 0 && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               = {keysDisplayPercentage.toFixed(1)}%
                             </p>
                           )}
                         </div>
                       )}
-                    </div>
-
-                    <div>
-                      <Label className="text-sm mb-2 flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        1º Vencimento (opcional)
-                      </Label>
-                      <Input
-                        type="date"
-                        value={data.keysPayment?.firstDueDate || ""}
-                        onChange={(e) => updateField("keysPayment", {
-                          ...data.keysPayment,
-                          firstDueDate: e.target.value
-                        })}
-                        className="h-10"
-                      />
                     </div>
                   </div>
                 </CardContent>

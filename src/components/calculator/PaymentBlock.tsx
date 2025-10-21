@@ -152,21 +152,11 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
 
       {paymentData?.enabled && (
         <CardContent className="space-y-3">
-          {(type === 'monthly' || type === 'semiannual' || type === 'annual') && (
-            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-              <Switch 
-                checked={paymentData?.autoCalculate || false} 
-                onCheckedChange={handleAutoCalculateToggle}
-              />
-              <Label>
-                {type === 'monthly' ? 'Calcular valor automaticamente' : 'Calcular por percentual'}
-              </Label>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label className="mb-2">Quantas vezes?</Label>
+          {/* Layout compacto em uma linha para desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+            {/* Quantidade: 3 colunas */}
+            <div className="md:col-span-3">
+              <Label className="text-xs mb-1">{type === 'monthly' ? 'Meses' : 'Vezes'}</Label>
               <Input
                 type="number"
                 placeholder={config.placeholder}
@@ -177,91 +167,94 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                     count: parseInt(e.target.value) || 0,
                   })
                 }
-                className="h-10"
+                className="h-9"
               />
             </div>
 
-            <div>
-              <Label className="mb-2 flex items-center gap-1">
+            {/* Data: 3 colunas */}
+            <div className="md:col-span-3">
+              <Label className="text-xs mb-1 flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                1º Vencimento (opcional)
+                1º Venc.
               </Label>
               <Input
                 type="date"
                 value={paymentData.firstDueDate || ""}
                 onChange={(e) => handleDateChange(e.target.value)}
-                className="h-10"
+                className="h-9"
               />
+            </div>
+
+            {/* Valor ou Toggle Auto: 4 colunas */}
+            {type === 'monthly' && paymentData?.autoCalculate ? (
+              <div className="md:col-span-4">
+                <Label className="text-xs mb-1">Valor Auto</Label>
+                <div className="h-9 px-3 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-blue-700">
+                    R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+            ) : type !== 'monthly' && paymentData?.autoCalculate ? (
+              <div className="md:col-span-4">
+                <Label className="text-xs mb-1">% cada</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="8"
+                  value={paymentData.percentage || ""}
+                  onChange={(e) => handlePercentageChange(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+            ) : (
+              <div className="md:col-span-4">
+                <Label className="text-xs mb-1">{type === 'monthly' ? 'Valor/Parcela' : 'Valor/Reforço'}</Label>
+                <Input
+                  type="text"
+                  placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
+                  value={
+                    paymentData.value
+                      ? `R$ ${formatCurrencyInput(paymentData.value)}`
+                      : ""
+                  }
+                  onChange={(e) => formatCurrency(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+            )}
+
+            {/* Botão Auto: 2 colunas */}
+            <div className="md:col-span-2">
+              <Label className="text-xs mb-1 opacity-0">-</Label>
+              <Button 
+                type="button"
+                size="sm"
+                variant={paymentData?.autoCalculate ? 'default' : 'outline'}
+                onClick={() => handleAutoCalculateToggle(!paymentData?.autoCalculate)}
+                className="h-9 w-full text-xs"
+                title={type === 'monthly' ? 'Calcular automaticamente' : 'Usar percentual'}
+              >
+                🧮
+              </Button>
             </div>
           </div>
 
-          {type === 'monthly' && paymentData?.autoCalculate ? (
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm font-medium text-blue-900 mb-1">Valor calculado automaticamente</p>
-              <p className="text-xl font-bold text-blue-700">
-                R$ {autoCalculatedValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Baseado no saldo restante ÷ {paymentData.count} parcelas
-              </p>
-            </div>
-          ) : type !== 'monthly' && paymentData?.autoCalculate ? (
-            <div>
-              <Label className="mb-2">Percentual de cada reforço (%)</Label>
-              <Input
-                type="number"
-                step="0.1"
-                placeholder="8"
-                value={paymentData.percentage || ""}
-                onChange={(e) => handlePercentageChange(e.target.value)}
-                className="h-10"
-              />
-              {data.propertyValue > 0 && paymentData.percentage && paymentData.count && (
-                <div className="mt-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-muted-foreground">
-                    {paymentData.count}x de {paymentData.percentage}% = <span className="font-bold text-purple-700">{(paymentData.count * paymentData.percentage).toFixed(1)}% do total</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    = R$ {((paymentData.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cada
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : type !== 'monthly' ? (
-            <div>
-              <Label className="mb-2">Valor de cada reforço</Label>
-              <Input
-                type="text"
-                placeholder="R$ 80.000,00"
-                value={
-                  paymentData.value
-                    ? `R$ ${formatCurrencyInput(paymentData.value)}`
-                    : ""
-                }
-                onChange={(e) => formatCurrency(e.target.value)}
-                className="text-base h-11 font-semibold"
-              />
-              {data.propertyValue > 0 && paymentData.value && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  = {((paymentData.value / data.propertyValue) * 100).toFixed(1)}% do total
-                </p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <Label className="mb-2">Valor de cada parcela</Label>
-              <Input
-                type="text"
-                placeholder="R$ 11.840,00"
-                value={
-                  paymentData.value
-                    ? `R$ ${formatCurrencyInput(paymentData.value)}`
-                    : ""
-                }
-                onChange={(e) => formatCurrency(e.target.value)}
-                className="text-base h-11 font-semibold"
-              />
-            </div>
+          {/* Info adicional quando necessário */}
+          {type === 'monthly' && paymentData?.autoCalculate && paymentData.count > 0 && (
+            <p className="text-xs text-blue-600">
+              Saldo restante ÷ {paymentData.count} meses
+            </p>
+          )}
+          {type !== 'monthly' && paymentData?.autoCalculate && paymentData.percentage && paymentData.count && data.propertyValue > 0 && (
+            <p className="text-xs text-purple-600">
+              {paymentData.count}x {paymentData.percentage}% = R$ {((paymentData.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} cada
+            </p>
+          )}
+          {!paymentData?.autoCalculate && paymentData.value && data.propertyValue > 0 && (
+            <p className="text-xs text-muted-foreground">
+              = {((paymentData.value / data.propertyValue) * 100).toFixed(1)}% do total
+            </p>
           )}
         </CardContent>
       )}

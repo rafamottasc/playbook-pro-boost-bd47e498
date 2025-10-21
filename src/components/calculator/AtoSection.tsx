@@ -78,28 +78,33 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
-          <Button 
-            type="button"
-            size="sm"
-            variant={data.downPayment.ato?.type === 'percentage' ? 'default' : 'outline'}
-            onClick={() => handleTypeChange('percentage')}
-          >
-            % Percentual
-          </Button>
-          <Button 
-            type="button"
-            size="sm"
-            variant={data.downPayment.ato?.type === 'value' ? 'default' : 'outline'}
-            onClick={() => handleTypeChange('value')}
-          >
-            R$ Valor
-          </Button>
-        </div>
+        {/* Tudo em 1 linha no desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+          {/* Botões: 3 colunas */}
+          <div className="md:col-span-3 grid grid-cols-2 gap-2">
+            <Button 
+              type="button"
+              size="sm"
+              variant={data.downPayment.ato?.type === 'percentage' ? 'default' : 'outline'}
+              onClick={() => handleTypeChange('percentage')}
+              className="h-9"
+            >
+              %
+            </Button>
+            <Button 
+              type="button"
+              size="sm"
+              variant={data.downPayment.ato?.type === 'value' ? 'default' : 'outline'}
+              onClick={() => handleTypeChange('value')}
+              className="h-9"
+            >
+              R$
+            </Button>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <Label className="text-sm mb-2">Valor do Ato</Label>
+          {/* Campo Valor: 5 colunas */}
+          <div className="md:col-span-5">
+            <Label className="text-xs mb-1 block">Valor do Ato</Label>
             {data.downPayment.ato?.type === 'percentage' ? (
               <div>
                 <Input
@@ -108,10 +113,10 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
                   placeholder="5"
                   value={data.downPayment.ato.percentage || ""}
                   onChange={(e) => handlePercentageChange(e.target.value)}
-                  className="h-10 text-center"
+                  className="h-9"
                 />
                 {data.propertyValue > 0 && displayValue > 0 && (
-                  <p className="text-xs text-muted-foreground text-center mt-1">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 )}
@@ -123,10 +128,10 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
                   placeholder="R$ 80.000,00"
                   value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
                   onChange={(e) => handleValueChange(e.target.value)}
-                  className="h-10 text-center"
+                  className="h-9"
                 />
                 {data.propertyValue > 0 && displayValue > 0 && (
-                  <p className="text-xs text-muted-foreground text-center mt-1">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     = {displayPercentage.toFixed(1)}%
                   </p>
                 )}
@@ -134,16 +139,17 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
             )}
           </div>
 
-          <div>
-            <Label className="text-sm mb-2 flex items-center gap-1">
+          {/* Data: 4 colunas */}
+          <div className="md:col-span-4">
+            <Label className="text-xs mb-1 flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              1º Vencimento (opcional)
+              1º Vencimento
             </Label>
             <Input
               type="date"
               value={data.downPayment.ato?.firstDueDate || ""}
               onChange={(e) => handleDateChange(e.target.value)}
-              className="h-10"
+              className="h-9"
             />
           </div>
         </div>

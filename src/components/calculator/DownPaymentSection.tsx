@@ -76,91 +76,101 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex gap-2">
-          <Button 
-            type="button"
-            variant={data.downPayment.type === 'percentage' ? 'default' : 'outline'}
-            onClick={() => handleTypeChange('percentage')}
-            className="flex-1"
-          >
-            % Percentual
-          </Button>
-          <Button 
-            type="button"
-            variant={data.downPayment.type === 'value' ? 'default' : 'outline'}
-            onClick={() => handleTypeChange('value')}
-            className="flex-1"
-          >
-            R$ Valor
-          </Button>
-        </div>
+        {/* Linha única compacta para desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+          {/* Botões: 3 colunas */}
+          <div className="md:col-span-3 grid grid-cols-2 gap-2">
+            <Button 
+              type="button"
+              size="sm"
+              variant={data.downPayment.type === 'percentage' ? 'default' : 'outline'}
+              onClick={() => handleTypeChange('percentage')}
+              className="h-9"
+            >
+              %
+            </Button>
+            <Button 
+              type="button"
+              size="sm"
+              variant={data.downPayment.type === 'value' ? 'default' : 'outline'}
+              onClick={() => handleTypeChange('value')}
+              className="h-9"
+            >
+              R$
+            </Button>
+          </div>
 
-        {data.downPayment.type === 'percentage' ? (
-          <div>
-            <Input
-              type="number"
-              step="0.1"
-              placeholder="10"
-              value={data.downPayment.percentage || ""}
-              onChange={(e) => handlePercentageChange(e.target.value)}
-              className="text-lg h-11 font-semibold text-center"
-            />
-            {data.propertyValue > 0 && (
-              <p className="text-sm text-muted-foreground text-center mt-2">
-                = R$ {formatMoney(displayValue)}
-              </p>
+          {/* Campo Valor: 4 colunas */}
+          <div className="md:col-span-4">
+            <Label className="text-xs mb-1">Valor da Entrada</Label>
+            {data.downPayment.type === 'percentage' ? (
+              <div>
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="10"
+                  value={data.downPayment.percentage || ""}
+                  onChange={(e) => handlePercentageChange(e.target.value)}
+                  className="h-9"
+                />
+                {data.propertyValue > 0 && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    = R$ {formatMoney(displayValue)}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Input
+                  type="text"
+                  placeholder="R$ 160.000,00"
+                  value={data.downPayment.value ? `R$ ${formatCurrencyInput(data.downPayment.value)}` : ""}
+                  onChange={(e) => handleValueChange(e.target.value)}
+                  className="h-9"
+                />
+                {data.propertyValue > 0 && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    = {displayPercentage.toFixed(1)}%
+                  </p>
+                )}
+              </div>
             )}
           </div>
-        ) : (
-          <div>
+
+          {/* Parcelas: 2 colunas */}
+          <div className="md:col-span-2">
+            <Label className="text-xs mb-1">Parcelas</Label>
             <Input
               type="text"
-              placeholder="R$ 160.000,00"
-              value={data.downPayment.value ? `R$ ${formatCurrencyInput(data.downPayment.value)}` : ""}
-              onChange={(e) => handleValueChange(e.target.value)}
-              className="text-lg h-11 font-semibold text-center"
+              inputMode="numeric"
+              placeholder="1"
+              value={data.downPayment.installments || ''}
+              onChange={(e) => handleInstallmentsChange(e.target.value)}
+              className="h-9"
             />
-            {data.propertyValue > 0 && (
-              <p className="text-sm text-muted-foreground text-center mt-2">
-                = {displayPercentage.toFixed(1)}%
-              </p>
-            )}
           </div>
-        )}
 
-        <div className="pt-3 border-t space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label className="mb-2">Parcelar entrada em quantas vezes?</Label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="1 (à vista)"
-                value={data.downPayment.installments || ''}
-                onChange={(e) => handleInstallmentsChange(e.target.value)}
-                className="h-10"
-              />
-              {installmentValue > 0 && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {data.downPayment.installments}x de R$ {formatMoney(installmentValue)}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label className="mb-2 flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                1º Vencimento (opcional)
-              </Label>
-              <Input
-                type="date"
-                value={data.downPayment.firstDueDate || ""}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="h-10"
-              />
-            </div>
+          {/* Data: 3 colunas */}
+          <div className="md:col-span-3">
+            <Label className="text-xs mb-1 flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              1º Venc.
+            </Label>
+            <Input
+              type="date"
+              value={data.downPayment.firstDueDate || ""}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="h-9"
+            />
           </div>
         </div>
+
+        {/* Mostrar valor da parcela */}
+        {installmentValue > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {data.downPayment.installments}x de R$ {formatMoney(installmentValue)}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
