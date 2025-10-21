@@ -102,42 +102,46 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
             </Button>
           </div>
 
-          {/* Campo Valor: 5 colunas */}
-          <div className="md:col-span-5">
-            <Label className="text-xs mb-1 block">Valor do Ato</Label>
-            {data.downPayment.ato?.type === 'percentage' ? (
-              <div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="5"
-                  value={data.downPayment.ato.percentage || ""}
-                  onChange={(e) => handlePercentageChange(e.target.value)}
-                  className="h-9"
-                />
-                {data.propertyValue > 0 && displayValue > 0 && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div>
-                <Input
-                  type="text"
-                  placeholder="R$ 80.000,00"
-                  value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
-                  onChange={(e) => handleValueChange(e.target.value)}
-                  className="h-9"
-                />
-                {data.propertyValue > 0 && displayValue > 0 && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    = {displayPercentage.toFixed(1)}%
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+  {/* Campo Valor: 5 colunas */}
+  <div className="md:col-span-5">
+    <Label className="text-xs mb-1 block">Valor do Ato</Label>
+    {data.downPayment.ato?.type === 'percentage' ? (
+      <div className="space-y-0.5">
+        <Input
+          type="number"
+          step="0.1"
+          placeholder="5"
+          value={data.downPayment.ato.percentage || ""}
+          onChange={(e) => handlePercentageChange(e.target.value)}
+          className="h-9"
+        />
+        <div className="h-4 flex items-center">
+          {data.propertyValue > 0 && displayValue > 0 && (
+            <p className="text-xs text-muted-foreground">
+              = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div className="space-y-0.5">
+        <Input
+          type="text"
+          placeholder="R$ 80.000,00"
+          value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
+          onChange={(e) => handleValueChange(e.target.value)}
+          className="h-9"
+        />
+        <div className="h-4 flex items-center">
+          {data.propertyValue > 0 && displayValue > 0 && (
+            <p className="text-xs text-muted-foreground">
+              = {displayPercentage.toFixed(1)}%
+            </p>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
 
           {/* Data: 4 colunas */}
           <div className="md:col-span-4">

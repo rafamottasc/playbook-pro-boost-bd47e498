@@ -105,11 +105,11 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           <Collapsible defaultOpen={false}>
             <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ChevronDown className="h-4 w-4" />
-              📋 Campos opcionais (para o PDF)
+              📋 Dados do Empreendimento (opcional)
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 mt-3">
-              {/* Linha 1: Construtora e Empreendimento */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* 4 campos em 1 linha no desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <Label className="text-xs">Construtora</Label>
                   <Input
@@ -130,10 +130,6 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
                     className="h-9"
                   />
                 </div>
-              </div>
-
-              {/* Linha 2: Unidade e Área Privativa */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Unidade</Label>
                   <Input

@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
-import { Calendar } from "lucide-react";
+import { Calendar, Calculator } from "lucide-react";
 
 interface PaymentBlockProps {
   type: "monthly" | "semiannual" | "annual";
@@ -227,16 +227,16 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
             {/* Botão Auto: 2 colunas */}
             <div className="md:col-span-2">
               <Label className="text-xs mb-1 opacity-0">-</Label>
-              <Button 
-                type="button"
-                size="sm"
-                variant={paymentData?.autoCalculate ? 'default' : 'outline'}
-                onClick={() => handleAutoCalculateToggle(!paymentData?.autoCalculate)}
-                className="h-9 w-full text-xs"
-                title={type === 'monthly' ? 'Calcular automaticamente' : 'Usar percentual'}
-              >
-                🧮
-              </Button>
+      <Button 
+        type="button"
+        size="sm"
+        variant={paymentData?.autoCalculate ? 'default' : 'outline'}
+        onClick={() => handleAutoCalculateToggle(!paymentData?.autoCalculate)}
+        className="h-9 w-full text-xs flex items-center justify-center gap-1"
+        title={type === 'monthly' ? 'Calcular automaticamente' : 'Usar percentual'}
+      >
+        <Calculator className="h-4 w-4" />
+      </Button>
             </div>
           </div>
 

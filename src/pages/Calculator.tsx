@@ -339,58 +339,62 @@ export default function Calculator() {
                       </Button>
                     </div>
 
-                    {/* Campo Valor: 5 colunas */}
-                    <div className="md:col-span-5">
-                      <Label className="text-xs mb-1">Valor</Label>
-                      {data.constructionStartPayment?.type === 'percentage' ? (
-                        <div>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            placeholder="5"
-                            value={data.constructionStartPayment.percentage || ""}
-                            onChange={(e) => {
-                              const percentage = parseFloat(e.target.value) || 0;
-                              const calculatedValue = (percentage / 100) * data.propertyValue;
-                              updateField("constructionStartPayment", { 
-                                ...data.constructionStartPayment, 
-                                percentage, 
-                                value: calculatedValue 
-                              });
-                            }}
-                            className="h-9"
-                          />
-                          {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              = R$ {((data.constructionStartPayment.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <Input
-                            type="text"
-                            placeholder="R$ 50.000,00"
-                            value={data.constructionStartPayment?.value ? `R$ ${formatCurrencyInput(data.constructionStartPayment.value)}` : ""}
-                            onChange={(e) => {
-                              const amount = parseCurrencyInput(e.target.value);
-                              const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
-                              updateField("constructionStartPayment", {
-                                ...data.constructionStartPayment,
-                                value: amount,
-                                percentage: calculatedPercentage
-                              });
-                            }}
-                            className="h-9"
-                          />
-                          {data.propertyValue > 0 && data.constructionStartPayment?.value && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              = {((data.constructionStartPayment.value / data.propertyValue) * 100).toFixed(1)}%
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+      {/* Campo Valor: 5 colunas */}
+      <div className="md:col-span-5">
+        <Label className="text-xs mb-1">Valor</Label>
+        {data.constructionStartPayment?.type === 'percentage' ? (
+          <div className="space-y-0.5">
+            <Input
+              type="number"
+              step="0.1"
+              placeholder="5"
+              value={data.constructionStartPayment.percentage || ""}
+              onChange={(e) => {
+                const percentage = parseFloat(e.target.value) || 0;
+                const calculatedValue = (percentage / 100) * data.propertyValue;
+                updateField("constructionStartPayment", { 
+                  ...data.constructionStartPayment, 
+                  percentage, 
+                  value: calculatedValue 
+                });
+              }}
+              className="h-9"
+            />
+            <div className="h-4 flex items-center">
+              {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
+                <p className="text-xs text-muted-foreground">
+                  = R$ {((data.constructionStartPayment.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-0.5">
+            <Input
+              type="text"
+              placeholder="R$ 50.000,00"
+              value={data.constructionStartPayment?.value ? `R$ ${formatCurrencyInput(data.constructionStartPayment.value)}` : ""}
+              onChange={(e) => {
+                const amount = parseCurrencyInput(e.target.value);
+                const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+                updateField("constructionStartPayment", {
+                  ...data.constructionStartPayment,
+                  value: amount,
+                  percentage: calculatedPercentage
+                });
+              }}
+              className="h-9"
+            />
+            <div className="h-4 flex items-center">
+              {data.propertyValue > 0 && data.constructionStartPayment?.value && (
+                <p className="text-xs text-muted-foreground">
+                  = {((data.constructionStartPayment.value / data.propertyValue) * 100).toFixed(1)}%
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
                     {/* Data: 4 colunas */}
                     <div className="md:col-span-4">
@@ -473,42 +477,46 @@ export default function Calculator() {
                       </Button>
                     </div>
 
-                    {/* Campo Valor: 8 colunas */}
-                    <div className="md:col-span-8">
-                      <Label className="text-xs mb-1">Valor das Chaves</Label>
-                      {data.keysPayment?.type === 'percentage' ? (
-                        <div>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            placeholder="10"
-                            value={data.keysPayment.percentage || ""}
-                            onChange={(e) => handleKeysPercentageChange(e.target.value)}
-                            className="h-9"
-                          />
-                          {data.propertyValue > 0 && keysDisplayValue > 0 && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <Input
-                            type="text"
-                            placeholder="R$ 160.000,00"
-                            value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
-                            onChange={(e) => formatKeysPayment(e.target.value)}
-                            className="h-9"
-                          />
-                          {data.propertyValue > 0 && keysDisplayValue > 0 && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              = {keysDisplayPercentage.toFixed(1)}%
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+      {/* Campo Valor: 8 colunas */}
+      <div className="md:col-span-8">
+        <Label className="text-xs mb-1">Valor das Chaves</Label>
+        {data.keysPayment?.type === 'percentage' ? (
+          <div className="space-y-0.5">
+            <Input
+              type="number"
+              step="0.1"
+              placeholder="10"
+              value={data.keysPayment.percentage || ""}
+              onChange={(e) => handleKeysPercentageChange(e.target.value)}
+              className="h-9"
+            />
+            <div className="h-4 flex items-center">
+              {data.propertyValue > 0 && keysDisplayValue > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-0.5">
+            <Input
+              type="text"
+              placeholder="R$ 160.000,00"
+              value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
+              onChange={(e) => formatKeysPayment(e.target.value)}
+              className="h-9"
+            />
+            <div className="h-4 flex items-center">
+              {data.propertyValue > 0 && keysDisplayValue > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  = {keysDisplayPercentage.toFixed(1)}%
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
                   </div>
                 </CardContent>
               </Card>
