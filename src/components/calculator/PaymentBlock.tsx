@@ -84,7 +84,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2">
               <config.icon className="h-5 w-5 text-primary" />
               {config.title}
             </CardTitle>
@@ -144,43 +144,25 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
             {/* Campo Valor: 5 colunas */}
             <div className="md:col-span-5">
               <Label className="text-xs mb-1">
-                {type === 'monthly' ? 'Valor/Mês' : 'Valor/Reforço'}
+                {type === 'monthly' ? 'Valor/Mês' : 'Valor do Reforço'}
               </Label>
               {paymentData?.type === 'percentage' ? (
-                <div className="space-y-0.5">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    placeholder="10"
-                    value={paymentData.percentage || ""}
-                    onChange={(e) => handlePercentageChange(e.target.value)}
-                    className="h-9"
-                  />
-                  <div className="h-4 flex items-center">
-                    {data.propertyValue > 0 && paymentData.percentage && (
-                      <p className="text-xs text-muted-foreground">
-                        = R$ {((paymentData.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="10"
+                  value={paymentData.percentage || ""}
+                  onChange={(e) => handlePercentageChange(e.target.value)}
+                  className="h-9"
+                />
               ) : (
-                <div className="space-y-0.5">
-                  <Input
-                    type="text"
-                    placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
-                    value={paymentData.value ? `R$ ${formatCurrencyInput(paymentData.value)}` : ""}
-                    onChange={(e) => formatCurrency(e.target.value)}
-                    className="h-9"
-                  />
-                  <div className="h-4 flex items-center">
-                    {data.propertyValue > 0 && paymentData.value && (
-                      <p className="text-xs text-muted-foreground">
-                        = {((paymentData.value / data.propertyValue) * 100).toFixed(1)}%
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <Input
+                  type="text"
+                  placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
+                  value={paymentData.value ? `R$ ${formatCurrencyInput(paymentData.value)}` : ""}
+                  onChange={(e) => formatCurrency(e.target.value)}
+                  className="h-9"
+                />
               )}
             </div>
 

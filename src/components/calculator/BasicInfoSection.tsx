@@ -3,8 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ClipboardList } from "lucide-react";
+import { ClipboardList, Building2, Key } from "lucide-react";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface BasicInfoSectionProps {
@@ -52,10 +51,10 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
   return (
     <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-primary" />
-          Informações Básicas
-        </CardTitle>
+      <CardTitle className="text-lg flex items-center gap-2">
+        <ClipboardList className="h-5 w-5 text-primary" />
+        Informações Básicas
+      </CardTitle>
         <CardDescription>
           Dados essenciais para o cálculo
         </CardDescription>
@@ -75,7 +74,10 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           </div>
 
           <div>
-            <Label className="mb-2 text-sm">🔑 Entrega das Chaves</Label>
+        <Label className="mb-2 text-sm flex items-center gap-1.5">
+          <Key className="h-4 w-4 text-muted-foreground" />
+          Entrega das Chaves
+        </Label>
             <Input
               type="date"
               value={data.deliveryDate}
@@ -104,58 +106,54 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           </div>
         )}
 
-        <div className="pt-3 border-t">
-          <Collapsible defaultOpen={false}>
-            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <ChevronDown className="h-4 w-4" />
-              📋 Dados do Empreendimento (opcional)
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 mt-3">
-              {/* 4 campos em 1 linha no desktop */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <div>
-                  <Label className="text-xs">Construtora</Label>
-                  <Input
-                    type="text"
-                    placeholder="Nome da construtora"
-                    value={data.constructora || ""}
-                    onChange={(e) => onChange("constructora", e.target.value)}
-                    className="h-9"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Empreendimento</Label>
-                  <Input
-                    type="text"
-                    placeholder="Nome do empreendimento"
-                    value={data.empreendimento || ""}
-                    onChange={(e) => onChange("empreendimento", e.target.value)}
-                    className="h-9"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Unidade</Label>
-                  <Input
-                    type="text"
-                    placeholder="Ex: 301"
-                    value={data.unidade || ""}
-                    onChange={(e) => onChange("unidade", e.target.value)}
-                    className="h-9"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Área Privativa</Label>
-                  <Input
-                    type="text"
-                    placeholder="Ex: 85m²"
-                    value={data.areaPrivativa || ""}
-                    onChange={(e) => onChange("areaPrivativa", e.target.value)}
-                    className="h-9"
-                  />
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+        {/* Seção Opcional - Dados do Empreendimento */}
+        <div className="pt-3 border-t space-y-3">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Label className="text-sm text-muted-foreground">
+              Dados do Empreendimento (opcional)
+            </Label>
+          </div>
+          
+          {/* 4 campos em 1 linha no desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <Label className="text-xs mb-1">Construtora</Label>
+              <Input
+                placeholder="Nome da construtora"
+                value={data.constructora || ""}
+                onChange={(e) => onChange("constructora", e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1">Empreendimento</Label>
+              <Input
+                placeholder="Nome do empreendimento"
+                value={data.empreendimento || ""}
+                onChange={(e) => onChange("empreendimento", e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1">Unidade</Label>
+              <Input
+                placeholder="Ex: Apto 101"
+                value={data.unidade || ""}
+                onChange={(e) => onChange("unidade", e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1">Área Privativa</Label>
+              <Input
+                placeholder="Ex: 75m²"
+                value={data.areaPrivativa || ""}
+                onChange={(e) => onChange("areaPrivativa", e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -73,7 +73,7 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
             <Coins className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <Label className="text-base font-semibold">Ato (Pagamento Único)</Label>
+            <Label className="text-lg font-semibold">Ato (Pagamento Único)</Label>
             <p className="text-xs text-muted-foreground">Pagamento à vista na assinatura do contrato</p>
           </div>
         </div>
@@ -104,45 +104,25 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
 
   {/* Campo Valor: 5 colunas */}
   <div className="md:col-span-5">
-    <div className="space-y-1">
-      <Label className="text-xs">Valor do Ato</Label>
-      {data.downPayment.ato?.type === 'percentage' ? (
-        <div>
-          <Input
-            type="number"
-            step="0.1"
-            placeholder="5"
-            value={data.downPayment.ato.percentage || ""}
-            onChange={(e) => handlePercentageChange(e.target.value)}
-            className="h-9"
-          />
-          <div className="h-4 flex items-center">
-            {data.propertyValue > 0 && displayValue > 0 && (
-              <p className="text-xs text-muted-foreground">
-                = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div>
-          <Input
-            type="text"
-            placeholder="R$ 80.000,00"
-            value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
-            onChange={(e) => handleValueChange(e.target.value)}
-            className="h-9"
-          />
-          <div className="h-4 flex items-center">
-            {data.propertyValue > 0 && displayValue > 0 && (
-              <p className="text-xs text-muted-foreground">
-                = {displayPercentage.toFixed(1)}%
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+    <Label className="text-xs mb-1">Valor do Ato</Label>
+    {data.downPayment.ato?.type === 'percentage' ? (
+      <Input
+        type="number"
+        step="0.1"
+        placeholder="5"
+        value={data.downPayment.ato.percentage || ""}
+        onChange={(e) => handlePercentageChange(e.target.value)}
+        className="h-9"
+      />
+    ) : (
+      <Input
+        type="text"
+        placeholder="R$ 80.000,00"
+        value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
+        onChange={(e) => handleValueChange(e.target.value)}
+        className="h-9"
+      />
+    )}
   </div>
 
           {/* Data: 4 colunas */}

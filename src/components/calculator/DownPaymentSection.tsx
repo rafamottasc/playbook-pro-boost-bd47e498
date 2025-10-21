@@ -68,9 +68,9 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   return (
     <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
+        <CardTitle className="text-lg flex items-center gap-2">
           <Receipt className="h-5 w-5 text-primary" />
-          Entrada (quando assinar o contrato)
+          Entrada
         </CardTitle>
         <CardDescription>
           Quanto o cliente vai dar de entrada?
@@ -105,40 +105,22 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
     <div className="md:col-span-4">
       <Label className="text-xs mb-1">Valor da Entrada</Label>
       {data.downPayment.type === 'percentage' ? (
-        <div className="space-y-0.5">
-          <Input
-            type="number"
-            step="0.1"
-            placeholder="10"
-            value={data.downPayment.percentage || ""}
-            onChange={(e) => handlePercentageChange(e.target.value)}
-            className="h-9"
-          />
-          <div className="h-4 flex items-center">
-            {data.propertyValue > 0 && (
-              <p className="text-xs text-muted-foreground">
-                = R$ {formatMoney(displayValue)}
-              </p>
-            )}
-          </div>
-        </div>
+        <Input
+          type="number"
+          step="0.1"
+          placeholder="10"
+          value={data.downPayment.percentage || ""}
+          onChange={(e) => handlePercentageChange(e.target.value)}
+          className="h-9"
+        />
       ) : (
-        <div className="space-y-0.5">
-          <Input
-            type="text"
-            placeholder="R$ 160.000,00"
-            value={data.downPayment.value ? `R$ ${formatCurrencyInput(data.downPayment.value)}` : ""}
-            onChange={(e) => handleValueChange(e.target.value)}
-            className="h-9"
-          />
-          <div className="h-4 flex items-center">
-            {data.propertyValue > 0 && (
-              <p className="text-xs text-muted-foreground">
-                = {displayPercentage.toFixed(1)}%
-              </p>
-            )}
-          </div>
-        </div>
+        <Input
+          type="text"
+          placeholder="R$ 160.000,00"
+          value={data.downPayment.value ? `R$ ${formatCurrencyInput(data.downPayment.value)}` : ""}
+          onChange={(e) => handleValueChange(e.target.value)}
+          className="h-9"
+        />
       )}
     </div>
 
