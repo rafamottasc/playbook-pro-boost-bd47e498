@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
-import { Calendar } from "lucide-react";
+import { Calendar, Coins } from "lucide-react";
 
 interface AtoSectionProps {
   data: PaymentFlowData;
@@ -70,7 +70,7 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
       <CardContent className="pt-6 space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-xl">💰</span>
+            <Coins className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
             <Label className="text-base font-semibold">Ato (Pagamento Único)</Label>
@@ -104,43 +104,45 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
 
   {/* Campo Valor: 5 colunas */}
   <div className="md:col-span-5">
-    <Label className="text-xs mb-1 block">Valor do Ato</Label>
-    {data.downPayment.ato?.type === 'percentage' ? (
-      <div className="space-y-0.5">
-        <Input
-          type="number"
-          step="0.1"
-          placeholder="5"
-          value={data.downPayment.ato.percentage || ""}
-          onChange={(e) => handlePercentageChange(e.target.value)}
-          className="h-9"
-        />
-        <div className="h-4 flex items-center">
-          {data.propertyValue > 0 && displayValue > 0 && (
-            <p className="text-xs text-muted-foreground">
-              = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-          )}
+    <div className="space-y-1">
+      <Label className="text-xs">Valor do Ato</Label>
+      {data.downPayment.ato?.type === 'percentage' ? (
+        <div>
+          <Input
+            type="number"
+            step="0.1"
+            placeholder="5"
+            value={data.downPayment.ato.percentage || ""}
+            onChange={(e) => handlePercentageChange(e.target.value)}
+            className="h-9"
+          />
+          <div className="h-4 flex items-center">
+            {data.propertyValue > 0 && displayValue > 0 && (
+              <p className="text-xs text-muted-foreground">
+                = R$ {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
-    ) : (
-      <div className="space-y-0.5">
-        <Input
-          type="text"
-          placeholder="R$ 80.000,00"
-          value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
-          onChange={(e) => handleValueChange(e.target.value)}
-          className="h-9"
-        />
-        <div className="h-4 flex items-center">
-          {data.propertyValue > 0 && displayValue > 0 && (
-            <p className="text-xs text-muted-foreground">
-              = {displayPercentage.toFixed(1)}%
-            </p>
-          )}
+      ) : (
+        <div>
+          <Input
+            type="text"
+            placeholder="R$ 80.000,00"
+            value={data.downPayment.ato?.value ? `R$ ${formatCurrencyInput(data.downPayment.ato.value)}` : ""}
+            onChange={(e) => handleValueChange(e.target.value)}
+            className="h-9"
+          />
+          <div className="h-4 flex items-center">
+            {data.propertyValue > 0 && displayValue > 0 && (
+              <p className="text-xs text-muted-foreground">
+                = {displayPercentage.toFixed(1)}%
+              </p>
+            )}
+          </div>
         </div>
-      </div>
-    )}
+      )}
+    </div>
   </div>
 
           {/* Data: 4 colunas */}

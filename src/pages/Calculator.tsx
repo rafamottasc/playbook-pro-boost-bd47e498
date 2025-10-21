@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Save, History, FileText, Calendar } from "lucide-react";
+import { Download, Save, History, FileText, Calendar, Calculator as CalculatorIcon, HardHat, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -307,7 +307,7 @@ export default function Calculator() {
                 <CardContent className="pt-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xl">🏗️</span>
+                      <HardHat className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1">
                       <Label className="text-base font-semibold">Início da Obra</Label>
@@ -429,7 +429,7 @@ export default function Calculator() {
                 <CardContent className="pt-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xl">🔑</span>
+                      <Key className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1">
                       <Label className="text-base font-semibold">Pagamento na Entrega das Chaves</Label>
@@ -446,8 +446,8 @@ export default function Calculator() {
                   
                   {/* Linha única no desktop */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                    {/* Botões: 4 colunas */}
-                    <div className="md:col-span-4 grid grid-cols-3 gap-2">
+                    {/* Botões %/R$: 2 colunas */}
+                    <div className="md:col-span-2 grid grid-cols-2 gap-2">
                       <Button 
                         type="button"
                         size="sm"
@@ -466,57 +466,64 @@ export default function Calculator() {
                       >
                         R$
                       </Button>
+                    </div>
+
+                    {/* Campo Valor: 6 colunas */}
+                    <div className="md:col-span-6">
+                      <Label className="text-xs mb-1">Valor das Chaves</Label>
+                      {data.keysPayment?.type === 'percentage' ? (
+                        <div>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            placeholder="10"
+                            value={data.keysPayment.percentage || ""}
+                            onChange={(e) => handleKeysPercentageChange(e.target.value)}
+                            className="h-9"
+                          />
+                          <div className="h-4 flex items-center">
+                            {data.propertyValue > 0 && keysDisplayValue > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <Input
+                            type="text"
+                            placeholder="R$ 160.000,00"
+                            value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
+                            onChange={(e) => formatKeysPayment(e.target.value)}
+                            className="h-9"
+                          />
+                          <div className="h-4 flex items-center">
+                            {data.propertyValue > 0 && keysDisplayValue > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                = {keysDisplayPercentage.toFixed(1)}%
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botão Saldo Automático: 4 colunas */}
+                    <div className="md:col-span-4">
+                      <Label className="text-xs mb-1 block">Saldo Automático</Label>
                       <Button 
                         type="button"
                         size="sm"
                         variant="secondary"
                         onClick={handleCalculateBalance}
-                        className="h-9 text-xs"
+                        className="h-9 w-full text-xs flex items-center justify-center gap-2"
+                        title="Calcular saldo restante automaticamente"
                       >
-                        💰
+                        <CalculatorIcon className="h-4 w-4" />
+                        Calcular Saldo
                       </Button>
                     </div>
-
-      {/* Campo Valor: 8 colunas */}
-      <div className="md:col-span-8">
-        <Label className="text-xs mb-1">Valor das Chaves</Label>
-        {data.keysPayment?.type === 'percentage' ? (
-          <div className="space-y-0.5">
-            <Input
-              type="number"
-              step="0.1"
-              placeholder="10"
-              value={data.keysPayment.percentage || ""}
-              onChange={(e) => handleKeysPercentageChange(e.target.value)}
-              className="h-9"
-            />
-            <div className="h-4 flex items-center">
-              {data.propertyValue > 0 && keysDisplayValue > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-0.5">
-            <Input
-              type="text"
-              placeholder="R$ 160.000,00"
-              value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
-              onChange={(e) => formatKeysPayment(e.target.value)}
-              className="h-9"
-            />
-            <div className="h-4 flex items-center">
-              {data.propertyValue > 0 && keysDisplayValue > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  = {keysDisplayPercentage.toFixed(1)}%
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
                   </div>
                 </CardContent>
               </Card>

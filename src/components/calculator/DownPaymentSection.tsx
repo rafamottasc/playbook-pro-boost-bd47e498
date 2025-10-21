@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { formatMoney, parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
-import { Calendar } from "lucide-react";
+import { Calendar, Receipt } from "lucide-react";
 
 interface DownPaymentSectionProps {
   data: PaymentFlowData;
@@ -69,7 +69,8 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
     <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
-          🏁 ENTRADA (quando assinar o contrato)
+          <Receipt className="h-5 w-5 text-primary" />
+          ENTRADA (quando assinar o contrato)
         </CardTitle>
         <CardDescription>
           Quanto o cliente vai dar de entrada?
