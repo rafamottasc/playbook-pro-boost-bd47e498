@@ -412,10 +412,16 @@ export default function Calculator() {
 
               {/* Chaves */}
               <Card className="animate-fade-in border-l-4 border-l-primary">
-                <CardContent className="pt-6 space-y-3">
-                  <Label className="text-base mb-2 block">
-                    🔑 Pagamento na Entrega das Chaves (opcional)
-                  </Label>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xl">🔑</span>
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-base font-semibold">Pagamento na Entrega das Chaves</Label>
+                      <p className="text-xs text-muted-foreground">Valor pago quando receber as chaves (opcional)</p>
+                    </div>
+                  </div>
                   
                   {data.keysPayment?.isSaldoMode && (
                     <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
@@ -424,31 +430,31 @@ export default function Calculator() {
                     </div>
                   )}
                   
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                      type="button"
-                      size="sm"
-                      variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
-                      onClick={() => handleKeysTypeChange('percentage')}
-                      className="flex-1"
-                    >
-                      % Percentual
-                    </Button>
-                    <Button 
-                      type="button"
-                      size="sm"
-                      variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
-                      onClick={() => handleKeysTypeChange('value')}
-                      className="flex-1"
-                    >
-                      R$ Valor
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
+                        onClick={() => handleKeysTypeChange('percentage')}
+                      >
+                        % Percentual
+                      </Button>
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
+                        onClick={() => handleKeysTypeChange('value')}
+                      >
+                        R$ Valor
+                      </Button>
+                    </div>
                     <Button 
                       type="button"
                       size="sm"
                       variant="secondary"
                       onClick={handleCalculateBalance}
-                      className="flex-1"
+                      className="w-full"
                     >
                       💰 Saldo
                     </Button>
