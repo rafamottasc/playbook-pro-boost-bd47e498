@@ -80,6 +80,16 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       downPaymentValue = data.downPayment.value;
     }
 
+    // Calcular valor do Ato
+    let atoValue = 0;
+    if (data.downPayment.ato) {
+      if (data.downPayment.ato.type === 'percentage' && data.downPayment.ato.percentage) {
+        atoValue = (data.downPayment.ato.percentage / 100) * data.propertyValue;
+      } else if (data.downPayment.ato.type === 'value' && data.downPayment.ato.value) {
+        atoValue = data.downPayment.ato.value;
+      }
+    }
+
     // Calcular valor de início da obra
     let constructionStartValue = 0;
     if (data.constructionStartPayment) {
@@ -111,7 +121,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
       }
     }
 
-    const remainingBalance = data.propertyValue - downPaymentValue - constructionStartValue - totalReinforcements - keysValue;
+    const remainingBalance = data.propertyValue - atoValue - downPaymentValue - constructionStartValue - totalReinforcements - keysValue;
     return remainingBalance / paymentData.count;
   };
 
