@@ -66,7 +66,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   };
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           🏁 ENTRADA (quando assinar o contrato)

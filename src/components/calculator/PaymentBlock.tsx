@@ -125,7 +125,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
   };
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

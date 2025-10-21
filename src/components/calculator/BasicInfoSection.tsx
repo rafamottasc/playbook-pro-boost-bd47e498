@@ -34,7 +34,7 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
   const monthsUntilDelivery = calculateMonthsUntilDelivery();
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-l-4 border-l-primary">
       <CardHeader>
         <CardTitle className="text-xl">📋 Informações Básicas</CardTitle>
         <CardDescription>

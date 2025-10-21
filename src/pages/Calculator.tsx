@@ -299,11 +299,11 @@ export default function Calculator() {
               <BasicInfoSection data={data} onChange={updateField} />
               
               {/* Seção de Entrada reorganizada */}
-              <DownPaymentSection data={data} onChange={updateField} />
               <AtoSection data={data} onChange={updateField} />
+              <DownPaymentSection data={data} onChange={updateField} />
               
               {/* Início da Obra */}
-              <Card className="animate-fade-in">
+              <Card className="animate-fade-in border-l-4 border-l-primary">
                 <CardContent className="pt-6 space-y-3">
                   <Label className="text-base mb-2 block">
                     🏗️ Início da Obra (opcional)
@@ -411,7 +411,7 @@ export default function Calculator() {
               <PaymentBlock type="annual" data={data} onChange={updateField} />
 
               {/* Chaves */}
-              <Card className="animate-fade-in">
+              <Card className="animate-fade-in border-l-4 border-l-primary">
                 <CardContent className="pt-6 space-y-3">
                   <Label className="text-base mb-2 block">
                     🔑 Pagamento na Entrega das Chaves (opcional)
