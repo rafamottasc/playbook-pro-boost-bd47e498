@@ -12,17 +12,26 @@ export interface PaymentFlowData {
     percentage?: number;
     value?: number;
     installments?: number;
+    firstDueDate?: string;
+    ato?: {
+      type: 'percentage' | 'value';
+      percentage?: number;
+      value?: number;
+      firstDueDate?: string;
+    };
   };
   constructionStartPayment?: {
     type: 'percentage' | 'value';
     percentage?: number;
     value?: number;
+    firstDueDate?: string;
   };
   monthly?: { 
     enabled: boolean; 
     count?: number; 
     value?: number;
     autoCalculate?: boolean;
+    firstDueDate?: string;
   };
   semiannualReinforcement?: { 
     enabled: boolean; 
@@ -30,6 +39,7 @@ export interface PaymentFlowData {
     value?: number;
     percentage?: number;
     autoCalculate?: boolean;
+    firstDueDate?: string;
   };
   annualReinforcement?: { 
     enabled: boolean; 
@@ -37,12 +47,14 @@ export interface PaymentFlowData {
     value?: number;
     percentage?: number;
     autoCalculate?: boolean;
+    firstDueDate?: string;
   };
   keysPayment?: {
     type: 'percentage' | 'value';
     percentage?: number;
     value?: number;
     isSaldoMode?: boolean;
+    firstDueDate?: string;
   };
   constructora?: string;
   empreendimento?: string;
@@ -56,6 +68,10 @@ export interface CalculatedResult {
     percentage: number;
     installments?: number;
     installmentValue?: number;
+    atoValue?: number;
+    atoPercentage?: number;
+    downPaymentParceladoValue?: number;
+    downPaymentParceladoPercentage?: number;
   };
   constructionStartPayment?: { 
     value: number; 
@@ -167,16 +183,27 @@ export function usePaymentFlow() {
       }
     }
 
-    // 2. Calcular entrada
-    let downPaymentValue = 0;
-    if (data.downPayment.type === 'percentage' && data.downPayment.percentage) {
-      downPaymentValue = (data.downPayment.percentage / 100) * data.propertyValue;
-    } else if (data.downPayment.type === 'value' && data.downPayment.value) {
-      downPaymentValue = data.downPayment.value;
+    // 2. Calcular entrada (com Ato)
+    let atoValue = 0;
+    if (data.downPayment.ato) {
+      if (data.downPayment.ato.type === 'percentage' && data.downPayment.ato.percentage) {
+        atoValue = (data.downPayment.ato.percentage / 100) * data.propertyValue;
+      } else if (data.downPayment.ato.type === 'value' && data.downPayment.ato.value) {
+        atoValue = data.downPayment.ato.value;
+      }
     }
 
+    let downPaymentParceladoValue = 0;
+    if (data.downPayment.type === 'percentage' && data.downPayment.percentage) {
+      downPaymentParceladoValue = (data.downPayment.percentage / 100) * data.propertyValue;
+    } else if (data.downPayment.type === 'value' && data.downPayment.value) {
+      downPaymentParceladoValue = data.downPayment.value;
+    }
+
+    const downPaymentValue = atoValue + downPaymentParceladoValue;
+
     const downPaymentInstallmentValue = data.downPayment.installments && data.downPayment.installments > 1
-      ? downPaymentValue / data.downPayment.installments
+      ? downPaymentParceladoValue / data.downPayment.installments
       : undefined;
 
     // 2.5 Calcular início da obra
@@ -286,6 +313,10 @@ export function usePaymentFlow() {
         percentage: data.propertyValue > 0 ? (downPaymentValue / data.propertyValue) * 100 : 0,
         installments: data.downPayment.installments || 1,
         installmentValue: downPaymentInstallmentValue,
+        atoValue: atoValue > 0 ? atoValue : undefined,
+        atoPercentage: atoValue > 0 && data.propertyValue > 0 ? (atoValue / data.propertyValue) * 100 : undefined,
+        downPaymentParceladoValue: downPaymentParceladoValue > 0 ? downPaymentParceladoValue : undefined,
+        downPaymentParceladoPercentage: downPaymentParceladoValue > 0 && data.propertyValue > 0 ? (downPaymentParceladoValue / data.propertyValue) * 100 : undefined,
       },
       timeline: {
         monthsUntilDelivery,

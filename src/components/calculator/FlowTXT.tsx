@@ -48,47 +48,91 @@ export function generateFlowTXT(
   txt += `💰 CONDIÇÕES DE PAGAMENTO\n`;
   txt += `━━━━━━━\n\n`;
 
+  // Ato
+  if (result.downPayment.atoValue && result.downPayment.atoValue > 0) {
+    txt += `💰 Ato\n`;
+    txt += `   1x de R$ ${formatMoney(result.downPayment.atoValue)}`;
+    txt += ` (${result.downPayment.atoPercentage?.toFixed(1)}%)`;
+    if (data.downPayment.ato?.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.downPayment.ato.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
+  }
+
   // Entrada
-  if (result.downPayment.value > 0) {
+  if (result.downPayment.downPaymentParceladoValue && result.downPayment.downPaymentParceladoValue > 0) {
+    const installmentValue = result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue;
+    txt += `🏁 Entrada Parcelada\n`;
+    txt += `   ${result.downPayment.installments}x de R$ ${formatMoney(installmentValue)}`;
+    txt += ` (${result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)`;
+    if (data.downPayment.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.downPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
+  } else if (!result.downPayment.atoValue || result.downPayment.atoValue === 0) {
     const installmentValue = result.downPayment.installmentValue || result.downPayment.value;
     txt += `🏁 Entrada\n`;
     txt += `   ${result.downPayment.installments}x de R$ ${formatMoney(installmentValue)}`;
-    txt += ` (${result.downPayment.percentage.toFixed(1)}%)\n\n`;
+    txt += ` (${result.downPayment.percentage.toFixed(1)}%)`;
+    if (data.downPayment.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.downPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
   }
 
   // Início da Obra
   if (result.constructionStartPayment && result.constructionStartPayment.value > 0) {
     txt += `🏗️ Início da Obra\n`;
     txt += `   1x de R$ ${formatMoney(result.constructionStartPayment.value)}`;
-    txt += ` (${result.constructionStartPayment.percentage.toFixed(1)}%)\n\n`;
+    txt += ` (${result.constructionStartPayment.percentage.toFixed(1)}%)`;
+    if (data.constructionStartPayment?.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.constructionStartPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
   }
 
   // Mensais
   if (result.monthly && result.monthly.total > 0) {
     txt += `📅 Mensais\n`;
     txt += `   ${result.monthly.count}x de R$ ${formatMoney(result.monthly.value)}`;
-    txt += ` (${result.monthly.percentage.toFixed(1)}%)\n\n`;
+    txt += ` (${result.monthly.percentage.toFixed(1)}%)`;
+    if (data.monthly?.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.monthly.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
   }
 
   // Reforços Semestrais
   if (result.semiannualReinforcement && result.semiannualReinforcement.total > 0) {
     txt += `💎 Reforços Semestrais\n`;
     txt += `   ${result.semiannualReinforcement.count}x de R$ ${formatMoney(result.semiannualReinforcement.value)}`;
-    txt += ` (${result.semiannualReinforcement.percentage.toFixed(1)}%)\n\n`;
+    txt += ` (${result.semiannualReinforcement.percentage.toFixed(1)}%)`;
+    if (data.semiannualReinforcement?.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.semiannualReinforcement.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
   }
 
   // Reforços Anuais
   if (result.annualReinforcement && result.annualReinforcement.total > 0) {
     txt += `💎 Reforços Anuais\n`;
     txt += `   ${result.annualReinforcement.count}x de R$ ${formatMoney(result.annualReinforcement.value)}`;
-    txt += ` (${result.annualReinforcement.percentage.toFixed(1)}%)\n\n`;
+    txt += ` (${result.annualReinforcement.percentage.toFixed(1)}%)`;
+    if (data.annualReinforcement?.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.annualReinforcement.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
   }
 
   // Chaves
   if (result.keysPayment && result.keysPayment.value > 0) {
     txt += `🔑 Chaves\n`;
     txt += `   1x de R$ ${formatMoney(result.keysPayment.value)}`;
-    txt += ` (${result.keysPayment.percentage.toFixed(1)}%)\n\n`;
+    txt += ` (${result.keysPayment.percentage.toFixed(1)}%)`;
+    if (data.keysPayment?.firstDueDate) {
+      txt += ` - Venc: ${format(new Date(data.keysPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")}`;
+    }
+    txt += `\n\n`;
   }
 
   txt += `━━━━━━━\n`;

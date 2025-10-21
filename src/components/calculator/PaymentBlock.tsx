@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
+import { Calendar } from "lucide-react";
 
 interface PaymentBlockProps {
   type: "monthly" | "semiannual" | "annual";
@@ -116,6 +117,13 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
 
   const autoCalculatedValue = type === 'monthly' ? calculateAutoMonthlyValue() : 0;
 
+  const handleDateChange = (date: string) => {
+    onChange(fieldName, {
+      ...paymentData,
+      firstDueDate: date
+    });
+  };
+
   return (
     <Card className="animate-fade-in">
       <CardHeader>
@@ -146,20 +154,35 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
             </div>
           )}
 
-          <div>
-            <Label className="mb-2">Quantas vezes?</Label>
-            <Input
-              type="number"
-              placeholder={config.placeholder}
-              value={paymentData.count || ""}
-              onChange={(e) =>
-                onChange(fieldName, {
-                  ...paymentData,
-                  count: parseInt(e.target.value) || 0,
-                })
-              }
-              className="h-10"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-2">Quantas vezes?</Label>
+              <Input
+                type="number"
+                placeholder={config.placeholder}
+                value={paymentData.count || ""}
+                onChange={(e) =>
+                  onChange(fieldName, {
+                    ...paymentData,
+                    count: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="h-10"
+              />
+            </div>
+
+            <div>
+              <Label className="mb-2 flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                1º Vencimento (opcional)
+              </Label>
+              <Input
+                type="date"
+                value={paymentData.firstDueDate || ""}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="h-10"
+              />
+            </div>
           </div>
 
           {type === 'monthly' && paymentData?.autoCalculate ? (

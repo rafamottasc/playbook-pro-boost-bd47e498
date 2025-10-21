@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Save, History, FileText } from "lucide-react";
+import { Download, Save, History, FileText, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
 import { BasicInfoSection } from "@/components/calculator/BasicInfoSection";
 import { DownPaymentSection } from "@/components/calculator/DownPaymentSection";
+import { AtoSection } from "@/components/calculator/AtoSection";
 import { PaymentBlock } from "@/components/calculator/PaymentBlock";
 import { FlowSummary } from "@/components/calculator/FlowSummary";
 import { generateFlowPDF } from "@/components/calculator/FlowPDF";
@@ -293,7 +294,10 @@ export default function Calculator() {
             {/* Form Column */}
             <div className="lg:col-span-2 space-y-4">
               <BasicInfoSection data={data} onChange={updateField} />
+              
+              {/* Seção de Entrada reorganizada */}
               <DownPaymentSection data={data} onChange={updateField} />
+              <AtoSection data={data} onChange={updateField} />
               
               {/* Início da Obra */}
               <Card className="animate-fade-in">
@@ -305,6 +309,7 @@ export default function Calculator() {
                   <div className="flex gap-2">
                     <Button 
                       type="button"
+                      size="sm"
                       variant={data.constructionStartPayment?.type === 'percentage' ? 'default' : 'outline'}
                       onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'percentage' })}
                       className="flex-1"
@@ -313,6 +318,7 @@ export default function Calculator() {
                     </Button>
                     <Button 
                       type="button"
+                      size="sm"
                       variant={data.constructionStartPayment?.type === 'value' ? 'default' : 'outline'}
                       onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'value' })}
                       className="flex-1"
@@ -321,54 +327,75 @@ export default function Calculator() {
                     </Button>
                   </div>
 
-                  {data.constructionStartPayment?.type === 'percentage' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        placeholder="5"
-                        value={data.constructionStartPayment.percentage || ""}
-                        onChange={(e) => {
-                          const percentage = parseFloat(e.target.value) || 0;
-                          const calculatedValue = (percentage / 100) * data.propertyValue;
-                          updateField("constructionStartPayment", { 
-                            ...data.constructionStartPayment, 
-                            percentage, 
-                            value: calculatedValue 
-                          });
-                        }}
-                        className="text-base h-11 text-center"
-                      />
-                      {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
-                        <p className="text-sm text-muted-foreground text-center mt-2">
-                          = R$ {((data.constructionStartPayment.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
+                      <Label className="text-sm mb-2">Valor</Label>
+                      {data.constructionStartPayment?.type === 'percentage' ? (
+                        <div>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            placeholder="5"
+                            value={data.constructionStartPayment.percentage || ""}
+                            onChange={(e) => {
+                              const percentage = parseFloat(e.target.value) || 0;
+                              const calculatedValue = (percentage / 100) * data.propertyValue;
+                              updateField("constructionStartPayment", { 
+                                ...data.constructionStartPayment, 
+                                percentage, 
+                                value: calculatedValue 
+                              });
+                            }}
+                            className="text-base h-10 text-center"
+                          />
+                          {data.propertyValue > 0 && data.constructionStartPayment.percentage && (
+                            <p className="text-sm text-muted-foreground text-center mt-2">
+                              = R$ {((data.constructionStartPayment.percentage / 100) * data.propertyValue).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <Input
+                            type="text"
+                            placeholder="R$ 50.000,00"
+                            value={data.constructionStartPayment?.value ? `R$ ${formatCurrencyInput(data.constructionStartPayment.value)}` : ""}
+                            onChange={(e) => {
+                              const amount = parseCurrencyInput(e.target.value);
+                              const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+                              updateField("constructionStartPayment", {
+                                ...data.constructionStartPayment,
+                                value: amount,
+                                percentage: calculatedPercentage
+                              });
+                            }}
+                            className="text-base h-10 text-center"
+                          />
+                          {data.propertyValue > 0 && data.constructionStartPayment?.value && (
+                            <p className="text-sm text-muted-foreground text-center mt-2">
+                              = {((data.constructionStartPayment.value / data.propertyValue) * 100).toFixed(1)}%
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
-                  ) : (
+
                     <div>
+                      <Label className="text-sm mb-2 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        1º Vencimento (opcional)
+                      </Label>
                       <Input
-                        type="text"
-                        placeholder="R$ 50.000,00"
-                        value={data.constructionStartPayment?.value ? `R$ ${formatCurrencyInput(data.constructionStartPayment.value)}` : ""}
-                        onChange={(e) => {
-                          const amount = parseCurrencyInput(e.target.value);
-                          const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
-                          updateField("constructionStartPayment", {
-                            ...data.constructionStartPayment,
-                            value: amount,
-                            percentage: calculatedPercentage
-                          });
-                        }}
-                        className="text-base h-11 text-center"
+                        type="date"
+                        value={data.constructionStartPayment?.firstDueDate || ""}
+                        onChange={(e) => updateField("constructionStartPayment", {
+                          ...data.constructionStartPayment,
+                          firstDueDate: e.target.value
+                        })}
+                        className="h-10"
                       />
-                      {data.propertyValue > 0 && data.constructionStartPayment?.value && (
-                        <p className="text-sm text-muted-foreground text-center mt-2">
-                          = {((data.constructionStartPayment.value / data.propertyValue) * 100).toFixed(1)}%
-                        </p>
-                      )}
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -397,6 +424,7 @@ export default function Calculator() {
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button 
                       type="button"
+                      size="sm"
                       variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
                       onClick={() => handleKeysTypeChange('percentage')}
                       className="flex-1"
@@ -405,6 +433,7 @@ export default function Calculator() {
                     </Button>
                     <Button 
                       type="button"
+                      size="sm"
                       variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
                       onClick={() => handleKeysTypeChange('value')}
                       className="flex-1"
@@ -413,6 +442,7 @@ export default function Calculator() {
                     </Button>
                     <Button 
                       type="button"
+                      size="sm"
                       variant="secondary"
                       onClick={handleCalculateBalance}
                       className="flex-1"
@@ -421,38 +451,59 @@ export default function Calculator() {
                     </Button>
                   </div>
 
-                  {data.keysPayment?.type === 'percentage' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        placeholder="8"
-                        value={data.keysPayment.percentage || ""}
-                        onChange={(e) => handleKeysPercentageChange(e.target.value)}
-                        className="text-base h-11 text-center"
-                      />
-                      {data.propertyValue > 0 && (
-                        <p className="text-sm text-muted-foreground text-center mt-2">
-                          = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
+                      <Label className="text-sm mb-2">Valor</Label>
+                      {data.keysPayment?.type === 'percentage' ? (
+                        <div>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            placeholder="8"
+                            value={data.keysPayment.percentage || ""}
+                            onChange={(e) => handleKeysPercentageChange(e.target.value)}
+                            className="text-base h-10 text-center"
+                          />
+                          {data.propertyValue > 0 && (
+                            <p className="text-sm text-muted-foreground text-center mt-2">
+                              = R$ {keysDisplayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <Input
+                            type="text"
+                            placeholder="R$ 128.000,00"
+                            value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
+                            onChange={(e) => formatKeysPayment(e.target.value)}
+                            className="text-base h-10 text-center"
+                          />
+                          {data.propertyValue > 0 && (
+                            <p className="text-sm text-muted-foreground text-center mt-2">
+                              = {keysDisplayPercentage.toFixed(1)}%
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
-                  ) : (
+
                     <div>
+                      <Label className="text-sm mb-2 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        1º Vencimento (opcional)
+                      </Label>
                       <Input
-                        type="text"
-                        placeholder="R$ 128.000,00"
-                        value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
-                        onChange={(e) => formatKeysPayment(e.target.value)}
-                        className="text-base h-11 text-center"
+                        type="date"
+                        value={data.keysPayment?.firstDueDate || ""}
+                        onChange={(e) => updateField("keysPayment", {
+                          ...data.keysPayment,
+                          firstDueDate: e.target.value
+                        })}
+                        className="h-10"
                       />
-                      {data.propertyValue > 0 && (
-                        <p className="text-sm text-muted-foreground text-center mt-2">
-                          = {keysDisplayPercentage.toFixed(1)}%
-                        </p>
-                      )}
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </div>

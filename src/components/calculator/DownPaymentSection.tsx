@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { formatMoney, parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
+import { Calendar } from "lucide-react";
 
 interface DownPaymentSectionProps {
   data: PaymentFlowData;
@@ -56,6 +57,13 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   const installmentValue = data.downPayment.installments && data.downPayment.installments > 1
     ? displayValue / data.downPayment.installments
     : 0;
+
+  const handleDateChange = (date: string) => {
+    onChange("downPayment", {
+      ...data.downPayment,
+      firstDueDate: date
+    });
+  };
 
   return (
     <Card className="animate-fade-in">
@@ -120,21 +128,38 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
           </div>
         )}
 
-        <div className="pt-3 border-t">
-          <Label className="mb-2">Parcelar entrada em quantas vezes?</Label>
-          <Input
-            type="text"
-            inputMode="numeric"
-            placeholder="1 (à vista)"
-            value={data.downPayment.installments || ''}
-            onChange={(e) => handleInstallmentsChange(e.target.value)}
-            className="h-10"
-          />
-          {installmentValue > 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              {data.downPayment.installments}x de R$ {formatMoney(installmentValue)}
-            </p>
-          )}
+        <div className="pt-3 border-t space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-2">Parcelar entrada em quantas vezes?</Label>
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="1 (à vista)"
+                value={data.downPayment.installments || ''}
+                onChange={(e) => handleInstallmentsChange(e.target.value)}
+                className="h-10"
+              />
+              {installmentValue > 0 && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  {data.downPayment.installments}x de R$ {formatMoney(installmentValue)}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label className="mb-2 flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                1º Vencimento (opcional)
+              </Label>
+              <Input
+                type="date"
+                value={data.downPayment.firstDueDate || ""}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="h-10"
+              />
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

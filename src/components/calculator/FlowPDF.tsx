@@ -102,72 +102,187 @@ export async function generateFlowPDF(
   doc.text("CONDICOES DE PAGAMENTO", 15, yPosition);
   yPosition += 5;
 
-  const tableData: any[] = [];
+  // Verificar se existe alguma data preenchida
+  const hasAnyDate = !!(
+    data.downPayment.ato?.firstDueDate ||
+    data.downPayment.firstDueDate ||
+    data.constructionStartPayment?.firstDueDate ||
+    data.monthly?.firstDueDate ||
+    data.semiannualReinforcement?.firstDueDate ||
+    data.annualReinforcement?.firstDueDate ||
+    data.keysPayment?.firstDueDate
+  );
 
-  // Entrada
-  const downPaymentInstallments = result.downPayment.installments || 1;
-  const downPaymentValue = result.downPayment.installmentValue || result.downPayment.value;
-  
-  tableData.push([
-    "Entrada",
-    `${downPaymentInstallments}x`,
-    `R$ ${formatMoney(downPaymentValue)}`,
-    `${result.downPayment.percentage.toFixed(1)}%`,
-  ]);
+  const tableData: any[] = [];
+  const tableHeaders = hasAnyDate 
+    ? ["Tipo", "Parcelas", "Valor", "% Total", "1º Vencimento"]
+    : ["Tipo", "Parcelas", "Valor", "% Total"];
+
+  // Ato (se existir)
+  if (result.downPayment.atoValue && result.downPayment.atoValue > 0) {
+    const atoDate = data.downPayment.ato?.firstDueDate 
+      ? format(new Date(data.downPayment.ato.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const atoRow = [
+      "Ato",
+      "1x",
+      `R$ ${formatMoney(result.downPayment.atoValue)}`,
+      `${result.downPayment.atoPercentage?.toFixed(1)}%`,
+    ];
+    
+    if (hasAnyDate) {
+      atoRow.push(atoDate);
+    }
+    
+    tableData.push(atoRow);
+  }
+
+  // Entrada Parcelada
+  if (result.downPayment.downPaymentParceladoValue && result.downPayment.downPaymentParceladoValue > 0) {
+    const downPaymentInstallments = result.downPayment.installments || 1;
+    const downPaymentValue = result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue;
+    const entradaDate = data.downPayment.firstDueDate
+      ? format(new Date(data.downPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const entradaRow = [
+      "Entrada Parcelada",
+      `${downPaymentInstallments}x`,
+      `R$ ${formatMoney(downPaymentValue)}`,
+      `${result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%`,
+    ];
+    
+    if (hasAnyDate) {
+      entradaRow.push(entradaDate);
+    }
+    
+    tableData.push(entradaRow);
+  } else if (!result.downPayment.atoValue || result.downPayment.atoValue === 0) {
+    // Se não tem Ato, mostrar entrada normal
+    const downPaymentInstallments = result.downPayment.installments || 1;
+    const downPaymentValue = result.downPayment.installmentValue || result.downPayment.value;
+    const entradaDate = data.downPayment.firstDueDate
+      ? format(new Date(data.downPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const entradaRow = [
+      "Entrada",
+      `${downPaymentInstallments}x`,
+      `R$ ${formatMoney(downPaymentValue)}`,
+      `${result.downPayment.percentage.toFixed(1)}%`,
+    ];
+    
+    if (hasAnyDate) {
+      entradaRow.push(entradaDate);
+    }
+    
+    tableData.push(entradaRow);
+  }
 
   // Início da Obra
   if (result.constructionStartPayment && result.constructionStartPayment.value > 0) {
-    tableData.push([
+    const obraDate = data.constructionStartPayment?.firstDueDate
+      ? format(new Date(data.constructionStartPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const obraRow = [
       "Inicio da Obra",
       "1x",
       `R$ ${formatMoney(result.constructionStartPayment.value)}`,
       `${result.constructionStartPayment.percentage.toFixed(1)}%`,
-    ]);
+    ];
+    
+    if (hasAnyDate) {
+      obraRow.push(obraDate);
+    }
+    
+    tableData.push(obraRow);
   }
 
   // Mensais
   if (result.monthly) {
-    tableData.push([
+    const monthlyDate = data.monthly?.firstDueDate
+      ? format(new Date(data.monthly.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const monthlyRow = [
       "Mensais",
       `${result.monthly.count}x`,
       `R$ ${formatMoney(result.monthly.value)}`,
       `${result.monthly.percentage.toFixed(1)}%`,
-    ]);
+    ];
+    
+    if (hasAnyDate) {
+      monthlyRow.push(monthlyDate);
+    }
+    
+    tableData.push(monthlyRow);
   }
 
   // Semestrais
   if (result.semiannualReinforcement) {
-    tableData.push([
+    const semiDate = data.semiannualReinforcement?.firstDueDate
+      ? format(new Date(data.semiannualReinforcement.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const semiRow = [
       "Reforcos Semestrais",
       `${result.semiannualReinforcement.count}x`,
       `R$ ${formatMoney(result.semiannualReinforcement.value)}`,
       `${result.semiannualReinforcement.percentage.toFixed(1)}%`,
-    ]);
+    ];
+    
+    if (hasAnyDate) {
+      semiRow.push(semiDate);
+    }
+    
+    tableData.push(semiRow);
   }
 
   // Anuais
   if (result.annualReinforcement) {
-    tableData.push([
+    const annualDate = data.annualReinforcement?.firstDueDate
+      ? format(new Date(data.annualReinforcement.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const annualRow = [
       "Reforcos Anuais",
       `${result.annualReinforcement.count}x`,
       `R$ ${formatMoney(result.annualReinforcement.value)}`,
       `${result.annualReinforcement.percentage.toFixed(1)}%`,
-    ]);
+    ];
+    
+    if (hasAnyDate) {
+      annualRow.push(annualDate);
+    }
+    
+    tableData.push(annualRow);
   }
 
   // Chaves
   if (result.keysPayment && result.keysPayment.value > 0) {
-    tableData.push([
+    const keysDate = data.keysPayment?.firstDueDate
+      ? format(new Date(data.keysPayment.firstDueDate + "T00:00:00"), "dd/MM/yyyy")
+      : "";
+    
+    const keysRow = [
       "Chaves",
       "1x",
       `R$ ${formatMoney(result.keysPayment.value)}`,
       `${result.keysPayment.percentage.toFixed(1)}%`,
-    ]);
+    ];
+    
+    if (hasAnyDate) {
+      keysRow.push(keysDate);
+    }
+    
+    tableData.push(keysRow);
   }
 
   autoTable(doc, {
     startY: yPosition,
-    head: [["Tipo", "Parcelas", "Valor", "% Total"]],
+    head: [tableHeaders],
     body: tableData,
     theme: "striped",
     headStyles: { fillColor: [9, 41, 89] },
