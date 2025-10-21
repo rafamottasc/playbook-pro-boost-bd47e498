@@ -73,7 +73,7 @@ export async function generateFlowPDF(
   if (hasPropertyDetails) {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text("DADOS DO IMOVEL", 15, yPosition);
+    doc.text("DADOS DO IMÓVEL", 15, yPosition);
     yPosition += 7;
 
     doc.setFontSize(10);
@@ -116,7 +116,7 @@ export async function generateFlowPDF(
   // Tabela de condições
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("CONDICOES DE PAGAMENTO", 15, yPosition);
+  doc.text("CONDIÇÕES DE PAGAMENTO", 15, yPosition);
   yPosition += 5;
 
   // Verificar se existe alguma data preenchida
@@ -204,7 +204,7 @@ export async function generateFlowPDF(
       : "";
     
     const obraRow = [
-      "Inicio da Obra",
+      "Início da Obra",
       "1x",
       `R$ ${formatMoney(result.constructionStartPayment.value)}`,
       `${result.constructionStartPayment.percentage.toFixed(1)}%`,
@@ -244,7 +244,7 @@ export async function generateFlowPDF(
       : "";
     
     const semiRow = [
-      "Reforcos Semestrais",
+      "Reforços Semestrais",
       `${result.semiannualReinforcement.count}x`,
       `R$ ${formatMoney(result.semiannualReinforcement.value)}`,
       `${result.semiannualReinforcement.percentage.toFixed(1)}%`,
@@ -264,7 +264,7 @@ export async function generateFlowPDF(
       : "";
     
     const annualRow = [
-      "Reforcos Anuais",
+      "Reforços Anuais",
       `${result.annualReinforcement.count}x`,
       `R$ ${formatMoney(result.annualReinforcement.value)}`,
       `${result.annualReinforcement.percentage.toFixed(1)}%`,
@@ -321,7 +321,7 @@ export async function generateFlowPDF(
   finalY += 15;
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("DISTRIBUICAO TEMPORAL", 15, finalY);
+  doc.text("DISTRIBUIÇÃO TEMPORAL", 15, finalY);
   finalY += 5;
 
   autoTable(doc, {
@@ -329,12 +329,12 @@ export async function generateFlowPDF(
     head: [["Fase", "Valor", "Percentual"]],
     body: [
       [
-        "Ate Entrega",
+        "Até Entrega",
         `R$ ${formatMoney(result.timeline.totalUntilDelivery)}`,
         `${result.timeline.percentageUntilDelivery.toFixed(1)}%`
-      ],
-      [
-        "Apos Entrega",
+    ],
+    [
+      "Após Entrega",
         `R$ ${formatMoney(result.timeline.totalAfterDelivery)}`,
         `${result.timeline.percentageAfterDelivery.toFixed(1)}%`
       ]
