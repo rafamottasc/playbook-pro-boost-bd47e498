@@ -9,6 +9,7 @@ import { SavedProposalCard } from "@/components/calculator/SavedProposalCard";
 import { generateFlowPDF } from "@/components/calculator/FlowPDF";
 import { usePaymentFlow, PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { PageTransition } from "@/components/PageTransition";
+import { migrateProposalData } from "@/lib/proposalMigration";
 
 interface SavedProposal {
   id: string;
@@ -53,7 +54,9 @@ export default function CalculatorHistory() {
   };
 
   const handleLoadProposal = (proposal: SavedProposal) => {
-    navigate("/calculator", { state: { loadedData: proposal.calculation_data } });
+    // Migrar dados antigos antes de navegar
+    const migratedData = migrateProposalData(proposal.calculation_data);
+    navigate("/calculator", { state: { loadedData: migratedData } });
     toast({
       title: "Proposta carregada",
       description: "Você pode editar e salvar novamente",
@@ -95,11 +98,13 @@ export default function CalculatorHistory() {
         .eq("id", user?.id)
         .single();
 
-      setData(proposal.calculation_data);
+      // Migrar dados antigos antes de calcular e gerar PDF
+      const migratedData = migrateProposalData(proposal.calculation_data);
+      setData(migratedData);
       const result = calculate();
 
       await generateFlowPDF(
-        proposal.calculation_data,
+        migratedData,
         result,
         profile?.full_name || "Corretor",
         profile?.creci

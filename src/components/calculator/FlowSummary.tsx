@@ -51,7 +51,46 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
 
         {/* Breakdown */}
         <div className="space-y-0">
-          {result.downPayment.value > 0 && (
+          {/* Ato */}
+          {result.downPayment.atoValue && result.downPayment.atoValue > 0 && (
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
+                💰 Ato (Pagamento Único)
+              </div>
+              <div className="text-sm font-semibold text-foreground">
+                R$ {formatMoney(result.downPayment.atoValue)} (
+                {result.downPayment.atoPercentage?.toFixed(1)}%)
+              </div>
+            </div>
+          )}
+
+          {/* Entrada Parcelada */}
+          {result.downPayment.downPaymentParceladoValue && result.downPayment.downPaymentParceladoValue > 0 && (
+            <div className="py-1.5">
+              <div className="text-sm text-muted-foreground mb-0.5">
+                🏁 Entrada Parcelada
+              </div>
+              <div className="text-sm font-semibold text-foreground">
+                {result.downPayment.installments && result.downPayment.installments > 1 ? (
+                  <>
+                    {result.downPayment.installments}x de R${" "}
+                    {formatMoney(result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue)} (
+                    {result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)
+                  </>
+                ) : (
+                  <>
+                    R$ {formatMoney(result.downPayment.downPaymentParceladoValue)} (
+                    {result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Entrada Normal (quando não tem Ato) */}
+          {(!result.downPayment.atoValue || result.downPayment.atoValue === 0) && 
+           (!result.downPayment.downPaymentParceladoValue || result.downPayment.downPaymentParceladoValue === 0) &&
+           result.downPayment.value > 0 && (
             <div className="py-1.5">
               <div className="text-sm text-muted-foreground mb-0.5">
                 🏁 Entrada

@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
+import { migrateProposalData } from "@/lib/proposalMigration";
 
 export default function Calculator() {
   const navigate = useNavigate();
@@ -60,7 +61,9 @@ export default function Calculator() {
   // Carregar proposta do histórico via location.state
   useEffect(() => {
     if (location.state?.loadedData) {
-      setData(location.state.loadedData);
+      // Migrar dados antigos para novo formato
+      const migratedData = migrateProposalData(location.state.loadedData);
+      setData(migratedData);
       // Limpar state para não recarregar ao revisitar
       window.history.replaceState({}, document.title);
     }
