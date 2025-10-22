@@ -18,6 +18,8 @@ export function useThemeColors() {
 
   useEffect(() => {
     loadTheme();
+    // Aplicar tema padrão imediatamente para evitar flash
+    applyTheme(colors);
   }, []);
 
   const loadTheme = async () => {

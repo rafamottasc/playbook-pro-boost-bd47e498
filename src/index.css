@@ -17,8 +17,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    /* COMARC Green - Primary Brand */
-    --primary: 160 84% 39%;
+    /* Primary colors - will be dynamically set by theme system */
+    --primary: 38 75% 50%;
     --primary-foreground: 0 0% 100%;
 
     /* WhatsApp Green - Actions */
@@ -52,8 +52,8 @@ All colors MUST be HSL.
     --badge-gold: 45 100% 51%;
     --badge-platinum: 280 70% 65%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(160 84% 39%), hsl(142 70% 49%));
+    /* Gradients - dynamically set by theme system */
+    --gradient-primary: linear-gradient(135deg, hsl(38 75% 50%), hsl(53 75% 60%));
     --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(240 4.8% 98%));
   }
 
@@ -67,7 +67,7 @@ All colors MUST be HSL.
     --popover: 240 10% 7%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 160 84% 39%;
+    --primary: 38 75% 50%;
     --primary-foreground: 0 0% 100%;
 
     --whatsapp: 142 70% 49%;
@@ -91,7 +91,7 @@ All colors MUST be HSL.
     --input: 240 3.7% 15.9%;
     --ring: var(--primary);
 
-    --gradient-primary: linear-gradient(135deg, hsl(160 84% 39%), hsl(142 70% 49%));
+    --gradient-primary: linear-gradient(135deg, hsl(38 75% 50%), hsl(53 75% 60%));
     --gradient-card: linear-gradient(135deg, hsl(240 10% 7%), hsl(240 3.7% 12%));
   }
 }
