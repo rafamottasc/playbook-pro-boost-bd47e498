@@ -3,11 +3,6 @@ import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { CalculatedResult } from "@/hooks/usePaymentFlow";
 import { formatCurrency, formatMoney } from "@/lib/utils";
 
-// Remove acentos de strings para garantir compatibilidade ASCII
-function removeAccents(str: string): string {
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
 export function generateFlowTXT(
   data: PaymentFlowData,
   result: CalculatedResult,
@@ -16,14 +11,14 @@ export function generateFlowTXT(
 ): void {
   const currentDate = format(new Date(), "dd/MM/yyyy");
   const currentTime = format(new Date(), "HH:mm");
-  const deliveryDate = data.deliveryDate ? format(new Date(data.deliveryDate), "dd/MM/yyyy") : "Nao informado";
+  const deliveryDate = data.deliveryDate ? format(new Date(data.deliveryDate), "dd/MM/yyyy") : "Não informado";
 
   let txt = `PROPOSTA DE PAGAMENTO - COMARC\n`;
   txt += `=================================\n\n`;
 
   txt += `Data: ${currentDate}\n`;
   if (data.clientName) {
-    txt += `Cliente: ${removeAccents(data.clientName)}\n`;
+    txt += `Cliente: ${data.clientName}\n`;
   }
   txt += `\n`;
 
@@ -32,16 +27,16 @@ export function generateFlowTXT(
   txt += `=================================\n`;
   
   if (data.constructora) {
-    txt += `Construtora: ${removeAccents(data.constructora)}\n`;
+    txt += `Construtora: ${data.constructora}\n`;
   }
   if (data.empreendimento) {
-    txt += `Empreendimento: ${removeAccents(data.empreendimento)}\n`;
+    txt += `Empreendimento: ${data.empreendimento}\n`;
   }
   if (data.unidade) {
-    txt += `Unidade: ${removeAccents(data.unidade)}\n`;
+    txt += `Unidade: ${data.unidade}\n`;
   }
   if (data.areaPrivativa) {
-    txt += `Area Privativa: ${data.areaPrivativa}m2\n`;
+    txt += `Área Privativa: ${data.areaPrivativa}m²\n`;
   }
   if (data.deliveryDate) {
     txt += `Entrega: ${deliveryDate}\n`;
@@ -177,7 +172,7 @@ export function generateFlowTXT(
   txt += `=================================\n`;
   
   // Nome e CRECI
-  let correctorInfo = removeAccents(correctorName);
+  let correctorInfo = correctorName;
   if (correctorCreci) {
     correctorInfo += ` - CRECI ${correctorCreci}`;
   }
@@ -187,7 +182,7 @@ export function generateFlowTXT(
   txt += `Consultor de Investimentos\n`;
   
   // Empresa
-  txt += `COMARC - Negocios Imobiliarios\n\n`;
+  txt += `COMARC - Negócios Imobiliários\n\n`;
   
   // Separador
   txt += `=================================\n`;
@@ -195,13 +190,18 @@ export function generateFlowTXT(
   // Data de geracao
   txt += `Gerado em: ${currentDate}\n`;
 
-  // Create and download the file with proper encoding
-  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+  // Converter para Windows-1252 (Latin-1) para compatibilidade com visualizadores de texto no Brasil
+  // Isso garante que acentos sejam exibidos corretamente em apps móveis
+  const encoder = new TextEncoder();
+  const utf8Array = encoder.encode(txt);
+  
+  // Criar blob como Windows-1252
+  const blob = new Blob([utf8Array], { type: "text/plain;charset=windows-1252" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   
-  const clientName = data.clientName ? removeAccents(data.clientName.replace(/\s+/g, "_")) : "cliente";
+  const clientName = data.clientName ? data.clientName.replace(/\s+/g, "_") : "cliente";
   const dateStr = format(new Date(), "yyyyMMdd_HHmmss");
   link.download = `proposta_${clientName}_${dateStr}.txt`;
   
