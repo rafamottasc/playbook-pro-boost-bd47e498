@@ -174,19 +174,21 @@ export function AcademyMetrics() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
+              <div className="space-y-1 mb-3">
+                <div className="text-2xl font-bold">#{1}</div>
+                <p className="text-sm font-medium truncate">{metrics.topUsers[0]?.full_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {metrics.topUsers[0]?.completions} aulas completas
+                </p>
+              </div>
+
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" className="w-full p-0 h-auto hover:bg-transparent">
-                    <div className="text-left w-full">
-                      <div className="text-2xl font-bold">#{1}</div>
-                      <p className="text-sm font-medium truncate">{metrics.topUsers[0]?.full_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {metrics.topUsers[0]?.completions} aulas completas
-                      </p>
-                      <p className="text-xs text-primary mt-2 font-medium">
-                        Ver Top 5 →
-                      </p>
-                    </div>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-xs font-medium"
+                  >
+                    Ver Top 5 →
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80">
