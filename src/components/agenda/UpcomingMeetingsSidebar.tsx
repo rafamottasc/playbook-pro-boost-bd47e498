@@ -22,7 +22,7 @@ export function UpcomingMeetingsSidebar() {
   }, [loading, isInitializing]);
   
   const upcomingMeetings = meetings
-    .filter(m => new Date(m.start_date) > new Date())
+    .filter(m => new Date(m.end_date) > new Date())
     .slice(0, 4);
 
   if (loading || isInitializing) {
