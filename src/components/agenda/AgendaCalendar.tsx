@@ -16,6 +16,7 @@ import { RoomFilter } from "./RoomFilter";
 import { AgendaEvent } from "./AgendaEvent";
 import { WeekEvent } from "./WeekEvent";
 import { MonthEvent } from "./MonthEvent";
+import { DayEvent } from "./DayEvent";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar-styles.css";
 
@@ -176,6 +177,9 @@ export function AgendaCalendar() {
                 },
                 week: {
                   event: WeekEvent,
+                },
+                day: {
+                  event: DayEvent,
                 },
                 month: {
                   event: MonthEvent,
