@@ -82,10 +82,8 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     }
     if (options.status) {
       query = query.eq("status", options.status);
-    } else {
-      // Por padrão, mostrar apenas confirmadas
-      query = query.eq("status", "confirmed");
     }
+    // Se status não for especificado, mostra todos os status
     if (options.limit) {
       query = query.limit(options.limit);
     }

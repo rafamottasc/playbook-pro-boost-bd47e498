@@ -66,18 +66,32 @@ export function UpcomingMeetingsSidebar() {
         ) : (
           <>
             <div className="space-y-4 flex-1">
-              {upcomingMeetings.map((meeting, idx) => (
-                <div key={meeting.id} className="space-y-2">
-                  <h3 className="font-semibold text-foreground">{meeting.title}</h3>
-                  
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" />
-                    <span>{meeting.room_name}</span>
-                  </div>
-                  
-                  <Badge className="mb-1 bg-primary text-primary-foreground hover:bg-primary/90">
-                    {format(new Date(meeting.start_date), "EEEE, dd/MM", { locale: ptBR })}
-                  </Badge>
+              {upcomingMeetings.map((meeting, idx) => {
+                const now = new Date();
+                const isOngoing = new Date(meeting.start_date) <= now && new Date(meeting.end_date) > now;
+                
+                return (
+                  <div key={meeting.id} className="space-y-2">
+                    <h3 className="font-semibold text-foreground">{meeting.title}</h3>
+                    
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3" />
+                      <span>{meeting.room_name}</span>
+                    </div>
+                    
+                    <Badge className={`mb-1 ${
+                      isOngoing
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    }`}>
+                      {format(new Date(meeting.start_date), "EEEE, dd/MM", { locale: ptBR })}
+                    </Badge>
+                    
+                    {isOngoing && (
+                      <Badge className="text-xs mb-2 bg-green-600 text-white">
+                        Em andamento
+                      </Badge>
+                    )}
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-3 w-3" />
@@ -97,11 +111,12 @@ export function UpcomingMeetingsSidebar() {
                     </div>
                   </div>
                   
-                  {idx < upcomingMeetings.length - 1 && (
-                    <Separator className="mt-4" />
-                  )}
-                </div>
-              ))}
+                    {idx < upcomingMeetings.length - 1 && (
+                      <Separator className="mt-4" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <Button 

@@ -13,6 +13,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function AgendaReport() {
   const { user } = useAuth();
@@ -20,6 +28,14 @@ export default function AgendaReport() {
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('month');
   const [selectedRoomId, setSelectedRoomId] = useState('all');
   const [selectedCreatorId, setSelectedCreatorId] = useState('all');
+  
+  // Paginação - Reuniões
+  const [currentMeetingsPage, setCurrentMeetingsPage] = useState(1);
+  const [meetingsPerPage, setMeetingsPerPage] = useState(10);
+  
+  // Paginação - Auditoria
+  const [currentAuditPage, setCurrentAuditPage] = useState(1);
+  const [auditPerPage, setAuditPerPage] = useState(10);
 
   const { rooms } = useMeetingRooms();
   
@@ -35,6 +51,20 @@ export default function AgendaReport() {
     roomId: selectedRoomId,
     createdBy: selectedCreatorId,
   });
+
+  // Lógica de paginação para reuniões
+  const totalMeetingsPages = Math.ceil(meetings.length / meetingsPerPage);
+  const paginatedMeetings = meetings.slice(
+    (currentMeetingsPage - 1) * meetingsPerPage,
+    currentMeetingsPage * meetingsPerPage
+  );
+  
+  // Lógica de paginação para auditoria
+  const totalAuditPages = Math.ceil(auditLogs.length / auditPerPage);
+  const paginatedAuditLogs = auditLogs.slice(
+    (currentAuditPage - 1) * auditPerPage,
+    currentAuditPage * auditPerPage
+  );
 
   const getStatusBadge = (meetingStatus: string) => {
     if (meetingStatus === 'confirmed') {
@@ -112,8 +142,25 @@ export default function AgendaReport() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Resumo</label>
-                  <div className="text-sm text-muted-foreground">
+                  <label className="text-sm font-medium mb-2 block">Por página</label>
+                  <Select value={meetingsPerPage.toString()} onValueChange={(v) => {
+                    setMeetingsPerPage(Number(v));
+                    setCurrentMeetingsPage(1);
+                    setAuditPerPage(Number(v));
+                    setCurrentAuditPage(1);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 por página</SelectItem>
+                      <SelectItem value="10">10 por página</SelectItem>
+                      <SelectItem value="20">20 por página</SelectItem>
+                      <SelectItem value="50">50 por página</SelectItem>
+                      <SelectItem value="100">100 por página</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="text-xs text-muted-foreground mt-2">
                     <div>Total: {meetings.length} reuniões</div>
                     <div>Excluídas: {auditLogs.length}</div>
                   </div>
@@ -145,53 +192,93 @@ export default function AgendaReport() {
                   </CardContent>
                 </Card>
               ) : (
-                meetings.map(meeting => (
-                  <Card key={meeting.id} className={meeting.status === 'cancelled' ? 'opacity-60' : ''}>
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                        <div className="space-y-3 flex-1">
-                          <div className="flex items-start gap-3">
-                            <h3 className="font-semibold text-lg">{meeting.title}</h3>
-                            {getStatusBadge(meeting.status)}
-                          </div>
+                <>
+                  {paginatedMeetings.map(meeting => (
+                    <Card key={meeting.id} className={meeting.status === 'cancelled' ? 'opacity-60' : ''}>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                          <div className="space-y-3 flex-1">
+                            <div className="flex items-start gap-3">
+                              <h3 className="font-semibold text-lg">{meeting.title}</h3>
+                              {getStatusBadge(meeting.status)}
+                            </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              {meeting.room_name}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              {format(new Date(meeting.start_date), "dd/MM/yyyy", { locale: ptBR })}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4" />
-                              {format(new Date(meeting.start_date), "HH:mm")} - {format(new Date(meeting.end_date), "HH:mm")}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              {meeting.creator_name}
-                            </div>
-                          </div>
-
-                          {meeting.status === 'cancelled' && meeting.cancellation_reason && (
-                            <div className="flex items-start gap-2 text-sm bg-destructive/10 p-3 rounded-md">
-                              <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
-                              <div>
-                                <strong className="text-destructive">Motivo do cancelamento:</strong>
-                                <p className="text-muted-foreground mt-1">{meeting.cancellation_reason}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {meeting.room_name}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                {format(new Date(meeting.start_date), "dd/MM/yyyy", { locale: ptBR })}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                {format(new Date(meeting.start_date), "HH:mm")} - {format(new Date(meeting.end_date), "HH:mm")}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                {meeting.creator_name}
                               </div>
                             </div>
-                          )}
 
-                          {meeting.description && (
-                            <p className="text-sm text-muted-foreground">{meeting.description}</p>
-                          )}
+                            {meeting.status === 'cancelled' && meeting.cancellation_reason && (
+                              <div className="flex items-start gap-2 text-sm bg-destructive/10 p-3 rounded-md">
+                                <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
+                                <div>
+                                  <strong className="text-destructive">Motivo do cancelamento:</strong>
+                                  <p className="text-muted-foreground mt-1">{meeting.cancellation_reason}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {meeting.description && (
+                              <p className="text-sm text-muted-foreground">{meeting.description}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {totalMeetingsPages > 1 && (
+                    <div className="mt-6">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentMeetingsPage(p => Math.max(1, p - 1))}
+                              className={currentMeetingsPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                          
+                          {[...Array(totalMeetingsPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                              <PaginationLink
+                                onClick={() => setCurrentMeetingsPage(i + 1)}
+                                isActive={currentMeetingsPage === i + 1}
+                                className="cursor-pointer"
+                              >
+                                {i + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentMeetingsPage(p => Math.min(totalMeetingsPages, p + 1))}
+                              className={currentMeetingsPage === totalMeetingsPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                      
+                      <p className="text-center text-sm text-muted-foreground mt-3">
+                        Página {currentMeetingsPage} de {totalMeetingsPages} - Total: {meetings.length} reuniões
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
 
@@ -211,47 +298,87 @@ export default function AgendaReport() {
                   </CardContent>
                 </Card>
               ) : (
-                auditLogs.map(log => (
-                  <Card key={log.id}>
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                              🗑️ {log.meeting_title}
-                              <Badge variant="destructive">Excluída</Badge>
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Excluída por <strong>{log.performer_name}</strong> em{' '}
-                              {format(new Date(log.performed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </p>
+                <>
+                  {paginatedAuditLogs.map(log => (
+                    <Card key={log.id}>
+                      <CardContent className="p-6">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-lg flex items-center gap-2">
+                                🗑️ {log.meeting_title}
+                                <Badge variant="destructive">Excluída</Badge>
+                              </h3>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Excluída por <strong>{log.performer_name}</strong> em{' '}
+                                {format(new Date(log.performed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </p>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {log.room_name || 'Sala desconhecida'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            {log.start_date ? format(new Date(log.start_date), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            {log.start_date && log.end_date 
-                              ? `${format(new Date(log.start_date), "HH:mm")} - ${format(new Date(log.end_date), "HH:mm")}`
-                              : 'N/A'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            Criada por {log.creator_name}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4" />
+                              {log.room_name || 'Sala desconhecida'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              {log.start_date ? format(new Date(log.start_date), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              {log.start_date && log.end_date 
+                                ? `${format(new Date(log.start_date), "HH:mm")} - ${format(new Date(log.end_date), "HH:mm")}`
+                                : 'N/A'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              Criada por {log.creator_name}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {totalAuditPages > 1 && (
+                    <div className="mt-6">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentAuditPage(p => Math.max(1, p - 1))}
+                              className={currentAuditPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                          
+                          {[...Array(totalAuditPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                              <PaginationLink
+                                onClick={() => setCurrentAuditPage(i + 1)}
+                                isActive={currentAuditPage === i + 1}
+                                className="cursor-pointer"
+                              >
+                                {i + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentAuditPage(p => Math.min(totalAuditPages, p + 1))}
+                              className={currentAuditPage === totalAuditPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                      
+                      <p className="text-center text-sm text-muted-foreground mt-3">
+                        Página {currentAuditPage} de {totalAuditPages} - Total: {auditLogs.length} registros
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
           </Tabs>
