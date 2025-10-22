@@ -23,6 +23,26 @@ export function UpcomingMeetingsSidebar() {
   
   const upcomingMeetings = meetings
     .filter(m => new Date(m.end_date) > new Date())
+    .sort((a, b) => {
+      const now = new Date();
+      const aStart = new Date(a.start_date);
+      const bStart = new Date(b.start_date);
+      const aEnd = new Date(a.end_date);
+      const bEnd = new Date(b.end_date);
+      
+      const aOngoing = aStart <= now && aEnd > now;
+      const bOngoing = bStart <= now && bEnd > now;
+      
+      // Reuniões em andamento vêm primeiro
+      if (aOngoing && !bOngoing) return -1;
+      if (!aOngoing && bOngoing) return 1;
+      
+      // Para reuniões futuras, mais próximas primeiro
+      const aDiff = aStart.getTime() - now.getTime();
+      const bDiff = bStart.getTime() - now.getTime();
+      
+      return aDiff - bDiff;
+    })
     .slice(0, 4);
 
   if (loading || isInitializing) {
