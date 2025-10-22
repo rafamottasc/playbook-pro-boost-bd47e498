@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMeetings, Meeting } from "@/hooks/useMeetings";
 import { MeetingCard } from "./MeetingCard";
@@ -23,13 +25,14 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { locale: ptBR })
   );
+  const [showCancelled, setShowCancelled] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [cancellingMeeting, setCancellingMeeting] = useState<Meeting | null>(null);
   const [deletingMeeting, setDeletingMeeting] = useState<Meeting | null>(null);
 
   const { meetings, loading, refetch, cancelMeeting, cancelling, deleteMeeting, deleting } = useMeetings({
     roomId: selectedRoomId === "all" ? undefined : selectedRoomId,
-    status: "confirmed",
+    status: showCancelled ? undefined : "confirmed",
   });
 
   const weekDays = useMemo(() => {
@@ -124,43 +127,56 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
     <>
       <Card className="mb-4">
         <CardContent className="p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handlePreviousWeek}
-              className="w-full sm:w-auto"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Anterior
-            </Button>
-            
-            <div className="flex items-center justify-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm sm:text-base">
-                {format(weekDays[0], "dd MMM", { locale: ptBR })} -{" "}
-                {format(weekDays[6], "dd MMM yyyy", { locale: ptBR })}
-              </span>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handlePreviousWeek}
+                className="w-full sm:w-auto"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              
+              <div className="flex items-center justify-center gap-2">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm sm:text-base">
+                  {format(weekDays[0], "dd MMM", { locale: ptBR })} -{" "}
+                  {format(weekDays[6], "dd MMM yyyy", { locale: ptBR })}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleToday}
+                  className="flex-1 sm:flex-none"
+                >
+                  Hoje
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleNextWeek}
+                  className="flex-1 sm:flex-none"
+                >
+                  Próxima
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleToday}
-                className="flex-1 sm:flex-none"
-              >
-                Hoje
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleNextWeek}
-                className="flex-1 sm:flex-none"
-              >
-                Próxima
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+            <div className="flex items-center justify-center space-x-2 pt-2 border-t">
+              <Switch
+                id="show-cancelled"
+                checked={showCancelled}
+                onCheckedChange={setShowCancelled}
+              />
+              <Label htmlFor="show-cancelled" className="text-sm cursor-pointer">
+                Mostrar reuniões canceladas
+              </Label>
             </div>
           </div>
         </CardContent>

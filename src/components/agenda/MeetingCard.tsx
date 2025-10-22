@@ -19,11 +19,24 @@ interface MeetingCardProps {
 
 export function MeetingCard({ meeting, onEdit, onCancel, onDelete, showSeparator = false, currentUserId, isAdmin }: MeetingCardProps) {
   const canModify = isAdmin || meeting.created_by === currentUserId;
-  const isPastMeeting = new Date(meeting.end_date) < new Date();
+  const now = new Date();
+  const isPastMeeting = new Date(meeting.end_date) < now;
+  const isOngoing = new Date(meeting.start_date) <= now && new Date(meeting.end_date) > now;
 
   return (
-    <div className="space-y-2 p-4 border-l-4 border-l-primary rounded-md bg-card shadow-sm hover:shadow-md transition-smooth">
-      <h3 className="font-semibold text-foreground">{meeting.title}</h3>
+    <div className={`space-y-2 p-4 border-l-4 ${
+      meeting.status === 'cancelled' 
+        ? 'border-l-destructive opacity-60' 
+        : 'border-l-primary'
+    } rounded-md bg-card shadow-sm hover:shadow-md transition-smooth`}>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="font-semibold text-foreground">{meeting.title}</h3>
+        {meeting.status === 'cancelled' && (
+          <Badge variant="destructive" className="text-xs shrink-0">
+            Cancelada
+          </Badge>
+        )}
+      </div>
       
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <MapPin className="h-3 w-3" />
@@ -31,14 +44,22 @@ export function MeetingCard({ meeting, onEdit, onCancel, onDelete, showSeparator
       </div>
       
       <Badge className={`mb-1 ${
-        isPastMeeting 
+        isOngoing
+          ? 'bg-green-600 text-white hover:bg-green-700'
+          : isPastMeeting 
           ? 'bg-muted text-muted-foreground hover:bg-muted/80' 
           : 'bg-primary text-primary-foreground hover:bg-primary/90'
       }`}>
         {format(new Date(meeting.start_date), "EEEE, dd/MM", { locale: ptBR })}
       </Badge>
       
-      {isPastMeeting && (
+      {isOngoing && meeting.status !== 'cancelled' && (
+        <Badge className="text-xs mb-2 bg-green-600 text-white">
+          Em andamento
+        </Badge>
+      )}
+      
+      {isPastMeeting && meeting.status !== 'cancelled' && (
         <Badge variant="secondary" className="text-xs mb-2">
           Concluída
         </Badge>

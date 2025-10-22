@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { PageTransition } from "@/components/PageTransition";
-import { Calendar, Plus } from "lucide-react";
+import { Calendar, Plus, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeeklyMeetingsGrid } from "@/components/agenda/WeeklyMeetingsGrid";
@@ -9,6 +10,7 @@ import { RoomFilter } from "@/components/agenda/RoomFilter";
 import { MeetingDialog } from "@/components/agenda/MeetingDialog";
 
 export default function Agenda() {
+  const navigate = useNavigate();
   const [selectedRoomId, setSelectedRoomId] = useState("all");
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
 
@@ -38,13 +40,23 @@ export default function Agenda() {
                     onChange={setSelectedRoomId}
                   />
                 </div>
-                <Button 
-                  onClick={() => setShowMeetingDialog(true)}
-                  className="w-full sm:w-auto"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Reunião
-                </Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/agenda/relatorio')}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Relatório
+                  </Button>
+                  <Button 
+                    onClick={() => setShowMeetingDialog(true)}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Reunião
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

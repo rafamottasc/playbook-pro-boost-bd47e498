@@ -26,6 +26,7 @@ import PartnersView from "./pages/campaigns/PartnersView";
 import Calculator from "./pages/Calculator";
 import CalculatorHistory from "./pages/CalculatorHistory";
 import Agenda from "./pages/Agenda";
+import AgendaReport from "./pages/AgendaReport";
 
 // Lazy load only admin routes
 const Admin = lazy(() => import("./pages/Admin"));
@@ -175,6 +176,18 @@ function AppRoutes() {
                         <ErrorBoundary>
                           <PageTransition>
                             <Agenda />
+                          </PageTransition>
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/agenda/relatorio"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <ErrorBoundary>
+                          <PageTransition>
+                            <AgendaReport />
                           </PageTransition>
                         </ErrorBoundary>
                       </ProtectedRoute>
