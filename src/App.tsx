@@ -25,6 +25,7 @@ import LessonView from "./pages/academy/LessonView";
 import PartnersView from "./pages/campaigns/PartnersView";
 import Calculator from "./pages/Calculator";
 import CalculatorHistory from "./pages/CalculatorHistory";
+import Agenda from "./pages/Agenda";
 
 // Lazy load only admin routes
 const Admin = lazy(() => import("./pages/Admin"));
@@ -164,6 +165,18 @@ function AppRoutes() {
                     element={
                       <ProtectedRoute>
                         <CalculatorHistory />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/agenda"
+                    element={
+                      <ProtectedRoute>
+                        <ErrorBoundary>
+                          <PageTransition>
+                            <Agenda />
+                          </PageTransition>
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />
