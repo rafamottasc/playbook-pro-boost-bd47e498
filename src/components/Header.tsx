@@ -143,7 +143,7 @@ export const Header = React.memo(function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/playbooks")}>
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  Playbooks de Atendimento
+                  Playbooks
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/resources")}>
                   <FolderOpen className="mr-2 h-4 w-4" />
