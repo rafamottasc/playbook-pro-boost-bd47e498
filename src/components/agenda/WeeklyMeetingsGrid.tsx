@@ -10,12 +10,14 @@ import { useMeetings, Meeting } from "@/hooks/useMeetings";
 import { MeetingCard } from "./MeetingCard";
 import { EditMeetingDialog } from "./EditMeetingDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 
 interface WeeklyMeetingsGridProps {
   selectedRoomId: string;
 }
 
 export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) {
+  const { user, isAdmin } = useAuth();
   const isMobile = useIsMobile();
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { locale: ptBR })
@@ -23,7 +25,7 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [cancellingMeeting, setCancellingMeeting] = useState<Meeting | null>(null);
 
-  const { meetings, loading } = useMeetings({
+  const { meetings, loading, refetch } = useMeetings({
     roomId: selectedRoomId === "all" ? undefined : selectedRoomId,
     status: "confirmed",
   });
@@ -177,6 +179,8 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
                           onEdit={handleEdit}
                           onCancel={handleCancel}
                           showSeparator={false}
+                          currentUserId={user?.id || ""}
+                          isAdmin={isAdmin}
                         />
                       ))
                     )}
@@ -220,6 +224,8 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
                             onEdit={handleEdit}
                             onCancel={handleCancel}
                             showSeparator={false}
+                            currentUserId={user?.id || ""}
+                            isAdmin={isAdmin}
                           />
                         ))
                       )}
@@ -237,6 +243,10 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
           meeting={editingMeeting}
           open={!!editingMeeting}
           onOpenChange={(open) => !open && setEditingMeeting(null)}
+          onSuccess={() => {
+            refetch();
+            setEditingMeeting(null);
+          }}
         />
       )}
     </>

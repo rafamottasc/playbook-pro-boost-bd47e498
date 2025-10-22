@@ -12,9 +12,13 @@ interface MeetingCardProps {
   onEdit: (meeting: Meeting) => void;
   onCancel: (meeting: Meeting) => void;
   showSeparator?: boolean;
+  currentUserId: string;
+  isAdmin: boolean;
 }
 
-export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false }: MeetingCardProps) {
+export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false, currentUserId, isAdmin }: MeetingCardProps) {
+  const canModify = isAdmin || meeting.created_by === currentUserId;
+
   return (
     <div className="space-y-2 p-4 border-l-4 border-l-primary rounded-md bg-card shadow-sm hover:shadow-md transition-smooth">
       <h3 className="font-semibold text-foreground">{meeting.title}</h3>
@@ -46,41 +50,43 @@ export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false }
         </div>
       </div>
 
-      <TooltipProvider>
-        <div className="flex gap-2 pt-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                size="icon" 
-                variant="outline" 
-                className="h-9 w-9"
-                onClick={() => onEdit(meeting)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Editar reunião</p>
-            </TooltipContent>
-          </Tooltip>
+      {canModify && (
+        <TooltipProvider>
+          <div className="flex gap-2 pt-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="outline" 
+                  className="h-9 w-9"
+                  onClick={() => onEdit(meeting)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Editar reunião</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                size="icon" 
-                variant="destructive" 
-                className="h-9 w-9"
-                onClick={() => onCancel(meeting)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Cancelar reunião</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="destructive" 
+                  className="h-9 w-9"
+                  onClick={() => onCancel(meeting)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Cancelar reunião</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+      )}
       
       {showSeparator && <Separator className="mt-4" />}
     </div>
