@@ -60,7 +60,14 @@ export function UpcomingMeetingsSidebar() {
             <div className="space-y-4 flex-1">
               {upcomingMeetings.map((meeting, idx) => (
                 <div key={meeting.id} className="space-y-2">
-                  <Badge variant="secondary" className="mb-1">
+                  <h3 className="font-semibold text-foreground">{meeting.title}</h3>
+                  
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <span>{meeting.room_name}</span>
+                  </div>
+                  
+                  <Badge className="mb-1 bg-primary text-primary-foreground hover:bg-primary/90">
                     {format(new Date(meeting.start_date), "EEEE, dd/MM", { locale: ptBR })}
                   </Badge>
                   
@@ -71,13 +78,7 @@ export function UpcomingMeetingsSidebar() {
                     </span>
                   </div>
                   
-                  <h3 className="font-semibold text-foreground">{meeting.title}</h3>
-                  
                   <div className="space-y-1 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-3 w-3" />
-                      <span>{meeting.room_name}</span>
-                    </div>
                     <div className="flex items-center gap-2">
                       <Users className="h-3 w-3" />
                       <span>{meeting.participants_count} pessoas</span>
