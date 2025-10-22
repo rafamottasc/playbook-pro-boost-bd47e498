@@ -6,10 +6,13 @@ interface AgendaDateCellProps {
   date: Date;
 }
 
-export function AgendaDateCell({ date }: AgendaDateCellProps) {
+export function AgendaDateCell({ date, label }: AgendaDateCellProps) {
+  // Validate if date is a valid Date object
+  const dateObj = date instanceof Date && !isNaN(date.getTime()) ? date : null;
+  
   return (
     <div className="text-white/90">
-      {format(date, "EEEE MMM dd", { locale: ptBR })}
+      {dateObj ? format(dateObj, "EEEE, dd 'de' MMMM", { locale: ptBR }) : label}
     </div>
   );
 }
