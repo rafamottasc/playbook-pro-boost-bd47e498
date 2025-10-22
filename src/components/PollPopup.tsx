@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Lock } from "lucide-react";
 
+const POLL_STORAGE_KEY = 'dismissed_polls';
+
 interface PollOption {
   id: string;
   option_text: string;
@@ -36,13 +38,22 @@ export function PollPopup() {
     fetchActivePoll();
   }, []);
 
+  const addDismissedPoll = (pollId: string) => {
+    const dismissedPollsStr = localStorage.getItem(POLL_STORAGE_KEY);
+    const dismissedPolls = dismissedPollsStr ? JSON.parse(dismissedPollsStr) : [];
+    
+    if (!dismissedPolls.includes(pollId)) {
+      dismissedPolls.push(pollId);
+      localStorage.setItem(POLL_STORAGE_KEY, JSON.stringify(dismissedPolls));
+    }
+  };
+
   const fetchActivePoll = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Buscar enquetes ativas
-      // Usar hora local do Brasil (sem conversão para UTC)
       const now = new Date();
       const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
       
@@ -68,16 +79,24 @@ export function PollPopup() {
       if (pollError) throw pollError;
       if (!polls || polls.length === 0) return;
 
+      // Buscar enquetes já visualizadas do localStorage
+      const dismissedPollsStr = localStorage.getItem(POLL_STORAGE_KEY);
+      const dismissedPolls = dismissedPollsStr ? JSON.parse(dismissedPollsStr) : [];
+
       // Filtrar enquetes não votadas e não visualizadas
       for (const poll of polls) {
-        // Verificar se já votou
+        // PRIMEIRO: Verificar localStorage (cache local)
+        if (dismissedPolls.includes(poll.id)) {
+          continue; // Pular esta enquete
+        }
+
+        // SEGUNDO: Verificar banco de dados
         const { data: vote } = await supabase
           .from("poll_responses")
           .select("option_id")
           .eq("poll_id", poll.id)
           .eq("user_id", user.id);
 
-        // Verificar se já visualizou/interagiu com a enquete
         const { data: view } = await supabase
           .from("poll_views")
           .select("id")
@@ -86,7 +105,6 @@ export function PollPopup() {
 
         // Só mostrar se NÃO votou E NÃO visualizou
         if ((!vote || vote.length === 0) && (!view || view.length === 0)) {
-          // Ordenar opções
           poll.options.sort((a: PollOption, b: PollOption) => a.display_order - b.display_order);
 
           setActivePoll(poll as Poll);
@@ -94,6 +112,9 @@ export function PollPopup() {
           setIsOpen(true);
 
           break; // Mostrar apenas 1 enquete por vez
+        } else {
+          // Se já votou/visualizou no banco, adicionar ao localStorage
+          addDismissedPoll(poll.id);
         }
       }
     } catch (error) {
@@ -136,6 +157,9 @@ export function PollPopup() {
           { onConflict: 'poll_id,user_id', ignoreDuplicates: true }
         );
 
+      // ADICIONAR AO LOCALSTORAGE IMEDIATAMENTE
+      addDismissedPoll(activePoll.id);
+
       // Atualizar estado
       setHasVoted(true);
 
@@ -169,6 +193,8 @@ export function PollPopup() {
               { onConflict: 'poll_id,user_id', ignoreDuplicates: true }
             );
           
+          // ADICIONAR AO LOCALSTORAGE
+          addDismissedPoll(activePoll.id);
           setHasVoted(true);
         }
       }
@@ -184,6 +210,23 @@ export function PollPopup() {
   };
 
   const handleClose = () => {
+    if (activePoll && !hasVoted) {
+      // Usuário fechou sem votar, registrar visualização
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user) {
+          supabase
+            .from("poll_views")
+            .upsert(
+              { poll_id: activePoll.id, user_id: data.user.id },
+              { onConflict: 'poll_id,user_id', ignoreDuplicates: true }
+            );
+          
+          // Adicionar ao localStorage
+          addDismissedPoll(activePoll.id);
+        }
+      });
+    }
+    
     setIsOpen(false);
     setActivePoll(null);
     setSelectedOptions([]);
