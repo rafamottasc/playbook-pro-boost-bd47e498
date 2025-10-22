@@ -97,6 +97,9 @@ export function UpcomingMeetingsSidebar() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>{meeting.room_name}</span>
+                      <span className="mx-1">|</span>
+                      <Users className="h-3 w-3" />
+                      <span>{meeting.participants_count} pessoas</span>
                     </div>
                     
                     <Badge className={`mb-1 ${
@@ -120,15 +123,13 @@ export function UpcomingMeetingsSidebar() {
                     </span>
                   </div>
                   
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-3 w-3" />
-                      <span>{meeting.participants_count} pessoas</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <User className="h-3 w-3" />
-                      <span className="truncate">{meeting.creator_name}</span>
-                    </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <User className="h-3 w-3" />
+                    <span className="truncate">{meeting.creator_name}</span>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground pt-2 mt-2 border-t">
+                    Criado em: {format(new Date(meeting.created_at), "dd/MM", { locale: ptBR })} às {format(new Date(meeting.created_at), "HH:mm")}
                   </div>
                   
                     {idx < upcomingMeetings.length - 1 && (
