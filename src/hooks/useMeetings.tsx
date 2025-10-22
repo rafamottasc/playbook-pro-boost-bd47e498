@@ -51,6 +51,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
   const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [updating, setUpdating] = useState(false);
 
   // Criar query key única baseada nas opções
@@ -247,6 +248,37 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     }
   };
 
+  const deleteMeeting = async (meeting_id: string) => {
+    if (!user) {
+      toast.error("Você precisa estar autenticado");
+      return false;
+    }
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("meetings")
+        .delete()
+        .eq("id", meeting_id);
+
+      if (error) {
+        console.error("Error deleting meeting:", error);
+        toast.error("Erro ao excluir reunião");
+        return false;
+      }
+
+      toast.success("Reunião excluída permanentemente");
+      queryClient.invalidateQueries({ queryKey: ["meetings", user.id] });
+      return true;
+    } catch (error) {
+      console.error("Error deleting meeting:", error);
+      toast.error("Erro ao excluir reunião");
+      return false;
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Realtime subscription para atualizações automáticas
   useEffect(() => {
     if (!user) return;
@@ -277,9 +309,11 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     creating,
     updating,
     cancelling,
+    deleting,
     refetch: fetchMeetings,
     createMeeting,
     updateMeeting,
     cancelMeeting,
+    deleteMeeting,
   };
 }

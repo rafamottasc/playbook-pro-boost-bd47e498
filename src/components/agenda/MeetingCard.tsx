@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, MapPin, Users, User, Pencil, X } from "lucide-react";
+import { Clock, MapPin, Users, User, Pencil, Trash2, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -11,13 +11,15 @@ interface MeetingCardProps {
   meeting: Meeting;
   onEdit: (meeting: Meeting) => void;
   onCancel: (meeting: Meeting) => void;
+  onDelete: (meeting: Meeting) => void;
   showSeparator?: boolean;
   currentUserId: string;
   isAdmin: boolean;
 }
 
-export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false, currentUserId, isAdmin }: MeetingCardProps) {
+export function MeetingCard({ meeting, onEdit, onCancel, onDelete, showSeparator = false, currentUserId, isAdmin }: MeetingCardProps) {
   const canModify = isAdmin || meeting.created_by === currentUserId;
+  const isPastMeeting = new Date(meeting.end_date) < new Date();
 
   return (
     <div className="space-y-2 p-4 border-l-4 border-l-primary rounded-md bg-card shadow-sm hover:shadow-md transition-smooth">
@@ -28,9 +30,19 @@ export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false, 
         <span>{meeting.room_name}</span>
       </div>
       
-      <Badge className="mb-1 bg-primary text-primary-foreground hover:bg-primary/90">
+      <Badge className={`mb-1 ${
+        isPastMeeting 
+          ? 'bg-muted text-muted-foreground hover:bg-muted/80' 
+          : 'bg-primary text-primary-foreground hover:bg-primary/90'
+      }`}>
         {format(new Date(meeting.start_date), "EEEE, dd/MM", { locale: ptBR })}
       </Badge>
+      
+      {isPastMeeting && (
+        <Badge variant="secondary" className="text-xs mb-2">
+          Concluída
+        </Badge>
+      )}
       
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Clock className="h-3 w-3" />
@@ -73,15 +85,31 @@ export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false, 
               <TooltipTrigger asChild>
                 <Button 
                   size="icon" 
-                  variant="destructive" 
+                  variant="secondary" 
                   className="h-9 w-9"
                   onClick={() => onCancel(meeting)}
                 >
-                  <X className="h-4 w-4" />
+                  <Ban className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Cancelar reunião</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="destructive" 
+                  className="h-9 w-9"
+                  onClick={() => onDelete(meeting)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Excluir permanentemente</p>
               </TooltipContent>
             </Tooltip>
           </div>

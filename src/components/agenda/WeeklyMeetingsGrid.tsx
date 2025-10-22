@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMeetings, Meeting } from "@/hooks/useMeetings";
 import { MeetingCard } from "./MeetingCard";
 import { EditMeetingDialog } from "./EditMeetingDialog";
@@ -24,8 +25,9 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
   );
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [cancellingMeeting, setCancellingMeeting] = useState<Meeting | null>(null);
+  const [deletingMeeting, setDeletingMeeting] = useState<Meeting | null>(null);
 
-  const { meetings, loading, refetch } = useMeetings({
+  const { meetings, loading, refetch, cancelMeeting, cancelling, deleteMeeting, deleting } = useMeetings({
     roomId: selectedRoomId === "all" ? undefined : selectedRoomId,
     status: "confirmed",
   });
@@ -74,6 +76,35 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
 
   const handleCancel = (meeting: Meeting) => {
     setCancellingMeeting(meeting);
+  };
+
+  const handleDelete = (meeting: Meeting) => {
+    setDeletingMeeting(meeting);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!cancellingMeeting) return;
+    
+    const success = await cancelMeeting({
+      meeting_id: cancellingMeeting.id,
+      cancellation_reason: "Cancelado pelo usuário",
+    });
+
+    if (success) {
+      setCancellingMeeting(null);
+      refetch();
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingMeeting) return;
+    
+    const success = await deleteMeeting(deletingMeeting.id);
+    
+    if (success) {
+      setDeletingMeeting(null);
+      refetch();
+    }
   };
 
   if (loading) {
@@ -178,6 +209,7 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
                           meeting={meeting}
                           onEdit={handleEdit}
                           onCancel={handleCancel}
+                          onDelete={handleDelete}
                           showSeparator={false}
                           currentUserId={user?.id || ""}
                           isAdmin={isAdmin}
@@ -223,6 +255,7 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
                             meeting={meeting}
                             onEdit={handleEdit}
                             onCancel={handleCancel}
+                            onDelete={handleDelete}
                             showSeparator={false}
                             currentUserId={user?.id || ""}
                             isAdmin={isAdmin}
@@ -249,6 +282,52 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
           }}
         />
       )}
+
+      <AlertDialog open={!!cancellingMeeting} onOpenChange={(open) => !open && setCancellingMeeting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Reunião</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar a reunião "{cancellingMeeting?.title}"? 
+              Esta ação não pode ser desfeita e todos os participantes serão notificados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Não, manter</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              disabled={cancelling}
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            >
+              {cancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Sim, cancelar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deletingMeeting} onOpenChange={(open) => !open && setDeletingMeeting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Reunião Permanentemente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir permanentemente a reunião "{deletingMeeting?.title}"? 
+              Esta ação é IRREVERSÍVEL e a reunião será completamente removida do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Sim, excluir permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
