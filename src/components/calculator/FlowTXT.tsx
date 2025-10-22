@@ -190,8 +190,9 @@ export function generateFlowTXT(
   // Data de geração
   txt += `Gerado em: ${currentDate}\n`;
 
-  // Create and download the file
-  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+  // Create and download the file with UTF-8 BOM
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + txt], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
