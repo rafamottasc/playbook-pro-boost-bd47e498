@@ -1,0 +1,249 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+import { toast } from "sonner";
+import { useEffect } from "react";
+
+export interface PollOption {
+  id: string;
+  option_text: string;
+  display_order: number;
+}
+
+export interface Poll {
+  id: string;
+  title: string;
+  description: string | null;
+  allow_multiple: boolean;
+  options: PollOption[];
+  results_cache: any;
+}
+
+export interface PollVoteData {
+  poll_id: string;
+  option_ids: string[];
+}
+
+export function usePolls() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch active poll for current user
+  const {
+    data: activePoll,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["active-poll", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const now = new Date();
+      const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
+
+      // Buscar enquetes ativas
+      const { data: polls, error: pollError } = await supabase
+        .from("polls")
+        .select(`
+          id,
+          title,
+          description,
+          allow_multiple,
+          results_cache,
+          options:poll_options(
+            id,
+            option_text,
+            display_order
+          )
+        `)
+        .eq("active", true)
+        .gte("end_date", localNow)
+        .lte("start_date", localNow)
+        .order("created_at", { ascending: false });
+
+      if (pollError) throw pollError;
+      if (!polls || polls.length === 0) return null;
+
+      // Verificar cada enquete até encontrar uma não votada/visualizada
+      for (const poll of polls) {
+        const { data: vote } = await supabase
+          .from("poll_responses")
+          .select("option_id")
+          .eq("poll_id", poll.id)
+          .eq("user_id", user.id);
+
+        const { data: view } = await supabase
+          .from("poll_views")
+          .select("id")
+          .eq("poll_id", poll.id)
+          .eq("user_id", user.id);
+
+        // Só retornar se NÃO votou E NÃO visualizou
+        if ((!vote || vote.length === 0) && (!view || view.length === 0)) {
+          poll.options.sort((a: PollOption, b: PollOption) => a.display_order - b.display_order);
+          return poll as Poll;
+        }
+      }
+
+      return null;
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
+    refetchOnWindowFocus: false,
+  });
+
+  // Check if user has voted on a specific poll
+  const { data: hasVoted } = useQuery({
+    queryKey: ["poll-voted", activePoll?.id, user?.id],
+    queryFn: async () => {
+      if (!user || !activePoll) return false;
+
+      const { data } = await supabase
+        .from("poll_responses")
+        .select("option_id")
+        .eq("poll_id", activePoll.id)
+        .eq("user_id", user.id);
+
+      return data && data.length > 0;
+    },
+    enabled: !!user && !!activePoll,
+    staleTime: Infinity, // Uma vez votado, não muda
+  });
+
+  // Submit vote mutation
+  const voteMutation = useMutation({
+    mutationFn: async ({ poll_id, option_ids }: PollVoteData) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const responses = option_ids.map((optionId) => ({
+        poll_id,
+        user_id: user.id,
+        option_id: optionId,
+      }));
+
+      // Inserir votos
+      const { error: voteError } = await supabase
+        .from("poll_responses")
+        .insert(responses);
+
+      if (voteError) throw voteError;
+
+      // Registrar visualização
+      const { error: viewError } = await supabase
+        .from("poll_views")
+        .upsert(
+          { poll_id, user_id: user.id },
+          { onConflict: "poll_id,user_id", ignoreDuplicates: true }
+        );
+
+      if (viewError) console.error("Erro ao registrar visualização:", viewError);
+
+      // Buscar resultados atualizados
+      const { data: updatedPoll } = await supabase
+        .from("polls")
+        .select("results_cache")
+        .eq("id", poll_id)
+        .single();
+
+      return updatedPoll;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["poll-voted", variables.poll_id, user?.id], true);
+      
+      // Atualizar cache do poll ativo com novos resultados
+      if (data && activePoll) {
+        queryClient.setQueryData(["active-poll", user?.id], {
+          ...activePoll,
+          results_cache: data.results_cache,
+        });
+      }
+
+      toast.success("Voto registrado!", {
+        description: "Obrigado pela sua participação.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Erro ao enviar voto:", error);
+
+      // Se já votou, marcar como votado no cache
+      if (error.message?.includes("já votou") || error.code === "23505") {
+        if (user && activePoll) {
+          queryClient.setQueryData(["poll-voted", activePoll.id, user.id], true);
+          
+          // Registrar visualização mesmo assim
+          supabase
+            .from("poll_views")
+            .upsert(
+              { poll_id: activePoll.id, user_id: user.id },
+              { onConflict: "poll_id,user_id", ignoreDuplicates: true }
+            );
+        }
+
+        toast.error("Você já votou nesta enquete");
+      } else {
+        toast.error("Erro ao votar", {
+          description: error.message || "Tente novamente mais tarde.",
+        });
+      }
+    },
+  });
+
+  // Dismiss poll mutation (quando fecha sem votar)
+  const dismissMutation = useMutation({
+    mutationFn: async (poll_id: string) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { error } = await supabase
+        .from("poll_views")
+        .upsert(
+          { poll_id, user_id: user.id },
+          { onConflict: "poll_id,user_id", ignoreDuplicates: true }
+        );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // Invalidar query para buscar próxima enquete
+      queryClient.invalidateQueries({ queryKey: ["active-poll", user?.id] });
+    },
+    onError: (error) => {
+      console.error("Erro ao dispensar enquete:", error);
+    },
+  });
+
+  // Realtime subscription para mudanças em polls
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("polls-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "polls",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["active-poll"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
+  return {
+    activePoll,
+    hasVoted: hasVoted ?? false,
+    isLoading,
+    isVoting: voteMutation.isPending,
+    isDismissing: dismissMutation.isPending,
+    refetch,
+    vote: voteMutation.mutate,
+    dismiss: dismissMutation.mutate,
+  };
+}
