@@ -64,9 +64,23 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
     const endDate = new Date(date);
     endDate.setHours(endHour, endMinute, 0, 0);
 
+    // Validar se a data não é no passado
+    const now = new Date();
+    if (startDate < now) {
+      toast.error("Não é possível agendar reuniões no passado");
+      return;
+    }
+
     // Validar horários
     if (endDate <= startDate) {
       toast.error("O horário de término deve ser após o horário de início");
+      return;
+    }
+
+    // Validar duração mínima (15 minutos)
+    const durationMinutes = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
+    if (durationMinutes < 15) {
+      toast.error("A reunião deve ter pelo menos 15 minutos de duração");
       return;
     }
 

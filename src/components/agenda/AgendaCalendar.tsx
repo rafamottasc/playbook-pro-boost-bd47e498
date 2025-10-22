@@ -8,9 +8,11 @@ import { Meeting } from "@/hooks/useMeetings";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
+import { toast } from "sonner";
 import { MeetingDialog } from "./MeetingDialog";
 import { MeetingDetails } from "./MeetingDetails";
+import { RoomFilter } from "./RoomFilter";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar-styles.css";
 
@@ -52,7 +54,6 @@ interface CalendarEvent {
 }
 
 export function AgendaCalendar() {
-  const { rooms } = useMeetingRooms();
   const [selectedRoomId, setSelectedRoomId] = useState<string>("all");
   const [view, setView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
@@ -86,6 +87,13 @@ export function AgendaCalendar() {
 
   // Handler para selecionar um slot (criar nova reunião)
   const handleSelectSlot = useCallback((slotInfo: { start: Date; end: Date }) => {
+    // Validar se não é no passado
+    const now = new Date();
+    if (slotInfo.start < now) {
+      toast.error("Não é possível agendar reuniões no passado");
+      return;
+    }
+    
     setSelectedSlotDate(slotInfo.start);
     setShowMeetingDialog(true);
   }, []);
@@ -106,8 +114,6 @@ export function AgendaCalendar() {
     };
   }, []);
 
-  const activeRooms = rooms.filter((room) => room.active);
-
   return (
     <div className="space-y-4">
       {/* Filtros */}
@@ -120,24 +126,7 @@ export function AgendaCalendar() {
           
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             {/* Filtro por Sala */}
-            <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
-              <SelectTrigger className="w-full sm:w-[250px]">
-                <SelectValue placeholder="Todas as salas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4" />
-                    Todas as Salas
-                  </div>
-                </SelectItem>
-                {activeRooms.map((room) => (
-                  <SelectItem key={room.id} value={room.id}>
-                    {room.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <RoomFilter value={selectedRoomId} onChange={setSelectedRoomId} />
 
             {/* Botão Nova Reunião */}
             <Button onClick={() => setShowMeetingDialog(true)} className="w-full sm:w-auto">

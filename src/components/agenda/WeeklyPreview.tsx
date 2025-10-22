@@ -19,8 +19,13 @@ export const WeeklyPreview = () => {
     limit: 3,
   });
 
-  // Não renderizar se não houver reuniões e não estiver carregando
-  if (!loading && meetings.length === 0) {
+  // Verificar se há reuniões futuras (não mostrar reuniões passadas)
+  const upcomingMeetings = meetings.filter(
+    (meeting) => new Date(meeting.start_date) >= new Date()
+  );
+
+  // Não renderizar se não houver reuniões futuras e não estiver carregando
+  if (!loading && upcomingMeetings.length === 0) {
     return null;
   }
 
@@ -45,13 +50,13 @@ export const WeeklyPreview = () => {
               </div>
             ))}
           </div>
-        ) : meetings.length === 0 ? (
+        ) : upcomingMeetings.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">
             Nenhuma reunião agendada esta semana
           </p>
         ) : (
           <div className="space-y-3">
-            {meetings.map((meeting) => {
+            {upcomingMeetings.map((meeting) => {
               const startDate = new Date(meeting.start_date);
               const dayOfWeek = format(startDate, "EEE", { locale: ptBR }).toUpperCase();
               const dayOfMonth = format(startDate, "dd");
