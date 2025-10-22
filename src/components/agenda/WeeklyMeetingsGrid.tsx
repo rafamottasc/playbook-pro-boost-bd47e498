@@ -6,8 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMeetings, Meeting } from "@/hooks/useMeetings";
@@ -26,14 +24,13 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { locale: ptBR })
   );
-  const [showCancelled, setShowCancelled] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [cancellingMeeting, setCancellingMeeting] = useState<Meeting | null>(null);
   const [deletingMeeting, setDeletingMeeting] = useState<Meeting | null>(null);
 
   const { meetings, loading, refetch, cancelMeeting, cancelling, deleteMeeting, deleting } = useMeetings({
     roomId: selectedRoomId === "all" ? undefined : selectedRoomId,
-    status: showCancelled ? undefined : "confirmed",
+    status: "confirmed",
   });
 
   const weekDays = useMemo(() => {
@@ -168,17 +165,6 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
                 </Button>
               </div>
             </div>
-
-            <div className="flex items-center justify-center space-x-2 pt-2 border-t">
-              <Switch
-                id="show-cancelled"
-                checked={showCancelled}
-                onCheckedChange={setShowCancelled}
-              />
-              <Label htmlFor="show-cancelled" className="text-sm cursor-pointer">
-                Mostrar reuniões canceladas
-              </Label>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -243,7 +229,7 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
         // Layout Grid para Desktop
         <Card>
           <CardContent className="p-4">
-            <ScrollArea className="max-h-[600px]">
+            <ScrollArea className="h-[600px] w-full">
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 pr-4">
                 {weekDays.map((day) => {
                   const dateKey = format(day, "yyyy-MM-dd");
