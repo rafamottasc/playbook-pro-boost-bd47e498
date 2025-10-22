@@ -43,6 +43,7 @@ const partnerSchema = z.object({
   manager_phone: z.string().optional(),
   manager_email: z.string().email("Email inválido").optional().or(z.literal("")),
   frente_mar: z.boolean(),
+  prioritaria: z.boolean(),
   observations: z.string().optional(),
   active: z.boolean(),
 });
@@ -79,6 +80,7 @@ export function PartnerModal({
       manager_phone: "",
       manager_email: "",
       frente_mar: false,
+      prioritaria: false,
       observations: "",
       active: true,
     },
@@ -94,6 +96,7 @@ export function PartnerModal({
         manager_email: partner.manager_email || "",
         manager_phone: formatPhone(partner.manager_phone || ""),
         frente_mar: partner.frente_mar || false,
+        prioritaria: partner.prioritaria || false,
         observations: partner.observations || "",
         active: partner.active ?? true,
       });
@@ -108,6 +111,7 @@ export function PartnerModal({
         manager_phone: "",
         manager_email: "",
         frente_mar: false,
+        prioritaria: false,
         observations: "",
         active: true,
       });
@@ -132,6 +136,7 @@ export function PartnerModal({
         manager_phone: "",
         manager_email: "",
         frente_mar: false,
+        prioritaria: false,
         observations: "",
         active: true,
       });
@@ -312,33 +317,35 @@ export function PartnerModal({
           <TabsContent value="dados" className="space-y-4 mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome da Construtora *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Construtora XYZ" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome da Construtora *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ex: Construtora XYZ" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="cidade"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Itapema, Porto Belo, Bombinhas" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="cidade"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cidade *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ex: Itapema, Porto Belo, Bombinhas" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
@@ -374,18 +381,18 @@ export function PartnerModal({
                             />
                           </FormControl>
                           {field.value && (
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="outline"
-                              className="flex-shrink-0 text-green-600 hover:bg-green-50"
-                              onClick={() => {
-                                const phoneNumber = unformatPhone(field.value);
-                                window.open(`https://wa.me/55${phoneNumber}`, '_blank');
-                              }}
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                            </Button>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="flex-shrink-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                            onClick={() => {
+                              const phoneNumber = unformatPhone(field.value);
+                              window.open(`https://wa.me/55${phoneNumber}`, '_blank');
+                            }}
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
                           )}
                         </div>
                         <FormMessage />
@@ -408,23 +415,43 @@ export function PartnerModal({
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="frente_mar"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                      <div>
-                        <FormLabel className="text-base">Frente Mar</FormLabel>
-                        <p className="text-sm text-muted-foreground">
-                          Possui empreendimentos frente mar
-                        </p>
-                      </div>
-                      <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="frente_mar"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                        <div>
+                          <FormLabel className="text-base">Frente Mar</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Empreendimentos frente mar
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="prioritaria"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                        <div>
+                          <FormLabel className="text-base">Prioritária</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Aparece em destaque
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
