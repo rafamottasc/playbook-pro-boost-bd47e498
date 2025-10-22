@@ -17,22 +17,14 @@ export function MonthEvent({ event }: MonthEventProps) {
   return (
     <div className="text-[10px] leading-tight space-y-0.5 p-0.5">
       <div className="font-semibold truncate">{event.title}</div>
-      <div className="flex items-center gap-1 opacity-90">
-        <MapPin className="h-2 w-2 flex-shrink-0" />
-        <span className="truncate">{meeting.room_name}</span>
-      </div>
-      <div className="flex items-center gap-1 opacity-80">
-        <Clock className="h-2 w-2 flex-shrink-0" />
-        <span>{format(event.start, "HH:mm")}</span>
-      </div>
-      <div className="flex items-center gap-2 opacity-80">
+      <div className="flex items-center gap-2 opacity-90">
         <span className="flex items-center gap-0.5">
-          <Users className="h-2 w-2" />
-          {meeting.participants_count}
+          <MapPin className="h-2 w-2 flex-shrink-0" />
+          <span className="truncate">{meeting.room_name}</span>
         </span>
-        <span className="flex items-center gap-0.5 truncate">
-          <User className="h-2 w-2" />
-          <span className="truncate">{meeting.creator_name?.split(' ')[0]}</span>
+        <span className="flex items-center gap-0.5">
+          <Clock className="h-2 w-2 flex-shrink-0" />
+          <span>{format(event.start, "HH:mm")}</span>
         </span>
       </div>
     </div>
