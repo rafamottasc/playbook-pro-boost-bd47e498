@@ -230,46 +230,92 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
         <Card>
           <CardContent className="p-4">
             <ScrollArea className="h-[600px] w-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pr-4">
-                {weekDays.map((day) => {
-                  const dateKey = format(day, "yyyy-MM-dd");
-                  const dayMeetings = meetingsByDay[dateKey] || [];
-                  const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+              <div className="space-y-4 pr-4">
+                {/* Dias úteis - Segunda a Sexta */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  {weekDays.slice(0, 5).map((day) => {
+                    const dateKey = format(day, "yyyy-MM-dd");
+                    const dayMeetings = meetingsByDay[dateKey] || [];
+                    const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
-                  return (
-                    <div key={dateKey} className="flex flex-col">
-                      <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
-                        <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                          {format(day, "EEE", { locale: ptBR })}
-                        </div>
-                        <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
-                          {format(day, "dd")}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 space-y-3">
-                        {dayMeetings.length === 0 ? (
-                          <div className="text-center text-xs text-muted-foreground py-8">
-                            Sem reuniões
+                    return (
+                      <div key={dateKey} className="flex flex-col">
+                        <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
+                          <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {format(day, "EEE", { locale: ptBR })}
                           </div>
-                        ) : (
-                          dayMeetings.map((meeting) => (
-                            <MeetingCard
-                              key={meeting.id}
-                              meeting={meeting}
-                              onEdit={handleEdit}
-                              onCancel={handleCancel}
-                              onDelete={handleDelete}
-                              showSeparator={false}
-                              currentUserId={user?.id || ""}
-                              isAdmin={isAdmin}
-                            />
-                          ))
-                        )}
+                          <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
+                            {format(day, "dd")}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 space-y-3">
+                          {dayMeetings.length === 0 ? (
+                            <div className="text-center text-xs text-muted-foreground py-8">
+                              Sem reuniões
+                            </div>
+                          ) : (
+                            dayMeetings.map((meeting) => (
+                              <MeetingCard
+                                key={meeting.id}
+                                meeting={meeting}
+                                onEdit={handleEdit}
+                                onCancel={handleCancel}
+                                onDelete={handleDelete}
+                                showSeparator={false}
+                                currentUserId={user?.id || ""}
+                                isAdmin={isAdmin}
+                              />
+                            ))
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
+                {/* Fim de semana - Sábado e Domingo */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {weekDays.slice(5, 7).map((day) => {
+                    const dateKey = format(day, "yyyy-MM-dd");
+                    const dayMeetings = meetingsByDay[dateKey] || [];
+                    const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+
+                    return (
+                      <div key={dateKey} className="flex flex-col">
+                        <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
+                          <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {format(day, "EEE", { locale: ptBR })}
+                          </div>
+                          <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
+                            {format(day, "dd")}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 space-y-3">
+                          {dayMeetings.length === 0 ? (
+                            <div className="text-center text-xs text-muted-foreground py-8">
+                              Sem reuniões
+                            </div>
+                          ) : (
+                            dayMeetings.map((meeting) => (
+                              <MeetingCard
+                                key={meeting.id}
+                                meeting={meeting}
+                                onEdit={handleEdit}
+                                onCancel={handleCancel}
+                                onDelete={handleDelete}
+                                showSeparator={false}
+                                currentUserId={user?.id || ""}
+                                isAdmin={isAdmin}
+                              />
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </ScrollArea>
           </CardContent>
