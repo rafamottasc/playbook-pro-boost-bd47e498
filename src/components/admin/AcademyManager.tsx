@@ -4,7 +4,8 @@ import { ModulesManager } from "./academy/ModulesManager";
 import { LessonsManager } from "./academy/LessonsManager";
 import { QuestionsManager } from "./academy/QuestionsManager";
 import { AcademyMetrics } from "./academy/AcademyMetrics";
-import { BookOpen, Play, HelpCircle, BarChart } from "lucide-react";
+import { UserProgressDetailed } from "./academy/UserProgressDetailed";
+import { BookOpen, Play, HelpCircle, BarChart, TrendingUp } from "lucide-react";
 
 export function AcademyManager() {
   return (
@@ -28,6 +29,10 @@ export function AcademyManager() {
             <BarChart className="h-4 w-4" />
             Métricas
           </TabsTrigger>
+          <TabsTrigger value="detailed-progress" className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Progresso Detalhado
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="modules">
@@ -44,6 +49,10 @@ export function AcademyManager() {
 
         <TabsContent value="metrics">
           <AcademyMetrics />
+        </TabsContent>
+
+        <TabsContent value="detailed-progress">
+          <UserProgressDetailed />
         </TabsContent>
       </Tabs>
     </div>
