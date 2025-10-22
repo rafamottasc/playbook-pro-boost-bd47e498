@@ -4,6 +4,7 @@ import { Clock, MapPin, Users, User, Pencil, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Meeting } from "@/hooks/useMeetings";
 
 interface MeetingCardProps {
@@ -45,26 +46,41 @@ export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false }
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 pt-2">
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1 justify-center"
-          onClick={() => onEdit(meeting)}
-        >
-          <Pencil className="h-3 w-3 sm:mr-1" />
-          <span className="hidden sm:inline">Editar</span>
-        </Button>
-        <Button 
-          size="sm" 
-          variant="destructive" 
-          className="flex-1 justify-center"
-          onClick={() => onCancel(meeting)}
-        >
-          <X className="h-3 w-3 sm:mr-1" />
-          <span className="hidden sm:inline">Cancelar</span>
-        </Button>
-      </div>
+      <TooltipProvider>
+        <div className="flex gap-2 pt-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="outline" 
+                className="h-9 w-9"
+                onClick={() => onEdit(meeting)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Editar reunião</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="destructive" 
+                className="h-9 w-9"
+                onClick={() => onCancel(meeting)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Cancelar reunião</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
       
       {showSeparator && <Separator className="mt-4" />}
     </div>

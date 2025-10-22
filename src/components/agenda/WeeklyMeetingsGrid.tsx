@@ -136,9 +136,15 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
       {isMobile ? (
         // Layout Vertical para Mobile
         <div className="space-y-4">
-          {weekDays.map((day) => {
-            const dateKey = format(day, "yyyy-MM-dd");
-            const dayMeetings = meetingsByDay[dateKey] || [];
+          {weekDays
+            .filter((day) => {
+              const dateKey = format(day, "yyyy-MM-dd");
+              const dayMeetings = meetingsByDay[dateKey] || [];
+              return dayMeetings.length > 0;
+            })
+            .map((day) => {
+              const dateKey = format(day, "yyyy-MM-dd");
+              const dayMeetings = meetingsByDay[dateKey] || [];
             const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
             return (
