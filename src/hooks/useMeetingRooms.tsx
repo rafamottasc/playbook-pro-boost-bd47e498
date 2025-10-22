@@ -29,6 +29,7 @@ export function useMeetingRooms() {
       const { data, error } = await supabase
         .from("meeting_rooms")
         .select("*")
+        .eq("active", true)
         .order("display_order", { ascending: true })
         .order("name", { ascending: true });
 

@@ -68,7 +68,7 @@ export function PollPopup() {
       if (pollError) throw pollError;
       if (!polls || polls.length === 0) return;
 
-      // Filtrar enquetes não votadas
+      // Filtrar enquetes não votadas e não visualizadas
       for (const poll of polls) {
         // Verificar se já votou
         const { data: vote } = await supabase
@@ -77,7 +77,15 @@ export function PollPopup() {
           .eq("poll_id", poll.id)
           .eq("user_id", user.id);
 
-        if (!vote || vote.length === 0) {
+        // Verificar se já visualizou/interagiu com a enquete
+        const { data: view } = await supabase
+          .from("poll_views")
+          .select("id")
+          .eq("poll_id", poll.id)
+          .eq("user_id", user.id);
+
+        // Só mostrar se NÃO votou E NÃO visualizou
+        if ((!vote || vote.length === 0) && (!view || view.length === 0)) {
           // Ordenar opções
           poll.options.sort((a: PollOption, b: PollOption) => a.display_order - b.display_order);
 
@@ -145,6 +153,20 @@ export function PollPopup() {
       });
     } catch (error: any) {
       console.error("Erro ao enviar voto:", error);
+      
+      // Se o erro for de voto duplicado, registrar visualização mesmo assim
+      // para evitar que a enquete reapareça
+      if (error.message?.includes("já votou") || error.code === "23505") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && activePoll) {
+          await supabase
+            .from("poll_views")
+            .insert({ poll_id: activePoll.id, user_id: user.id });
+          
+          setHasVoted(true);
+        }
+      }
+      
       toast({
         title: "Erro ao votar",
         description: error.message || "Tente novamente mais tarde.",
