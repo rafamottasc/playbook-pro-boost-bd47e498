@@ -190,8 +190,9 @@ export function generateFlowTXT(
   // Data de geracao
   txt += `Gerado em: ${currentDate}\n`;
 
-  // Criar arquivo TXT com UTF-8 puro (sem BOM) para máxima compatibilidade
-  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+  // Adicionar BOM UTF-8 no início para forçar reconhecimento correto no Android/WhatsApp
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + txt], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

@@ -53,16 +53,19 @@ export async function generateFlowPDF(
     console.warn("Logo não carregada - PDF gerado sem logo");
   }
 
-  // Título - usando Times que tem melhor suporte a acentos
+  // Título - usando Times com codificação UTF-8
   doc.setFontSize(18);
   doc.setTextColor(0);
   doc.setFont("times", "bold");
-  doc.text("PROPOSTA DE PAGAMENTO", 105, 50, { align: "center" });
+  // Garantir que o texto seja interpretado como UTF-8
+  const title = "PROPOSTA DE PAGAMENTO";
+  doc.text(title, 105, 50, { align: "center" });
 
-  // Nome do cliente
+  // Nome do cliente - garantir UTF-8
   doc.setFontSize(14);
   doc.setFont("times", "normal");
-  doc.text(`Cliente: ${data.clientName}`, 15, 60);
+  const clientText = `Cliente: ${data.clientName}`;
+  doc.text(clientText, 15, 60);
 
   let yPosition = 70;
 
