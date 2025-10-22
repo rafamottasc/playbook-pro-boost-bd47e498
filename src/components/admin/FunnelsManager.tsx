@@ -152,6 +152,13 @@ export function FunnelsManager() {
   };
 
   const startEditFunnel = (funnel: Funnel) => {
+    // Resetar estados de edição de etapa
+    setIsCreatingStage(false);
+    setIsEditingStage(false);
+    setEditingStageId(null);
+    setStageForm({ name: "" });
+    
+    // Definir estados de edição de funil
     setFunnelForm({
       name: funnel.name,
       slug: funnel.slug,
@@ -163,6 +170,13 @@ export function FunnelsManager() {
   };
 
   const startEditStage = (stage: any) => {
+    // Resetar estados de edição de funil
+    setIsCreatingFunnel(false);
+    setIsEditingFunnel(false);
+    setEditingFunnelId(null);
+    setFunnelForm({ name: "", slug: "", description: "", emoji: "📊" });
+    
+    // Definir estados de edição de etapa
     setStageForm({ name: stage.name });
     setEditingStageId(stage.id);
     setIsEditingStage(true);
@@ -256,7 +270,12 @@ export function FunnelsManager() {
                     <div className="space-y-2">
                       {stages.map((stage) => (
                         <SortableItem key={stage.id} id={stage.id}>
-                          <div className="flex-1 p-2 border rounded">{stage.name}</div>
+                  <div 
+                    className="flex-1 p-2 border rounded cursor-pointer hover:bg-accent transition-colors" 
+                    onClick={() => startEditStage(stage)}
+                  >
+                    {stage.name}
+                  </div>
                           <Button
                             size="icon"
                             variant="ghost"
