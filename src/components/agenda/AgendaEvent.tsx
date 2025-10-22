@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { MapPin, Users, User } from "lucide-react";
 import { Meeting } from "@/hooks/useMeetings";
 
@@ -7,6 +8,7 @@ interface AgendaEventProps {
     start: Date;
     end: Date;
     resource: Meeting;
+    title: string;
   };
 }
 
