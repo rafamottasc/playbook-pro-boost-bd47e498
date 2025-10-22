@@ -66,17 +66,26 @@ export function usePolls() {
 
       // Verificar cada enquete até encontrar uma não votada/visualizada
       for (const poll of polls) {
-        const { data: vote } = await supabase
+        const { data: vote, error: voteError } = await supabase
           .from("poll_responses")
           .select("option_id")
           .eq("poll_id", poll.id)
           .eq("user_id", user.id);
 
-        const { data: view } = await supabase
+        const { data: view, error: viewError } = await supabase
           .from("poll_views")
           .select("id")
           .eq("poll_id", poll.id)
           .eq("user_id", user.id);
+
+        // Debug logging
+        console.log('[usePolls] Verificando poll:', poll.id, {
+          hasVote: vote && vote.length > 0,
+          hasView: view && view.length > 0,
+          voteError,
+          viewError,
+          userId: user.id
+        });
 
         // Só retornar se NÃO votou E NÃO visualizou
         if ((!vote || vote.length === 0) && (!view || view.length === 0)) {
@@ -85,12 +94,13 @@ export function usePolls() {
         }
       }
 
+      console.log('[usePolls] Nenhuma enquete disponível');
       return null;
     },
     enabled: !!user,
+    staleTime: 0, // Sempre considerar dados stale para buscar do banco
     gcTime: 1000 * 60 * 10, // 10 minutos
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Evita re-fetch ao remontar após setQueryData(null)
   });
 
   // Check if user has voted on a specific poll
@@ -148,8 +158,18 @@ export function usePolls() {
 
       return updatedPoll;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       queryClient.setQueryData(["poll-voted", variables.poll_id, user?.id], true);
+      
+      // Garantir que poll_view foi inserida antes de invalidar cache
+      await supabase
+        .from("poll_views")
+        .upsert(
+          { poll_id: variables.poll_id, user_id: user!.id },
+          { onConflict: "poll_id,user_id", ignoreDuplicates: true }
+        );
+      
+      console.log('[usePolls] Voto registrado e view inserida para poll:', variables.poll_id);
       
       // Forçar enquete como null no cache IMEDIATAMENTE
       queryClient.setQueryData(["active-poll", user?.id], null);
@@ -219,29 +239,7 @@ export function usePolls() {
     },
   });
 
-  // Realtime subscription para mudanças em polls
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel("polls-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "polls",
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["active-poll", user.id] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, queryClient]);
+  // Realtime removido para evitar conflitos com cache local após voto/dismiss
 
   return {
     activePoll,
