@@ -1,5 +1,5 @@
 import React from "react";
-import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2, BookOpen, Calculator } from "lucide-react";
+import { Moon, Sun, User, LogOut, MessageSquare, FolderOpen, TrendingUp, Settings, Building2, BookOpen, Calculator, Calendar } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -136,6 +136,10 @@ export const Header = React.memo(function Header() {
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                   <User className="mr-2 h-4 w-4" />
                   Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/agenda")}>
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Agenda de Reuniões
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/academy/modules")}>
                   <BookOpen className="mr-2 h-4 w-4" />
