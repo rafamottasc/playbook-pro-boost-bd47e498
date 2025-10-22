@@ -11,7 +11,7 @@ import { DailyMoodCard } from "@/components/DailyMoodCard";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import { FeedbackModal } from "@/components/FeedbackModal";
 import { PollPopup } from "@/components/PollPopup";
-import { WeeklyPreview } from "@/components/agenda/WeeklyPreview";
+import { UpcomingMeetingsSidebar } from "@/components/agenda/UpcomingMeetingsSidebar";
 
 interface NavCard {
   title: string;
@@ -76,12 +76,6 @@ export default function Home() {
       route: "/campaigns/partners",
     },
     {
-      title: "Agenda de Reuniões",
-      description: "Agende reuniões e reserve salas de forma prática",
-      icon: <Calendar className="w-12 h-12" />,
-      route: "/agenda",
-    },
-    {
       title: "Calculadora de Fluxo",
       description: "Simule condições de pagamento e gere propostas profissionais",
       icon: <Calculator className="w-12 h-12" />,
@@ -126,34 +120,41 @@ export default function Home() {
           {/* Daily Mood Card */}
           <DailyMoodCard />
 
-          {/* Weekly Meetings Preview */}
-          <WeeklyPreview />
+          {/* Main Layout: 2 Columns + Sidebar */}
+          <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
+            {/* Colunas 1 e 2 - Cards de navegação em grid 2 colunas */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {visibleCards.map((card, index) => (
+                  <Card
+                    key={card.route}
+                    className="cursor-pointer animate-fade-in transition-all duration-300 border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px]"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => navigate(card.route)}
+                  >
+                    <CardHeader className="text-center pb-4">
+                      <div className="flex justify-center mb-4 text-primary">
+                        {card.icon}
+                      </div>
+                      <CardTitle className="text-xl">{card.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <CardDescription className="text-base">
+                        {card.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                ))}
 
-          {/* Navigation Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {visibleCards.map((card, index) => (
-              <Card
-                key={card.route}
-                className="cursor-pointer animate-fade-in transition-all duration-300 border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px]"
-                style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => navigate(card.route)}
-              >
-                <CardHeader className="text-center pb-4">
-                  <div className="flex justify-center mb-4 text-primary">
-                    {card.icon}
-                  </div>
-                  <CardTitle className="text-xl">{card.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <CardDescription className="text-base">
-                    {card.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+                {/* Feedback Card */}
+                <FeedbackCard onClick={() => setFeedbackModalOpen(true)} />
+              </div>
+            </div>
 
-            {/* Feedback Card */}
-            <FeedbackCard onClick={() => setFeedbackModalOpen(true)} />
+            {/* Coluna 3 - Sidebar de Reuniões */}
+            <div className="w-full lg:w-[380px]">
+              <UpcomingMeetingsSidebar />
+            </div>
           </div>
 
           {/* Feedback Modal */}
