@@ -13,18 +13,18 @@ export function generateFlowTXT(
   const currentTime = format(new Date(), "HH:mm");
   const deliveryDate = data.deliveryDate ? format(new Date(data.deliveryDate), "dd/MM/yyyy") : "Não informado";
 
-  let txt = `🏢 PROPOSTA DE PAGAMENTO - COMARC\n`;
-  txt += `━━━━━━━\n\n`;
+  let txt = `PROPOSTA DE PAGAMENTO - COMARC\n`;
+  txt += `=================================\n\n`;
 
-  txt += `📅 Data: ${currentDate}\n`;
+  txt += `Data: ${currentDate}\n`;
   if (data.clientName) {
-    txt += `👤 Cliente: ${data.clientName}\n`;
+    txt += `Cliente: ${data.clientName}\n`;
   }
   txt += `\n`;
 
-  txt += `━━━━━━━\n`;
-  txt += `🏠 DADOS DO IMÓVEL\n`;
-  txt += `━━━━━━━\n`;
+  txt += `=================================\n`;
+  txt += `DADOS DO IMOVEL\n`;
+  txt += `=================================\n`;
   
   if (data.constructora) {
     txt += `Construtora: ${data.constructora}\n`;
@@ -44,13 +44,13 @@ export function generateFlowTXT(
   
   txt += `Valor Total: R$ ${formatMoney(data.propertyValue)}\n\n`;
 
-  txt += `━━━━━━━\n`;
-  txt += `💰 CONDIÇÕES DE PAGAMENTO\n`;
-  txt += `━━━━━━━\n\n`;
+  txt += `=================================\n`;
+  txt += `CONDICOES DE PAGAMENTO\n`;
+  txt += `=================================\n\n`;
 
   // Ato
   if (result.downPayment.atoValue && result.downPayment.atoValue > 0) {
-    txt += `💰 Ato\n`;
+    txt += `Ato\n`;
     txt += `   1x de R$ ${formatMoney(result.downPayment.atoValue)}`;
     txt += ` (${result.downPayment.atoPercentage?.toFixed(1)}%)`;
     if (data.downPayment.ato?.firstDueDate) {
@@ -62,7 +62,7 @@ export function generateFlowTXT(
   // Entrada
   if (result.downPayment.downPaymentParceladoValue && result.downPayment.downPaymentParceladoValue > 0) {
     const installmentValue = result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue;
-    txt += `🏁 Entrada\n`;
+    txt += `Entrada\n`;
     txt += `   ${result.downPayment.installments}x de R$ ${formatMoney(installmentValue)}`;
     txt += ` (${result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)`;
     if (data.downPayment.firstDueDate) {
@@ -71,7 +71,7 @@ export function generateFlowTXT(
     txt += `\n\n`;
   } else if (!result.downPayment.atoValue || result.downPayment.atoValue === 0) {
     const installmentValue = result.downPayment.installmentValue || result.downPayment.value;
-    txt += `🏁 Entrada\n`;
+    txt += `Entrada\n`;
     txt += `   ${result.downPayment.installments}x de R$ ${formatMoney(installmentValue)}`;
     txt += ` (${result.downPayment.percentage.toFixed(1)}%)`;
     if (data.downPayment.firstDueDate) {
@@ -80,9 +80,9 @@ export function generateFlowTXT(
     txt += `\n\n`;
   }
 
-  // Início da Obra
+  // Inicio da Obra
   if (result.constructionStartPayment && result.constructionStartPayment.value > 0) {
-    txt += `🏗️ Início da Obra\n`;
+    txt += `Inicio da Obra\n`;
     txt += `   1x de R$ ${formatMoney(result.constructionStartPayment.value)}`;
     txt += ` (${result.constructionStartPayment.percentage.toFixed(1)}%)`;
     if (data.constructionStartPayment?.firstDueDate) {
@@ -93,7 +93,7 @@ export function generateFlowTXT(
 
   // Mensais
   if (result.monthly && result.monthly.total > 0) {
-    txt += `📅 Mensais\n`;
+    txt += `Mensais\n`;
     txt += `   ${result.monthly.count}x de R$ ${formatMoney(result.monthly.value)}`;
     txt += ` (${result.monthly.percentage.toFixed(1)}%)`;
     if (data.monthly?.firstDueDate) {
@@ -102,9 +102,9 @@ export function generateFlowTXT(
     txt += `\n\n`;
   }
 
-  // Reforços Semestrais
+  // Reforcos Semestrais
   if (result.semiannualReinforcement && result.semiannualReinforcement.total > 0) {
-    txt += `💎 Reforços Semestrais\n`;
+    txt += `Reforcos Semestrais\n`;
     txt += `   ${result.semiannualReinforcement.count}x de R$ ${formatMoney(result.semiannualReinforcement.value)}`;
     txt += ` (${result.semiannualReinforcement.percentage.toFixed(1)}%)`;
     if (data.semiannualReinforcement?.firstDueDate) {
@@ -113,9 +113,9 @@ export function generateFlowTXT(
     txt += `\n\n`;
   }
 
-  // Reforços Anuais
+  // Reforcos Anuais
   if (result.annualReinforcement && result.annualReinforcement.total > 0) {
-    txt += `💎 Reforços Anuais\n`;
+    txt += `Reforcos Anuais\n`;
     txt += `   ${result.annualReinforcement.count}x de R$ ${formatMoney(result.annualReinforcement.value)}`;
     txt += ` (${result.annualReinforcement.percentage.toFixed(1)}%)`;
     if (data.annualReinforcement?.firstDueDate) {
@@ -126,7 +126,7 @@ export function generateFlowTXT(
 
   // Chaves
   if (result.keysPayment && result.keysPayment.value > 0) {
-    txt += `🔑 Chaves\n`;
+    txt += `Chaves\n`;
     txt += `   1x de R$ ${formatMoney(result.keysPayment.value)}`;
     txt += ` (${result.keysPayment.percentage.toFixed(1)}%)`;
     const keysVencDate = data.keysPayment?.firstDueDate || data.deliveryDate;
@@ -136,40 +136,40 @@ export function generateFlowTXT(
     txt += `\n\n`;
   }
 
-  txt += `━━━━━━━\n`;
-  txt += `📊 TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)\n`;
-  txt += `━━━━━━━\n\n`;
+  txt += `=================================\n`;
+  txt += `TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)\n`;
+  txt += `=================================\n\n`;
 
-  txt += `📅 DISTRIBUIÇÃO TEMPORAL\n`;
-  txt += `━━━━━━━\n`;
-  txt += `✓ Até Entrega: R$ ${formatMoney(result.timeline.totalUntilDelivery)}`;
+  txt += `DISTRIBUICAO TEMPORAL\n`;
+  txt += `=================================\n`;
+  txt += `Ate Entrega: R$ ${formatMoney(result.timeline.totalUntilDelivery)}`;
   txt += ` (${result.timeline.percentageUntilDelivery.toFixed(1)}%)\n`;
-  txt += `✓ Após Entrega: R$ ${formatMoney(result.timeline.totalAfterDelivery)}`;
+  txt += `Apos Entrega: R$ ${formatMoney(result.timeline.totalAfterDelivery)}`;
   txt += ` (${result.timeline.percentageAfterDelivery.toFixed(1)}%)\n\n`;
 
-  // Valores adicionais (m² e CUB)
+  // Valores adicionais (m2 e CUB)
   if (result.pricePerSqm || result.totalInCub) {
-    txt += `━━━━━━━\n`;
-    txt += `📊 VALORES ADICIONAIS\n`;
-    txt += `━━━━━━━\n`;
+    txt += `=================================\n`;
+    txt += `VALORES ADICIONAIS\n`;
+    txt += `=================================\n`;
     
     if (result.pricePerSqm) {
-      txt += `📐 Valor por m²: R$ ${formatCurrency(result.pricePerSqm)} / m²\n`;
+      txt += `Valor por m2: R$ ${formatCurrency(result.pricePerSqm)} / m2\n`;
     }
     
     if (result.totalInCub && result.cubValue) {
-      txt += `📊 Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})\n`;
+      txt += `Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})\n`;
       txt += `*Valor corrigido pelo CUB/SC\n`;
     }
     
     if (result.cubWarning) {
-      txt += `\n⚠️ ${result.cubWarning}\n`;
+      txt += `\n${result.cubWarning}\n`;
     }
     
     txt += `\n`;
   }
 
-  txt += `━━━━━━━\n`;
+  txt += `=================================\n`;
   
   // Nome e CRECI
   let correctorInfo = correctorName;
@@ -182,17 +182,16 @@ export function generateFlowTXT(
   txt += `Consultor de Investimentos\n`;
   
   // Empresa
-  txt += `COMARC - Negócios Imobiliários\n\n`;
+  txt += `COMARC - Negocios Imobiliarios\n\n`;
   
   // Separador
-  txt += `━━━━━━━\n`;
+  txt += `=================================\n`;
   
-  // Data de geração
+  // Data de geracao
   txt += `Gerado em: ${currentDate}\n`;
 
-  // Create and download the file with UTF-8 BOM
-  const BOM = "\uFEFF";
-  const blob = new Blob([BOM + txt], { type: "text/plain;charset=utf-8" });
+  // Create and download the file
+  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
