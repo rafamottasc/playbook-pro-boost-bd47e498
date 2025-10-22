@@ -68,34 +68,22 @@ export function PollPopup() {
       if (pollError) throw pollError;
       if (!polls || polls.length === 0) return;
 
-      // Filtrar enquetes não visualizadas
+      // Filtrar enquetes não votadas
       for (const poll of polls) {
-        const { data: viewed } = await supabase
-          .from("poll_views")
-          .select("id")
+        // Verificar se já votou
+        const { data: vote } = await supabase
+          .from("poll_responses")
+          .select("option_id")
           .eq("poll_id", poll.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
+          .eq("user_id", user.id);
 
-        if (!viewed) {
+        if (!vote || vote.length === 0) {
           // Ordenar opções
           poll.options.sort((a: PollOption, b: PollOption) => a.display_order - b.display_order);
 
-          // Verificar se já votou
-          const { data: vote } = await supabase
-            .from("poll_responses")
-            .select("option_id")
-            .eq("poll_id", poll.id)
-            .eq("user_id", user.id);
-
           setActivePoll(poll as Poll);
-          setHasVoted(vote && vote.length > 0);
+          setHasVoted(false);
           setIsOpen(true);
-
-          // Registrar visualização
-          await supabase
-            .from("poll_views")
-            .insert({ poll_id: poll.id, user_id: user.id });
 
           break; // Mostrar apenas 1 enquete por vez
         }
@@ -131,6 +119,11 @@ export function PollPopup() {
         .insert(responses);
 
       if (error) throw error;
+
+      // Registrar visualização (apenas após voto bem-sucedido)
+      await supabase
+        .from("poll_views")
+        .insert({ poll_id: activePoll.id, user_id: user.id });
 
       // Atualizar estado
       setHasVoted(true);
