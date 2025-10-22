@@ -190,13 +190,8 @@ export function generateFlowTXT(
   // Data de geracao
   txt += `Gerado em: ${currentDate}\n`;
 
-  // Converter para Windows-1252 (Latin-1) para compatibilidade com visualizadores de texto no Brasil
-  // Isso garante que acentos sejam exibidos corretamente em apps móveis
-  const encoder = new TextEncoder();
-  const utf8Array = encoder.encode(txt);
-  
-  // Criar blob como Windows-1252
-  const blob = new Blob([utf8Array], { type: "text/plain;charset=windows-1252" });
+  // Criar arquivo TXT com UTF-8 puro (sem BOM) para máxima compatibilidade
+  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

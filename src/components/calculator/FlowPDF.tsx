@@ -53,15 +53,15 @@ export async function generateFlowPDF(
     console.warn("Logo não carregada - PDF gerado sem logo");
   }
 
-  // Título
+  // Título - usando Times que tem melhor suporte a acentos
   doc.setFontSize(18);
   doc.setTextColor(0);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.text("PROPOSTA DE PAGAMENTO", 105, 50, { align: "center" });
 
   // Nome do cliente
   doc.setFontSize(14);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("times", "normal");
   doc.text(`Cliente: ${data.clientName}`, 15, 60);
 
   let yPosition = 70;
@@ -72,12 +72,12 @@ export async function generateFlowPDF(
 
   if (hasPropertyDetails) {
     doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("times", "bold");
     doc.text("DADOS DO IMÓVEL", 15, yPosition);
     yPosition += 7;
 
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("times", "normal");
 
     if (data.constructora) {
       doc.text(`Construtora: ${data.constructora}`, 15, yPosition);
@@ -115,7 +115,7 @@ export async function generateFlowPDF(
 
   // Tabela de condições
   doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.text("CONDIÇÕES DE PAGAMENTO", 15, yPosition);
   yPosition += 5;
 
@@ -305,12 +305,13 @@ export async function generateFlowPDF(
     body: tableData,
     theme: "striped",
     headStyles: { fillColor: [9, 41, 89] },
+    styles: { font: "times" }, // Usar Times para suporte a acentos
   });
 
   // Total
   let finalY = (doc as any).lastAutoTable.finalY + 10;
   doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.text(
     `TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)`,
     15,
@@ -320,7 +321,7 @@ export async function generateFlowPDF(
   // Distribuição Temporal
   finalY += 15;
   doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.text("DISTRIBUIÇÃO TEMPORAL", 15, finalY);
   finalY += 5;
 
@@ -341,13 +342,14 @@ export async function generateFlowPDF(
     ],
     theme: "grid",
     headStyles: { fillColor: [9, 41, 89] },
+    styles: { font: "times" }, // Usar Times para suporte a acentos
   });
 
   // Valores Adicionais (m² e CUB)
   let additionalY = (doc as any).lastAutoTable.finalY + 15;
   if (result.pricePerSqm || result.totalInCub) {
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("times", "normal");
     
     if (result.pricePerSqm) {
       doc.text(
@@ -379,7 +381,7 @@ export async function generateFlowPDF(
   // Rodapé centralizado
   const footerY = additionalY + 10;
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("times", "normal");
   doc.setTextColor(0);
 
   // Nome e CRECI (se disponível)
