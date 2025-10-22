@@ -11,6 +11,7 @@ import { DailyMoodCard } from "@/components/DailyMoodCard";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import { FeedbackModal } from "@/components/FeedbackModal";
 import { PollPopup } from "@/components/PollPopup";
+import { WeeklyPreview } from "@/components/agenda/WeeklyPreview";
 
 interface NavCard {
   title: string;
@@ -118,6 +119,9 @@ export default function Home() {
 
           {/* Daily Mood Card */}
           <DailyMoodCard />
+
+          {/* Weekly Meetings Preview */}
+          <WeeklyPreview />
 
           {/* Navigation Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
