@@ -16,10 +16,11 @@ import {
   FolderOpen, GraduationCap,
   MessageSquare, Workflow, Building2,
   Megaphone, Vote, MessageCircle, Smile,
-  Users, Calculator, Palette
+  Users, Calculator, Palette, DoorOpen
 } from "lucide-react";
 import { CubManager } from "@/components/admin/CubManager";
 import { ThemeManager } from "@/components/admin/ThemeManager";
+import { RoomsManager } from "@/components/admin/RoomsManager";
 
 export default function Admin() {
   return (
@@ -153,6 +154,10 @@ export default function Admin() {
                   <Users className="h-4 w-4" />
                   Usuários
                 </TabsTrigger>
+                <TabsTrigger value="rooms" className="gap-2">
+                  <DoorOpen className="h-4 w-4" />
+                  Salas
+                </TabsTrigger>
                 <TabsTrigger value="calculator" className="gap-2">
                   <Calculator className="h-4 w-4" />
                   Calculadora
@@ -165,6 +170,10 @@ export default function Admin() {
               
               <TabsContent value="users">
                 <UsersManager />
+              </TabsContent>
+              
+              <TabsContent value="rooms">
+                <RoomsManager />
               </TabsContent>
               
               <TabsContent value="calculator">
