@@ -19,9 +19,10 @@ interface EditMeetingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meeting: Meeting | null;
+  onSuccess?: () => void;
 }
 
-export function EditMeetingDialog({ open, onOpenChange, meeting }: EditMeetingDialogProps) {
+export function EditMeetingDialog({ open, onOpenChange, meeting, onSuccess }: EditMeetingDialogProps) {
   const { rooms } = useMeetingRooms();
   const { updateMeeting, updating } = useMeetings();
   
@@ -120,7 +121,11 @@ export function EditMeetingDialog({ open, onOpenChange, meeting }: EditMeetingDi
     });
 
     if (result) {
+      toast.success("Reunião atualizada", {
+        description: "As alterações foram salvas com sucesso.",
+      });
       onOpenChange(false);
+      onSuccess?.();
     }
   };
 

@@ -139,10 +139,7 @@ export function MeetingDetails({ meeting, open, onOpenChange }: MeetingDetailsPr
               <>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setShowEditDialog(true);
-                    onOpenChange(false);
-                  }}
+          onClick={() => setShowEditDialog(true)}
                   className="w-full sm:w-auto"
                 >
                   <Edit className="h-4 w-4 mr-2" />
@@ -191,6 +188,7 @@ export function MeetingDetails({ meeting, open, onOpenChange }: MeetingDetailsPr
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         meeting={meeting}
+        onSuccess={() => onOpenChange(false)}
       />
     </>
   );
