@@ -14,8 +14,6 @@ import { MeetingDialog } from "./MeetingDialog";
 import { MeetingDetails } from "./MeetingDetails";
 import { RoomFilter } from "./RoomFilter";
 import { AgendaEvent } from "./AgendaEvent";
-import { AgendaDateCell } from "./AgendaDateCell";
-import { AgendaTimeCell } from "./AgendaTimeCell";
 import { WeekEvent } from "./WeekEvent";
 import { MonthEvent } from "./MonthEvent";
 import { DayEvent } from "./DayEvent";
@@ -176,8 +174,6 @@ export function AgendaCalendar() {
               components={{
                 agenda: {
                   event: AgendaEvent,
-                  date: AgendaDateCell,
-                  time: AgendaTimeCell,
                 },
                 week: {
                   event: WeekEvent,
