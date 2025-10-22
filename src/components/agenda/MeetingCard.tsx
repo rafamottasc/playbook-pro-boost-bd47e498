@@ -15,7 +15,7 @@ interface MeetingCardProps {
 
 export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false }: MeetingCardProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-4 border-l-4 border-l-primary rounded-md bg-card shadow-sm hover:shadow-md transition-smooth">
       <h3 className="font-semibold text-foreground">{meeting.title}</h3>
       
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -45,24 +45,24 @@ export function MeetingCard({ meeting, onEdit, onCancel, showSeparator = false }
         </div>
       </div>
 
-      <div className="flex gap-2 pt-2">
+      <div className="flex flex-col sm:flex-row gap-2 pt-2">
         <Button 
           size="sm" 
           variant="outline" 
-          className="flex-1"
+          className="flex-1 justify-center"
           onClick={() => onEdit(meeting)}
         >
-          <Pencil className="h-3 w-3" />
-          Editar
+          <Pencil className="h-3 w-3 sm:mr-1" />
+          <span className="hidden sm:inline">Editar</span>
         </Button>
         <Button 
           size="sm" 
           variant="destructive" 
-          className="flex-1"
+          className="flex-1 justify-center"
           onClick={() => onCancel(meeting)}
         >
-          <X className="h-3 w-3" />
-          Cancelar
+          <X className="h-3 w-3 sm:mr-1" />
+          <span className="hidden sm:inline">Cancelar</span>
         </Button>
       </div>
       

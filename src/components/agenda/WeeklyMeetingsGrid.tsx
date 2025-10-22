@@ -5,15 +5,18 @@ import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useMeetings, Meeting } from "@/hooks/useMeetings";
 import { MeetingCard } from "./MeetingCard";
 import { EditMeetingDialog } from "./EditMeetingDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WeeklyMeetingsGridProps {
   selectedRoomId: string;
 }
 
 export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) {
+  const isMobile = useIsMobile();
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { locale: ptBR })
   );
@@ -88,79 +91,140 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
     <>
       <Card className="mb-4">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" onClick={handlePreviousWeek}>
-              <ChevronLeft className="h-4 w-4" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handlePreviousWeek}
+              className="w-full sm:w-auto"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
               Anterior
             </Button>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
-              <span className="font-semibold">
+              <span className="font-semibold text-sm sm:text-base">
                 {format(weekDays[0], "dd MMM", { locale: ptBR })} -{" "}
                 {format(weekDays[6], "dd MMM yyyy", { locale: ptBR })}
               </span>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleToday}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleToday}
+                className="flex-1 sm:flex-none"
+              >
                 Hoje
               </Button>
-              <Button variant="outline" size="sm" onClick={handleNextWeek}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleNextWeek}
+                className="flex-1 sm:flex-none"
+              >
                 Próxima
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-7 gap-4">
-            {weekDays.map((day) => {
-              const dateKey = format(day, "yyyy-MM-dd");
-              const dayMeetings = meetingsByDay[dateKey] || [];
-              const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+      {isMobile ? (
+        // Layout Vertical para Mobile
+        <div className="space-y-4">
+          {weekDays.map((day) => {
+            const dateKey = format(day, "yyyy-MM-dd");
+            const dayMeetings = meetingsByDay[dateKey] || [];
+            const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
-              return (
-                <div key={dateKey} className="flex flex-col min-h-[400px]">
-                  <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
-                    <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                      {format(day, "EEE", { locale: ptBR })}
+            return (
+              <Card key={dateKey}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                    <div>
+                      <div className={`text-sm uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {format(day, "EEEE", { locale: ptBR })}
+                      </div>
+                      <div className={`text-3xl font-bold mt-1 ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                        {format(day, "dd/MM")}
+                      </div>
                     </div>
-                    <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
-                      {format(day, "dd")}
-                    </div>
+                    <Badge variant={dayMeetings.length > 0 ? "default" : "secondary"}>
+                      {dayMeetings.length} {dayMeetings.length === 1 ? 'reunião' : 'reuniões'}
+                    </Badge>
                   </div>
 
-                  <div className="flex-1 space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                  <div className="space-y-4">
                     {dayMeetings.length === 0 ? (
-                      <div className="text-center text-xs text-muted-foreground py-8">
-                        Sem reuniões
+                      <div className="text-center text-sm text-muted-foreground py-8">
+                        Sem reuniões agendadas
                       </div>
                     ) : (
-                      dayMeetings.map((meeting, idx) => (
-                        <div
+                      dayMeetings.map((meeting) => (
+                        <MeetingCard
                           key={meeting.id}
-                          className="p-3 border-l-4 border-l-primary rounded-md bg-card shadow-sm hover:shadow-md transition-shadow"
-                        >
+                          meeting={meeting}
+                          onEdit={handleEdit}
+                          onCancel={handleCancel}
+                          showSeparator={false}
+                        />
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        // Layout Grid para Desktop
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
+              {weekDays.map((day) => {
+                const dateKey = format(day, "yyyy-MM-dd");
+                const dayMeetings = meetingsByDay[dateKey] || [];
+                const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+
+                return (
+                  <div key={dateKey} className="flex flex-col min-h-[400px]">
+                    <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
+                      <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {format(day, "EEE", { locale: ptBR })}
+                      </div>
+                      <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
+                        {format(day, "dd")}
+                      </div>
+                    </div>
+
+                    <div className="flex-1 space-y-3 overflow-y-auto max-h-[500px] pr-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                      {dayMeetings.length === 0 ? (
+                        <div className="text-center text-xs text-muted-foreground py-8">
+                          Sem reuniões
+                        </div>
+                      ) : (
+                        dayMeetings.map((meeting) => (
                           <MeetingCard
+                            key={meeting.id}
                             meeting={meeting}
                             onEdit={handleEdit}
                             onCancel={handleCancel}
                             showSeparator={false}
                           />
-                        </div>
-                      ))
-                    )}
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {editingMeeting && (
         <EditMeetingDialog

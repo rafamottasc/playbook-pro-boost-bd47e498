@@ -31,13 +31,18 @@ export default function Agenda() {
           {/* Filtros + Nova Reunião */}
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <RoomFilter
-                  value={selectedRoomId}
-                  onChange={setSelectedRoomId}
-                />
-                <Button onClick={() => setShowMeetingDialog(true)}>
-                  <Plus className="h-4 w-4" />
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex-1 max-w-full sm:max-w-xs">
+                  <RoomFilter
+                    value={selectedRoomId}
+                    onChange={setSelectedRoomId}
+                  />
+                </div>
+                <Button 
+                  onClick={() => setShowMeetingDialog(true)}
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
                   Nova Reunião
                 </Button>
               </div>
