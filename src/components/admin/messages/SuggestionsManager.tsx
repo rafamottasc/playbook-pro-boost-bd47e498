@@ -34,8 +34,20 @@ interface Suggestion {
   };
   messages: {
     title: string;
+    funnel_slug: string;
+    stage_name: string;
   };
 }
+
+const getFunnelName = (slug: string) => {
+  const funnelNames: { [key: string]: string } = {
+    'abordagem': 'Abordagem',
+    'atendimento': 'Atendimento',
+    'repescagem': 'Repescagem',
+    'pos-venda': 'Pós-Venda',
+  };
+  return funnelNames[slug] || slug;
+};
 
 export function SuggestionsManager() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -55,7 +67,7 @@ export function SuggestionsManager() {
         .select(`
           *,
           profiles(full_name),
-          messages(title)
+          messages(title, funnel_slug, stage_name)
         `)
         .order("created_at", { ascending: false });
 
@@ -201,7 +213,10 @@ export function SuggestionsManager() {
                   <Badge variant="default">Pendente</Badge>
                   <span className="text-sm text-muted-foreground">01/01/2024</span>
                 </div>
-                <p className="font-semibold text-sm mb-1">Mensagem: Saudação Inicial</p>
+                <div className="text-xs text-muted-foreground mb-1">
+                  Funil: Abordagem | Etapa: 1ª Abordagem
+                </div>
+                <p className="font-semibold text-sm mb-1">Título: Saudação Inicial</p>
                 <p className="text-xs text-muted-foreground mb-2">Por: João Silva</p>
                 <p className="text-xs bg-muted p-2 rounded">
                   Sugestão de melhoria para a mensagem...
@@ -254,8 +269,13 @@ export function SuggestionsManager() {
                     {new Date(suggestion.created_at).toLocaleDateString("pt-BR")}
                   </span>
                 </div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  <span className="font-medium">Funil:</span> {getFunnelName(suggestion.messages?.funnel_slug || "")}
+                  {" | "}
+                  <span className="font-medium">Etapa:</span> {suggestion.messages?.stage_name || "N/A"}
+                </div>
                 <h3 className="font-semibold mb-1">
-                  Mensagem: {suggestion.messages?.title}
+                  Título: {suggestion.messages?.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
                   Por: {suggestion.profiles?.full_name}
