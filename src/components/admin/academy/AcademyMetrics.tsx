@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, CheckCircle2, Users, MessageCircle, ThumbsUp } from "lucide-react";
+import { Users, MessageCircle, ThumbsUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { UserProgressDetailed } from "./UserProgressDetailed";
 
 interface Metrics {
   totalViews: number;
@@ -115,8 +119,8 @@ export function AcademyMetrics() {
     return (
       <div>
         <h3 className="text-xl font-semibold mb-6">Métricas da Academy</h3>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-32" />
@@ -136,30 +140,7 @@ export function AcademyMetrics() {
     <div>
       <h3 className="text-xl font-semibold mb-6">Métricas da Academy</h3>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Visualizações</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalViews}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Aulas Concluídas</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalCompletions}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.completionRate}% de taxa de conclusão
-            </p>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6 md:grid-cols-3 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Perguntas Pendentes</CardTitle>
@@ -186,20 +167,6 @@ export function AcademyMetrics() {
           </CardContent>
         </Card>
 
-        {metrics.topModule && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Módulo Mais Popular</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.topModule.title}</div>
-              <p className="text-xs text-muted-foreground">
-                {metrics.topModule.views} visualizações
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
         {metrics.topUsers.length > 0 && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -207,15 +174,46 @@ export function AcademyMetrics() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">#{1}</div>
-              <p className="text-xs text-muted-foreground">
-                {metrics.topUsers[0]?.full_name}
-              </p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" className="w-full p-0 h-auto hover:bg-transparent">
+                    <div className="text-left w-full">
+                      <div className="text-2xl font-bold">#{1}</div>
+                      <p className="text-sm font-medium truncate">{metrics.topUsers[0]?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {metrics.topUsers[0]?.completions} aulas completas
+                      </p>
+                      <p className="text-xs text-primary mt-2 font-medium">
+                        Ver Top 5 →
+                      </p>
+                    </div>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm">Top 5 Mais Ativos</h4>
+                    {metrics.topUsers.slice(0, 5).map((user, index) => (
+                      <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={index === 0 ? "default" : "secondary"} className="w-8 justify-center">
+                            #{index + 1}
+                          </Badge>
+                          <span className="text-sm font-medium">{user.full_name}</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {user.completions} aulas
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </CardContent>
           </Card>
         )}
       </div>
 
+      <UserProgressDetailed />
     </div>
   );
 }

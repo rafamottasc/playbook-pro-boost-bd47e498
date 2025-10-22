@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Search, User, BookOpen, CheckCircle2, Circle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface UserProgress {
   userId: string;
@@ -159,13 +159,6 @@ export function UserProgressDetailed() {
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getProgressVariant = (percentage: number): "great" | "good" | "okay" | "bad" => {
-    if (percentage === 100) return "great";
-    if (percentage >= 70) return "good";
-    if (percentage >= 40) return "okay";
-    return "bad";
-  };
-
   const getStatusIcon = (percentage: number) => {
     if (percentage === 100) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
     if (percentage > 0) return <Circle className="h-4 w-4 text-yellow-600 fill-yellow-600" />;
@@ -230,16 +223,16 @@ export function UserProgressDetailed() {
                     open={isOpen}
                     onOpenChange={() => toggleUser(user.userId)}
                   >
-                    <Card className="border-2">
+                    <Card className="border-2 hover:border-primary/50 transition-colors">
                       <CollapsibleTrigger className="w-full">
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-4">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1 text-left">
-                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <User className="h-5 w-5 text-primary" />
+                              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <User className="h-6 w-6 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-base truncate">
+                                <div className="font-bold text-lg truncate">
                                   {user.userName}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
@@ -250,7 +243,7 @@ export function UserProgressDetailed() {
                             
                             <div className="flex items-center gap-3 flex-shrink-0">
                               <div className="text-right">
-                                <div className="font-bold text-lg">
+                                <div className="text-2xl font-bold text-primary">
                                   {user.completedLessons}/{user.totalLessons}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
@@ -264,53 +257,44 @@ export function UserProgressDetailed() {
                               )}
                             </div>
                           </div>
-                          
-                          <div className="mt-3">
-                            <Progress 
-                              value={user.progressPercentage} 
-                              variant={getProgressVariant(user.progressPercentage)}
-                              className="h-2"
-                            />
-                          </div>
                         </CardHeader>
                       </CollapsibleTrigger>
                       
                       <CollapsibleContent>
-                        <CardContent className="pt-0 space-y-3">
-                          <div className="border-t pt-4">
+                        <CardContent className="pt-0">
+                          <Separator className="mb-4" />
+                          
+                          <div>
                             <h4 className="text-sm font-semibold mb-3 text-muted-foreground">
                               Progresso por Módulo
                             </h4>
                             
                             <div className="space-y-4">
-                              {user.moduleBreakdown.map(module => (
-                                <div key={module.moduleId} className="space-y-2">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                      {getStatusIcon(module.percentage)}
-                                      <span className="font-medium text-sm truncate">
-                                        {module.moduleTitle}
-                                      </span>
+                              {user.moduleBreakdown.map((module, index) => (
+                                <div key={module.moduleId}>
+                                  {index > 0 && <Separator className="my-4" />}
+                                  
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        {getStatusIcon(module.percentage)}
+                                        <span className="font-semibold text-sm truncate">
+                                          {module.moduleTitle}
+                                        </span>
+                                      </div>
+                                      <Badge 
+                                        variant={
+                                          module.percentage === 100 ? "default" :
+                                          module.percentage > 0 ? "secondary" : "outline"
+                                        }
+                                        className="flex-shrink-0"
+                                      >
+                                        {module.completedLessons}/{module.totalLessons}
+                                      </Badge>
                                     </div>
-                                    <Badge 
-                                      variant={
-                                        module.percentage === 100 ? "default" :
-                                        module.percentage > 0 ? "secondary" : "outline"
-                                      }
-                                      className="flex-shrink-0"
-                                    >
-                                      {module.completedLessons}/{module.totalLessons}
-                                    </Badge>
-                                  </div>
-                                  
-                                  <Progress 
-                                    value={module.percentage} 
-                                    variant={getProgressVariant(module.percentage)}
-                                    className="h-1.5"
-                                  />
-                                  
-                                  {/* Lista de aulas do módulo */}
-                                  <div className="ml-6 mt-2 space-y-1.5">
+                                    
+                                    {/* Lista de aulas do módulo */}
+                                    <div className="ml-6 mt-2 space-y-1.5">
                                     {module.lessons.map(lesson => (
                                       <div 
                                         key={lesson.lessonId}
@@ -331,6 +315,7 @@ export function UserProgressDetailed() {
                                         )}
                                       </div>
                                     ))}
+                                    </div>
                                   </div>
                                 </div>
                               ))}
