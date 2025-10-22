@@ -128,10 +128,13 @@ export function PollPopup() {
 
       if (error) throw error;
 
-      // Registrar visualização (apenas após voto bem-sucedido)
+      // Registrar visualização (usar upsert para evitar erros de duplicação)
       await supabase
         .from("poll_views")
-        .insert({ poll_id: activePoll.id, user_id: user.id });
+        .upsert(
+          { poll_id: activePoll.id, user_id: user.id },
+          { onConflict: 'poll_id,user_id', ignoreDuplicates: true }
+        );
 
       // Atualizar estado
       setHasVoted(true);
@@ -161,7 +164,10 @@ export function PollPopup() {
         if (user && activePoll) {
           await supabase
             .from("poll_views")
-            .insert({ poll_id: activePoll.id, user_id: user.id });
+            .upsert(
+              { poll_id: activePoll.id, user_id: user.id },
+              { onConflict: 'poll_id,user_id', ignoreDuplicates: true }
+            );
           
           setHasVoted(true);
         }

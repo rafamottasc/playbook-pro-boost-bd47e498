@@ -1869,16 +1869,10 @@ export type Database = {
         Args: { question_id: string }
         Returns: undefined
       }
-      delete_old_logs: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      extract_storage_path: {
-        Args: { file_url: string }
-        Returns: string
-      }
+      delete_old_logs: { Args: never; Returns: undefined }
+      extract_storage_path: { Args: { file_url: string }; Returns: string }
       get_active_announcements: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           cta_link: string
           cta_text: string
@@ -1891,24 +1885,27 @@ export type Database = {
           title: string
         }[]
       }
-      get_mood_metrics: {
-        Args:
-          | {
+      get_mood_metrics:
+        | {
+            Args: {
+              days_period?: number
+              limit_records?: number
+              offset_records?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               days_period?: number
               filter_team?: string
               filter_user_id?: string
               limit_records?: number
               offset_records?: number
             }
-          | {
-              days_period?: number
-              limit_records?: number
-              offset_records?: number
-            }
-        Returns: Json
-      }
+            Returns: Json
+          }
       get_public_profiles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           full_name: string
@@ -1927,14 +1924,8 @@ export type Database = {
         Args: { question_id: string }
         Returns: undefined
       }
-      is_first_admin: {
-        Args: { target_user_id: string }
-        Returns: boolean
-      }
-      is_user_blocked: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_first_admin: { Args: { target_user_id: string }; Returns: boolean }
+      is_user_blocked: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "corretor"
