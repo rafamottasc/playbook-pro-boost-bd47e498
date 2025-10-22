@@ -159,6 +159,9 @@ export function usePolls() {
         });
       }
 
+      // Invalidar cache para forçar re-fetch e remover enquete da tela
+      queryClient.invalidateQueries({ queryKey: ["active-poll", user?.id] });
+
       toast.success("Voto registrado!", {
         description: "Obrigado pela sua participação.",
       });
@@ -178,6 +181,9 @@ export function usePolls() {
               { poll_id: activePoll.id, user_id: user.id },
               { onConflict: "poll_id,user_id", ignoreDuplicates: true }
             );
+
+          // Invalidar cache para remover enquete da tela
+          queryClient.invalidateQueries({ queryKey: ["active-poll", user?.id] });
         }
 
         toast.error("Você já votou nesta enquete");
