@@ -117,7 +117,7 @@ export function PartnerCard({ partner, isAdmin, isPrioritaria, onEdit, onDelete 
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-6 w-6 p-0 text-green-600 hover:bg-green-50"
+                    className="h-6 w-6 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
                     onClick={(e) => {
                       e.stopPropagation();
                       const phoneNumber = partner.manager_phone?.replace(/\D/g, '');
