@@ -38,6 +38,11 @@ export function usePolls() {
     queryFn: async () => {
       if (!user) return null;
 
+      console.log('[usePolls] 🔍 INÍCIO - Buscando enquetes ativas', {
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      });
+
       const now = new Date();
       const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
 
@@ -62,7 +67,15 @@ export function usePolls() {
         .order("created_at", { ascending: false });
 
       if (pollError) throw pollError;
-      if (!polls || polls.length === 0) return null;
+      if (!polls || polls.length === 0) {
+        console.log('[usePolls] ❌ Nenhuma enquete ativa encontrada no banco');
+        return null;
+      }
+
+      console.log('[usePolls] ✅ Enquetes ativas encontradas:', {
+        count: polls.length,
+        pollIds: polls.map(p => p.id)
+      });
 
       // Verificar cada enquete até encontrar uma não votada/visualizada
       for (const poll of polls) {
@@ -79,22 +92,36 @@ export function usePolls() {
           .eq("user_id", user.id);
 
         // Debug logging
-        console.log('[usePolls] Verificando poll:', poll.id, {
+        console.log('[usePolls] 🔎 Verificando poll:', poll.id, {
+          pollTitle: poll.title,
           hasVote: vote && vote.length > 0,
           hasView: view && view.length > 0,
+          voteCount: vote?.length || 0,
+          viewCount: view?.length || 0,
           voteError,
           viewError,
-          userId: user.id
+          userId: user.id,
+          timestamp: new Date().toISOString()
         });
 
         // Só retornar se NÃO votou E NÃO visualizou
         if ((!vote || vote.length === 0) && (!view || view.length === 0)) {
+          console.log('[usePolls] ✅ ENQUETE ENCONTRADA para exibir:', {
+            pollId: poll.id,
+            pollTitle: poll.title,
+            userId: user.id,
+            timestamp: new Date().toISOString()
+          });
           poll.options.sort((a: PollOption, b: PollOption) => a.display_order - b.display_order);
           return poll as Poll;
         }
       }
 
-      console.log('[usePolls] Nenhuma enquete disponível');
+      console.log('[usePolls] ⚠️ Nenhuma enquete disponível para exibir', {
+        userId: user.id,
+        totalPollsChecked: polls.length,
+        timestamp: new Date().toISOString()
+      });
       return null;
     },
     enabled: !!user,
@@ -159,23 +186,44 @@ export function usePolls() {
       return updatedPoll;
     },
     onSuccess: async (data, variables) => {
+      console.log('[usePolls] 🎯 VOTO REGISTRADO - Iniciando processo:', {
+        pollId: variables.poll_id,
+        userId: user!.id,
+        timestamp: new Date().toISOString()
+      });
+
       queryClient.setQueryData(["poll-voted", variables.poll_id, user?.id], true);
       
-      // Garantir que poll_view foi inserida antes de invalidar cache
-      await supabase
+      // Garantir que poll_view foi inserida
+      const { error: viewError } = await supabase
         .from("poll_views")
         .upsert(
           { poll_id: variables.poll_id, user_id: user!.id },
           { onConflict: "poll_id,user_id", ignoreDuplicates: true }
         );
       
-      console.log('[usePolls] Voto registrado e view inserida para poll:', variables.poll_id);
+      console.log('[usePolls] 📝 Poll_view inserida:', {
+        pollId: variables.poll_id,
+        userId: user!.id,
+        error: viewError,
+        timestamp: new Date().toISOString()
+      });
       
-      // Forçar enquete como null no cache IMEDIATAMENTE
+      // Forçar enquete como null
       queryClient.setQueryData(["active-poll", user?.id], null);
+      
+      console.log('[usePolls] 🗑️ Cache local setado para NULL:', {
+        userId: user?.id,
+        timestamp: new Date().toISOString()
+      });
 
-      // Invalidar cache para forçar re-fetch
+      // Invalidar cache
       queryClient.invalidateQueries({ queryKey: ["active-poll", user?.id] });
+      
+      console.log('[usePolls] 🔄 Cache invalidado, próxima query deve buscar do banco:', {
+        userId: user?.id,
+        timestamp: new Date().toISOString()
+      });
 
       toast.success("Voto registrado!", {
         description: "Obrigado pela sua participação.",

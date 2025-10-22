@@ -22,7 +22,21 @@ export function PollPopup() {
 
   // Abrir dialog quando houver enquete ativa
   useEffect(() => {
+    console.log('[PollPopup] 🔔 useEffect disparado:', {
+      hasActivePoll: !!activePoll,
+      pollId: activePoll?.id,
+      pollTitle: activePoll?.title,
+      hasVoted,
+      isOpen,
+      timestamp: new Date().toISOString()
+    });
+
     if (activePoll && !hasVoted) {
+      console.log('[PollPopup] ✅ Abrindo dialog da enquete:', {
+        pollId: activePoll.id,
+        pollTitle: activePoll.title,
+        timestamp: new Date().toISOString()
+      });
       setIsOpen(true);
       setSelectedOptions([]);
     }
@@ -53,7 +67,18 @@ export function PollPopup() {
   };
 
   // Não renderizar se não há enquete ativa
-  if (!activePoll) return null;
+  if (!activePoll) {
+    console.log('[PollPopup] ❌ Não renderizando - sem enquete ativa');
+    return null;
+  }
+
+  console.log('[PollPopup] ✅ Renderizando popup:', {
+    pollId: activePoll.id,
+    pollTitle: activePoll.title,
+    isOpen,
+    hasVoted,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
