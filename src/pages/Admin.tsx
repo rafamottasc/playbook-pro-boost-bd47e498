@@ -16,10 +16,11 @@ import {
   FolderOpen, GraduationCap,
   MessageSquare, Workflow, Building2,
   Megaphone, Vote, MessageCircle, Smile,
-  Users, Calculator, Palette
+  Users, Calculator, Palette, HardDrive
 } from "lucide-react";
 import { CubManager } from "@/components/admin/CubManager";
 import { ThemeManager } from "@/components/admin/ThemeManager";
+import { StorageCleanup } from "@/components/admin/StorageCleanup";
 
 export default function Admin() {
   return (
@@ -161,6 +162,10 @@ export default function Admin() {
                   <Palette className="h-4 w-4" />
                   Aparência
                 </TabsTrigger>
+                <TabsTrigger value="storage" className="gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  Storage
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="users">
@@ -173,6 +178,10 @@ export default function Admin() {
               
               <TabsContent value="theme">
                 <ThemeManager />
+              </TabsContent>
+              
+              <TabsContent value="storage">
+                <StorageCleanup />
               </TabsContent>
             </Tabs>
           </TabsContent>
