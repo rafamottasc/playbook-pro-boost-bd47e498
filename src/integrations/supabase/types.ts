@@ -597,6 +597,66 @@ export type Database = {
           },
         ]
       }
+      meeting_audit_logs: {
+        Row: {
+          action: string
+          created_by: string | null
+          details: Json | null
+          end_date: string | null
+          id: string
+          meeting_id: string | null
+          meeting_title: string
+          performed_at: string | null
+          performed_by: string | null
+          reason: string | null
+          room_name: string | null
+          start_date: string | null
+        }
+        Insert: {
+          action: string
+          created_by?: string | null
+          details?: Json | null
+          end_date?: string | null
+          id?: string
+          meeting_id?: string | null
+          meeting_title: string
+          performed_at?: string | null
+          performed_by?: string | null
+          reason?: string | null
+          room_name?: string | null
+          start_date?: string | null
+        }
+        Update: {
+          action?: string
+          created_by?: string | null
+          details?: Json | null
+          end_date?: string | null
+          id?: string
+          meeting_id?: string | null
+          meeting_title?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          reason?: string | null
+          room_name?: string | null
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "users_with_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_rooms: {
         Row: {
           active: boolean | null
