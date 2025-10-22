@@ -88,7 +88,6 @@ export function usePolls() {
       return null;
     },
     enabled: !!user,
-    staleTime: 1000 * 60 * 5, // 5 minutos
     gcTime: 1000 * 60 * 10, // 10 minutos
     refetchOnWindowFocus: false,
   });
@@ -151,15 +150,10 @@ export function usePolls() {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(["poll-voted", variables.poll_id, user?.id], true);
       
-      // Atualizar cache do poll ativo com novos resultados
-      if (data && activePoll) {
-        queryClient.setQueryData(["active-poll", user?.id], {
-          ...activePoll,
-          results_cache: data.results_cache,
-        });
-      }
+      // Forçar enquete como null no cache IMEDIATAMENTE
+      queryClient.setQueryData(["active-poll", user?.id], null);
 
-      // Invalidar cache para forçar re-fetch e remover enquete da tela
+      // Invalidar cache para forçar re-fetch
       queryClient.invalidateQueries({ queryKey: ["active-poll", user?.id] });
 
       toast.success("Voto registrado!", {
@@ -173,6 +167,9 @@ export function usePolls() {
       if (error.message?.includes("já votou") || error.code === "23505") {
         if (user && activePoll) {
           queryClient.setQueryData(["poll-voted", activePoll.id, user.id], true);
+          
+          // Forçar enquete como null IMEDIATAMENTE
+          queryClient.setQueryData(["active-poll", user?.id], null);
           
           // Registrar visualização mesmo assim
           supabase
@@ -210,6 +207,9 @@ export function usePolls() {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Forçar enquete como null IMEDIATAMENTE
+      queryClient.setQueryData(["active-poll", user?.id], null);
+      
       // Invalidar query para buscar próxima enquete
       queryClient.invalidateQueries({ queryKey: ["active-poll", user?.id] });
     },
