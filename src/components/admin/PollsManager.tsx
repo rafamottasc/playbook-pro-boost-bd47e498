@@ -24,6 +24,10 @@ interface Poll {
   end_date: string;
   active: boolean;
   results_cache: any;
+  created_by: string | null;
+  profiles?: {
+    full_name: string;
+  } | null;
 }
 
 interface PollOption {
@@ -61,7 +65,10 @@ export function PollsManager() {
   const fetchPolls = async () => {
     const { data, error } = await supabase
       .from("polls")
-      .select("*")
+      .select(`
+        *,
+        profiles!polls_created_by_fkey(full_name)
+      `)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -357,6 +364,9 @@ export function PollsManager() {
                     {poll.description && (
                       <p className="text-sm text-muted-foreground">{poll.description}</p>
                     )}
+                    <p className="text-xs text-muted-foreground">
+                      Criado por: {poll.profiles?.full_name || "Sistema"}
+                    </p>
                     <div className="flex gap-2 flex-wrap">
                       <Badge variant={status.color as any}>{status.label}</Badge>
                       <Badge variant="outline">
