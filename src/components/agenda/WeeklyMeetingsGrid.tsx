@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMeetings, Meeting } from "@/hooks/useMeetings";
 import { MeetingCard } from "./MeetingCard";
@@ -242,47 +243,49 @@ export function WeeklyMeetingsGrid({ selectedRoomId }: WeeklyMeetingsGridProps) 
         // Layout Grid para Desktop
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-              {weekDays.map((day) => {
-                const dateKey = format(day, "yyyy-MM-dd");
-                const dayMeetings = meetingsByDay[dateKey] || [];
-                const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+            <ScrollArea className="max-h-[600px]">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 pr-4">
+                {weekDays.map((day) => {
+                  const dateKey = format(day, "yyyy-MM-dd");
+                  const dayMeetings = meetingsByDay[dateKey] || [];
+                  const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
-                return (
-                  <div key={dateKey} className="flex flex-col min-h-[400px]">
-                    <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
-                      <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {format(day, "EEE", { locale: ptBR })}
-                      </div>
-                      <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
-                        {format(day, "dd")}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 space-y-3 overflow-y-auto max-h-[500px] pr-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-                      {dayMeetings.length === 0 ? (
-                        <div className="text-center text-xs text-muted-foreground py-8">
-                          Sem reuniões
+                  return (
+                    <div key={dateKey} className="flex flex-col">
+                      <div className={`text-center border-b pb-3 mb-3 ${isToday ? 'border-primary' : ''}`}>
+                        <div className={`text-xs uppercase font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {format(day, "EEE", { locale: ptBR })}
                         </div>
-                      ) : (
-                        dayMeetings.map((meeting) => (
-                          <MeetingCard
-                            key={meeting.id}
-                            meeting={meeting}
-                            onEdit={handleEdit}
-                            onCancel={handleCancel}
-                            onDelete={handleDelete}
-                            showSeparator={false}
-                            currentUserId={user?.id || ""}
-                            isAdmin={isAdmin}
-                          />
-                        ))
-                      )}
+                        <div className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
+                          {format(day, "dd")}
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-3">
+                        {dayMeetings.length === 0 ? (
+                          <div className="text-center text-xs text-muted-foreground py-8">
+                            Sem reuniões
+                          </div>
+                        ) : (
+                          dayMeetings.map((meeting) => (
+                            <MeetingCard
+                              key={meeting.id}
+                              meeting={meeting}
+                              onEdit={handleEdit}
+                              onCancel={handleCancel}
+                              onDelete={handleDelete}
+                              showSeparator={false}
+                              currentUserId={user?.id || ""}
+                              isAdmin={isAdmin}
+                            />
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       )}
