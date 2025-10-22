@@ -90,6 +90,7 @@ export function usePolls() {
     enabled: !!user,
     gcTime: 1000 * 60 * 10, // 10 minutos
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Evita re-fetch ao remontar após setQueryData(null)
   });
 
   // Check if user has voted on a specific poll
@@ -232,7 +233,7 @@ export function usePolls() {
           table: "polls",
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["active-poll"] });
+          queryClient.invalidateQueries({ queryKey: ["active-poll", user.id] });
         }
       )
       .subscribe();
