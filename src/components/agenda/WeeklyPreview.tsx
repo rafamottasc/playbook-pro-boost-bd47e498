@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Eye } from "lucide-react";
+import { Calendar, Clock, MapPin, Eye, Users, User } from "lucide-react";
 import { useMeetings } from "@/hooks/useMeetings";
 import { format, addDays, startOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -30,32 +30,32 @@ export const WeeklyPreview = () => {
   }
 
   return (
-    <Card className="mb-6 border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-foreground">
+    <Card className="border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border-l-4 border-l-primary">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-foreground text-lg">
           <Calendar className="h-5 w-5 text-primary" />
           Reuniões desta Semana
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-3 p-3">
-                <Skeleton className="h-12 w-12 rounded-lg flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
+              <div key={i} className="flex items-start gap-2 p-2">
+                <Skeleton className="h-10 w-10 rounded-lg flex-shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-2.5 w-1/2" />
                 </div>
               </div>
             ))}
           </div>
         ) : upcomingMeetings.length === 0 ? (
-          <p className="text-muted-foreground text-center py-4">
+          <p className="text-muted-foreground text-center py-4 text-sm">
             Nenhuma reunião agendada esta semana
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 max-h-[280px] overflow-y-auto">
             {upcomingMeetings.map((meeting) => {
               const startDate = new Date(meeting.start_date);
               const dayOfWeek = format(startDate, "EEE", { locale: ptBR }).toUpperCase();
@@ -65,38 +65,46 @@ export const WeeklyPreview = () => {
               return (
                 <div
                   key={meeting.id}
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors cursor-pointer group"
+                  className="flex items-start gap-2 p-2 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors cursor-pointer group"
                   onClick={() => navigate("/agenda")}
                 >
                   {/* Data */}
-                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
-                    <span className="text-xs font-medium text-muted-foreground">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
+                    <span className="text-[9px] font-medium text-muted-foreground leading-none">
                       {dayOfWeek}
                     </span>
-                    <span className="text-lg font-bold text-primary">
+                    <span className="text-base font-bold text-primary leading-none mt-0.5">
                       {dayOfMonth}
                     </span>
                   </div>
 
                   {/* Informações */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold truncate text-foreground">
+                    <h4 className="font-semibold truncate text-foreground text-sm leading-tight">
                       {meeting.title}
                     </h4>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1 flex-wrap">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {time}
+                        <Clock className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{time}</span>
                       </span>
                       <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {meeting.room_name}
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{meeting.room_name}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{meeting.participants_count} pessoas</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{meeting.creator_name?.split(' ')[0]}</span>
                       </span>
                     </div>
                   </div>
 
                   {/* Ícone de visualizar */}
-                  <Eye className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Eye className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
                 </div>
               );
             })}
@@ -106,10 +114,11 @@ export const WeeklyPreview = () => {
         {/* Botão para ver agenda completa */}
         <Button
           variant="outline"
-          className="w-full mt-4"
+          className="w-full mt-3"
+          size="sm"
           onClick={() => navigate("/agenda")}
         >
-          <Calendar className="h-4 w-4 mr-2" />
+          <Calendar className="h-3.5 w-3.5 mr-2" />
           Ver Agenda Completa
         </Button>
       </CardContent>

@@ -51,6 +51,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   const fetchMeetings = async () => {
     if (!user) {
@@ -158,6 +159,52 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     }
   };
 
+  const updateMeeting = async (meeting_id: string, data: Partial<CreateMeetingData>) => {
+    if (!user) {
+      toast.error("Você precisa estar autenticado");
+      return null;
+    }
+
+    setUpdating(true);
+    try {
+      const updateData: any = {};
+      
+      if (data.title !== undefined) updateData.title = data.title;
+      if (data.description !== undefined) updateData.description = data.description || null;
+      if (data.room_id !== undefined) updateData.room_id = data.room_id;
+      if (data.start_date !== undefined) updateData.start_date = data.start_date.toISOString();
+      if (data.end_date !== undefined) updateData.end_date = data.end_date.toISOString();
+      if (data.participants_count !== undefined) updateData.participants_count = data.participants_count;
+
+      const { data: meeting, error } = await supabase
+        .from("meetings")
+        .update(updateData)
+        .eq("id", meeting_id)
+        .select()
+        .single();
+
+      if (error) {
+        if (error.message.includes("Conflito de horário")) {
+          toast.error("Esta sala já está reservada neste horário");
+        } else {
+          console.error("Error updating meeting:", error);
+          toast.error("Erro ao atualizar reunião");
+        }
+        return null;
+      }
+
+      toast.success("Reunião atualizada com sucesso!");
+      fetchMeetings();
+      return meeting;
+    } catch (error) {
+      console.error("Error updating meeting:", error);
+      toast.error("Erro ao atualizar reunião");
+      return null;
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const cancelMeeting = async ({ meeting_id, cancellation_reason }: CancelMeetingData) => {
     if (!user) {
       toast.error("Você precisa estar autenticado");
@@ -222,9 +269,11 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     meetings,
     loading,
     creating,
+    updating,
     cancelling,
     refetch: fetchMeetings,
     createMeeting,
+    updateMeeting,
     cancelMeeting,
   };
 }

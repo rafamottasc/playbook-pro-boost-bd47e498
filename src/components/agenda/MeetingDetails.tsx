@@ -5,11 +5,12 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, MapPin, Users, User, Trash2, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, User, Trash2, Loader2, Edit } from "lucide-react";
 import { Meeting } from "@/hooks/useMeetings";
 import { useMeetings } from "@/hooks/useMeetings";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { EditMeetingDialog } from "./EditMeetingDialog";
 
 interface MeetingDetailsProps {
   meeting: Meeting | null;
@@ -21,6 +22,7 @@ export function MeetingDetails({ meeting, open, onOpenChange }: MeetingDetailsPr
   const { user, isAdmin } = useAuth();
   const { cancelMeeting, cancelling } = useMeetings();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   if (!meeting) return null;
 
@@ -134,15 +136,28 @@ export function MeetingDetails({ meeting, open, onOpenChange }: MeetingDetailsPr
               Fechar
             </Button>
             {canCancel && meeting.status === "confirmed" && (
-              <Button
-                variant="destructive"
-                onClick={() => setShowCancelDialog(true)}
-                disabled={cancelling}
-                className="w-full sm:w-auto"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Cancelar Reunião
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditDialog(true);
+                    onOpenChange(false);
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={cancelling}
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Cancelar Reunião
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
@@ -170,6 +185,13 @@ export function MeetingDetails({ meeting, open, onOpenChange }: MeetingDetailsPr
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog de Edição */}
+      <EditMeetingDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        meeting={meeting}
+      />
     </>
   );
 }

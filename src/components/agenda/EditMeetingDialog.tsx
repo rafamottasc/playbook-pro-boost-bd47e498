@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,24 +12,24 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Clock, Loader2, MapPin, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMeetingRooms } from "@/hooks/useMeetingRooms";
-import { useMeetings } from "@/hooks/useMeetings";
+import { useMeetings, Meeting } from "@/hooks/useMeetings";
 import { toast } from "sonner";
 
-interface MeetingDialogProps {
+interface EditMeetingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedDate?: Date;
+  meeting: Meeting | null;
 }
 
-export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialogProps) {
+export function EditMeetingDialog({ open, onOpenChange, meeting }: EditMeetingDialogProps) {
   const { rooms } = useMeetingRooms();
-  const { createMeeting, creating } = useMeetings();
+  const { updateMeeting, updating } = useMeetings();
   
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [roomId, setRoomId] = useState("");
-  const [date, setDate] = useState<Date | undefined>(selectedDate || new Date());
+  const [date, setDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [participants, setParticipants] = useState("5");
@@ -37,8 +37,27 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
 
   const activeRooms = rooms.filter((room) => room.active);
 
+  // Preencher form com dados da reunião
+  useEffect(() => {
+    if (meeting && open) {
+      setTitle(meeting.title);
+      setDescription(meeting.description || "");
+      setRoomId(meeting.room_id);
+      
+      const startDate = new Date(meeting.start_date);
+      const endDate = new Date(meeting.end_date);
+      
+      setDate(startDate);
+      setStartTime(format(startDate, "HH:mm"));
+      setEndTime(format(endDate, "HH:mm"));
+      setParticipants(meeting.participants_count.toString());
+    }
+  }, [meeting, open]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!meeting) return;
 
     if (!title.trim()) {
       toast.error("Digite um título para a reunião");
@@ -91,7 +110,7 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
       return;
     }
 
-    const result = await createMeeting({
+    const result = await updateMeeting(meeting.id, {
       title: title.trim(),
       description: description.trim() || undefined,
       room_id: roomId,
@@ -101,14 +120,6 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
     });
 
     if (result) {
-      // Resetar form
-      setTitle("");
-      setDescription("");
-      setRoomId("");
-      setDate(undefined);
-      setStartTime("09:00");
-      setEndTime("10:00");
-      setParticipants("5");
       onOpenChange(false);
     }
   };
@@ -117,9 +128,9 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nova Reunião</DialogTitle>
+          <DialogTitle>Editar Reunião</DialogTitle>
           <DialogDescription>
-            Preencha os dados para agendar uma nova reunião
+            Atualize os dados da reunião
           </DialogDescription>
         </DialogHeader>
 
@@ -132,7 +143,7 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
               placeholder="Ex: Reunião de Planejamento"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              disabled={creating}
+              disabled={updating}
             />
           </div>
 
@@ -145,14 +156,14 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              disabled={creating}
+              disabled={updating}
             />
           </div>
 
           {/* Sala */}
           <div className="space-y-2">
             <Label htmlFor="room">Sala *</Label>
-            <Select value={roomId} onValueChange={setRoomId} disabled={creating}>
+            <Select value={roomId} onValueChange={setRoomId} disabled={updating}>
               <SelectTrigger id="room">
                 <SelectValue placeholder="Selecione uma sala" />
               </SelectTrigger>
@@ -186,7 +197,7 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
                     "w-full justify-start text-left font-normal",
                     !date && "text-muted-foreground"
                   )}
-                  disabled={creating}
+                  disabled={updating}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, "PPP", { locale: ptBR }) : "Selecione a data"}
@@ -220,7 +231,7 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="pl-10"
-                  disabled={creating}
+                  disabled={updating}
                 />
               </div>
             </div>
@@ -235,7 +246,7 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                   className="pl-10"
-                  disabled={creating}
+                  disabled={updating}
                 />
               </div>
             </div>
@@ -253,7 +264,7 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
                 value={participants}
                 onChange={(e) => setParticipants(e.target.value)}
                 className="pl-10"
-                disabled={creating}
+                disabled={updating}
               />
             </div>
           </div>
@@ -263,13 +274,13 @@ export function MeetingDialog({ open, onOpenChange, selectedDate }: MeetingDialo
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={creating}
+              disabled={updating}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={creating}>
-              {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar Reunião
+            <Button type="submit" disabled={updating}>
+              {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Salvar Alterações
             </Button>
           </DialogFooter>
         </form>

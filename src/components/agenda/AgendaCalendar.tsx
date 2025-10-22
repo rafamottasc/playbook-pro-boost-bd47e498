@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { MeetingDialog } from "./MeetingDialog";
 import { MeetingDetails } from "./MeetingDetails";
 import { RoomFilter } from "./RoomFilter";
+import { AgendaEvent } from "./AgendaEvent";
+import { WeekEvent } from "./WeekEvent";
+import { MonthEvent } from "./MonthEvent";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar-styles.css";
 
@@ -167,6 +170,17 @@ export function AgendaCalendar() {
               step={30}
               showMultiDayTimes
               defaultView="week"
+              components={{
+                agenda: {
+                  event: AgendaEvent,
+                },
+                week: {
+                  event: WeekEvent,
+                },
+                month: {
+                  event: MonthEvent,
+                },
+              }}
             />
           </div>
         )}
