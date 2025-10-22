@@ -23,7 +23,7 @@ interface EditMeetingDialogProps {
 }
 
 export function EditMeetingDialog({ open, onOpenChange, meeting, onSuccess }: EditMeetingDialogProps) {
-  const { rooms } = useMeetingRooms();
+  const { rooms, loading } = useMeetingRooms();
   const { updateMeeting, updating } = useMeetings();
   
   // Form state
@@ -40,7 +40,7 @@ export function EditMeetingDialog({ open, onOpenChange, meeting, onSuccess }: Ed
 
   // Preencher form com dados da reunião
   useEffect(() => {
-    if (meeting && open) {
+    if (meeting && open && !loading && rooms.length > 0) {
       setTitle(meeting.title);
       setDescription(meeting.description || "");
       setRoomId(meeting.room_id);
@@ -53,7 +53,7 @@ export function EditMeetingDialog({ open, onOpenChange, meeting, onSuccess }: Ed
       setEndTime(format(endDate, "HH:mm"));
       setParticipants(meeting.participants_count.toString());
     }
-  }, [meeting, open]);
+  }, [meeting, open, loading, rooms]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,12 +168,17 @@ export function EditMeetingDialog({ open, onOpenChange, meeting, onSuccess }: Ed
           {/* Sala */}
           <div className="space-y-2">
             <Label htmlFor="room">Sala *</Label>
-            <Select value={roomId} onValueChange={setRoomId} disabled={updating}>
+            <Select value={roomId} onValueChange={setRoomId} disabled={updating || loading}>
               <SelectTrigger id="room">
-                <SelectValue placeholder="Selecione uma sala" />
+                <SelectValue placeholder={loading ? "Carregando salas..." : "Selecione uma sala"} />
               </SelectTrigger>
               <SelectContent>
-                {activeRooms.length === 0 ? (
+                {loading ? (
+                  <div className="p-2 text-sm text-muted-foreground flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Carregando...
+                  </div>
+                ) : activeRooms.length === 0 ? (
                   <div className="p-2 text-sm text-muted-foreground">
                     Nenhuma sala disponível
                   </div>
