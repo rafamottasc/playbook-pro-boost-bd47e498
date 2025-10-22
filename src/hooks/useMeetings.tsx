@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
@@ -47,71 +48,76 @@ interface CancelMeetingData {
 
 export function useMeetings(options: UseMeetingsOptions = {}) {
   const { user } = useAuth();
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  const fetchMeetings = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
+  // Criar query key única baseada nas opções
+  const queryKey = ["meetings", user?.id, options];
+
+  // Função de fetch otimizada
+  const fetchMeetings = async (): Promise<Meeting[]> => {
+    if (!user) return [];
+
+    let query = supabase
+      .from("meetings")
+      .select(`
+        *,
+        meeting_rooms!meetings_room_id_fkey(name),
+        profiles!meetings_created_by_fkey(full_name)
+      `)
+      .order("start_date", { ascending: true });
+
+    // Aplicar filtros
+    if (options.startDate) {
+      query = query.gte("start_date", options.startDate.toISOString());
+    }
+    if (options.endDate) {
+      query = query.lte("start_date", options.endDate.toISOString());
+    }
+    if (options.roomId) {
+      query = query.eq("room_id", options.roomId);
+    }
+    if (options.status) {
+      query = query.eq("status", options.status);
+    } else {
+      // Por padrão, mostrar apenas confirmadas
+      query = query.eq("status", "confirmed");
+    }
+    if (options.limit) {
+      query = query.limit(options.limit);
     }
 
-    try {
-      let query = supabase
-        .from("meetings")
-        .select(`
-          *,
-          meeting_rooms!meetings_room_id_fkey(name),
-          profiles!meetings_created_by_fkey(full_name)
-        `)
-        .order("start_date", { ascending: true });
+    const { data, error } = await query;
 
-      // Aplicar filtros
-      if (options.startDate) {
-        query = query.gte("start_date", options.startDate.toISOString());
-      }
-      if (options.endDate) {
-        query = query.lte("start_date", options.endDate.toISOString());
-      }
-      if (options.roomId) {
-        query = query.eq("room_id", options.roomId);
-      }
-      if (options.status) {
-        query = query.eq("status", options.status);
-      } else {
-        // Por padrão, mostrar apenas confirmadas
-        query = query.eq("status", "confirmed");
-      }
-      if (options.limit) {
-        query = query.limit(options.limit);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching meetings:", error);
-        toast.error("Erro ao carregar reuniões");
-        return;
-      }
-
-      // Formatar dados com informações relacionadas
-      const formattedData: Meeting[] = (data || []).map((m: any) => ({
-        ...m,
-        room_name: m.meeting_rooms?.name || "Sala desconhecida",
-        creator_name: m.profiles?.full_name || "Usuário desconhecido",
-      }));
-
-      setMeetings(formattedData);
-    } catch (error) {
+    if (error) {
       console.error("Error fetching meetings:", error);
       toast.error("Erro ao carregar reuniões");
-    } finally {
-      setLoading(false);
+      throw error;
     }
+
+    // Formatar dados com informações relacionadas
+    return (data || []).map((m: any) => ({
+      ...m,
+      room_name: m.meeting_rooms?.name || "Sala desconhecida",
+      creator_name: m.profiles?.full_name || "Usuário desconhecido",
+    }));
   };
+
+  // Usar React Query para cache e gerenciamento de estado
+  const { 
+    data: meetings = [], 
+    isLoading: loading,
+    refetch 
+  } = useQuery({
+    queryKey,
+    queryFn: fetchMeetings,
+    enabled: !!user,
+    staleTime: 1000 * 60 * 2, // Cache válido por 2 minutos
+    gcTime: 1000 * 60 * 5, // Garbage collection após 5 minutos
+    refetchOnWindowFocus: true, // Atualizar ao voltar para a aba
+  });
 
   const createMeeting = async (data: CreateMeetingData) => {
     if (!user) {
@@ -148,7 +154,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
       }
 
       toast.success("Reunião criada com sucesso!");
-      fetchMeetings(); // Atualizar lista
+      queryClient.invalidateQueries({ queryKey: ["meetings", user.id] });
       return meeting;
     } catch (error) {
       console.error("Error creating meeting:", error);
@@ -194,7 +200,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
       }
 
       toast.success("Reunião atualizada com sucesso!");
-      fetchMeetings();
+      queryClient.invalidateQueries({ queryKey: ["meetings", user.id] });
       return meeting;
     } catch (error) {
       console.error("Error updating meeting:", error);
@@ -230,7 +236,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
       }
 
       toast.success("Reunião cancelada com sucesso");
-      fetchMeetings(); // Atualizar lista
+      queryClient.invalidateQueries({ queryKey: ["meetings", user.id] });
       return true;
     } catch (error) {
       console.error("Error cancelling meeting:", error);
@@ -241,10 +247,10 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     }
   };
 
+  // Realtime subscription para atualizações automáticas
   useEffect(() => {
-    fetchMeetings();
+    if (!user) return;
 
-    // Realtime subscription para atualizações automáticas
     const channel = supabase
       .channel("meetings-changes")
       .on(
@@ -255,7 +261,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
           table: "meetings",
         },
         () => {
-          fetchMeetings();
+          queryClient.invalidateQueries({ queryKey: ["meetings", user.id] });
         }
       )
       .subscribe();
@@ -263,7 +269,7 @@ export function useMeetings(options: UseMeetingsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, JSON.stringify(options)]);
+  }, [user, queryClient]);
 
   return {
     meetings,

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, MapPin, Users, User } from "lucide-react";
@@ -11,13 +12,20 @@ import { useMeetings } from "@/hooks/useMeetings";
 
 export function UpcomingMeetingsSidebar() {
   const navigate = useNavigate();
+  const [isInitializing, setIsInitializing] = useState(true);
   const { meetings, loading } = useMeetings({ limit: 4, status: "confirmed" });
+  
+  useEffect(() => {
+    if (!loading && isInitializing) {
+      setIsInitializing(false);
+    }
+  }, [loading, isInitializing]);
   
   const upcomingMeetings = meetings
     .filter(m => new Date(m.start_date) > new Date())
     .slice(0, 4);
 
-  if (loading) {
+  if (loading || isInitializing) {
     return (
       <Card className="min-h-[600px] flex flex-col border-l-4 border-l-primary shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <CardHeader>
