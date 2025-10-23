@@ -50,15 +50,13 @@ export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardP
       </div>
 
       <div className="p-4 bg-card">
-        <h3 className="font-bold text-lg mb-3 line-clamp-2 leading-tight min-h-[3.5rem]">
+        <h3 className="font-bold text-lg mb-2 line-clamp-2 leading-tight">
           {module.title}
         </h3>
-        {module.description ? (
+        {module.description && (
           <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
             {module.description}
           </p>
-        ) : (
-          <div className="h-10 mb-4" />
         )}
         
         <div className="flex items-center justify-between mb-3">
@@ -73,7 +71,7 @@ export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardP
         )}
         </div>
 
-        {lessonsCount > 0 && (
+        {lessonsCount > 0 && completedCount > 0 && (
           <Progress value={progress} className="h-2 mb-3" />
         )}
 
