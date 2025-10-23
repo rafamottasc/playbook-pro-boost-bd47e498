@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Download, Save, History, FileText, Calendar, Calculator as CalculatorIcon, HardHat, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -270,23 +271,6 @@ export default function Calculator() {
     });
   };
 
-  const handleCalculateBalance = () => {
-    const result = calculate();
-    const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
-    
-    updateField("keysPayment", {
-      type: 'value',
-      value: remaining,
-      percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
-      isSaldoMode: true // Ativar modo saldo automático
-    });
-    
-    toast({
-      title: "Saldo calculado!",
-      description: `R$ ${remaining.toLocaleString('pt-BR')} (modo automático ativado)`,
-      duration: 3000,
-    });
-  };
 
   const keysDisplayValue = data.keysPayment?.type === 'percentage' && data.keysPayment.percentage
     ? (data.keysPayment.percentage / 100) * data.propertyValue
@@ -472,90 +456,106 @@ export default function Calculator() {
                     <div className="flex-1">
                       <Label className="text-lg font-semibold">Pagamento na Entrega das Chaves</Label>
                       <p className="text-xs text-muted-foreground">Valor pago quando receber as chaves (opcional)</p>
-                    </div>
                   </div>
-                  
-                  {data.keysPayment?.isSaldoMode && (
-                    <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
-                      <span>🔄</span>
-                      <span>Modo Saldo Automático</span>
-                    </div>
-                  )}
-                  
-                  {/* Linha única no desktop */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                    {/* Botões %/R$: 2 colunas */}
-                    <div className="md:col-span-2 grid grid-cols-2 gap-2">
-                      <Button 
-                        type="button"
-                        size="sm"
-                        variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
-                        onClick={() => handleKeysTypeChange('percentage')}
-                        className="h-9 text-xs"
-                      >
-                        %
-                      </Button>
-                      <Button 
-                        type="button"
-                        size="sm"
-                        variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
-                        onClick={() => handleKeysTypeChange('value')}
-                        className="h-9 text-xs"
-                      >
-                        R$
-                      </Button>
-                    </div>
+                </div>
+                
+                {/* Switch de Cálculo Automático de Saldo */}
+                <div className="flex items-center gap-2 pb-3 border-b border-border">
+                  <Switch 
+                    checked={data.keysPayment?.isSaldoMode || false}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        // Ativar modo saldo automático
+                        const result = calculate();
+                        const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
+                        
+                        updateField('keysPayment', {
+                          type: 'value',
+                          value: remaining,
+                          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+                          isSaldoMode: true
+                        });
+                      } else {
+                        // Desativar modo automático
+                        updateField('keysPayment', {
+                          ...data.keysPayment,
+                          isSaldoMode: false
+                        });
+                      }
+                    }}
+                  />
+                  <Label className="text-sm font-medium cursor-pointer">
+                    Calcular automaticamente (saldo restante)
+                  </Label>
+                </div>
+                
+                {/* Linha única no desktop */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                  {/* Botões %/R$: 2 colunas */}
+                  <div className="md:col-span-2 grid grid-cols-2 gap-2">
+                    <Button 
+                      type="button"
+                      size="sm"
+                      variant={data.keysPayment?.type === 'percentage' ? 'default' : 'outline'}
+                      onClick={() => handleKeysTypeChange('percentage')}
+                      disabled={data.keysPayment?.isSaldoMode}
+                      className="h-9 text-xs"
+                    >
+                      %
+                    </Button>
+                    <Button 
+                      type="button"
+                      size="sm"
+                      variant={data.keysPayment?.type === 'value' ? 'default' : 'outline'}
+                      onClick={() => handleKeysTypeChange('value')}
+                      disabled={data.keysPayment?.isSaldoMode}
+                      className="h-9 text-xs"
+                    >
+                      R$
+                    </Button>
+                  </div>
 
-                    {/* Campo Valor: 6 colunas */}
-                    <div className="md:col-span-6">
-                      <Label className="text-xs mb-1">Valor das Chaves</Label>
-                      {data.keysPayment?.type === 'percentage' ? (
-                        <Input
-                          type="number"
-                          step="0.1"
-                          placeholder="10"
-                          value={data.keysPayment.percentage || ""}
-                          onChange={(e) => handleKeysPercentageChange(e.target.value)}
-                          className="h-9"
-                        />
-                      ) : (
-                        <Input
-                          type="text"
-                          placeholder="R$ 160.000,00"
-                          value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
-                          onChange={(e) => formatKeysPayment(e.target.value)}
-                          className="h-9"
-                        />
+                  {/* Campo Valor: 7 colunas (aumentado de 6 para 7) */}
+                  <div className="md:col-span-7">
+                    <Label className="text-xs mb-1">
+                      Valor das Chaves
+                      {data.keysPayment?.isSaldoMode && (
+                        <span className="text-blue-600 dark:text-blue-400 ml-1 font-semibold">(automático)</span>
                       )}
-                    </div>
-
-                    {/* Botão Saldo Automático: 4 colunas */}
-                    <div className="md:col-span-4">
-                      <Label className="text-xs mb-1 block">Saldo Automático</Label>
-                      <Button 
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={handleCalculateBalance}
-                        className="h-9 w-full text-xs flex items-center justify-center gap-2"
-                        title="Calcular saldo restante automaticamente"
-                      >
-                        <CalculatorIcon className="h-4 w-4" />
-                        Calcular Saldo
-                      </Button>
-                    </div>
+                    </Label>
+                    {data.keysPayment?.type === 'percentage' ? (
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="10"
+                        value={data.keysPayment.percentage || ""}
+                        onChange={(e) => handleKeysPercentageChange(e.target.value)}
+                        disabled={data.keysPayment?.isSaldoMode}
+                        className="h-9"
+                      />
+                    ) : (
+                      <Input
+                        type="text"
+                        placeholder="R$ 160.000,00"
+                        value={data.keysPayment?.value ? `R$ ${formatCurrencyInput(data.keysPayment.value)}` : ""}
+                        onChange={(e) => formatKeysPayment(e.target.value)}
+                        disabled={data.keysPayment?.isSaldoMode}
+                        className={`h-9 ${data.keysPayment?.isSaldoMode ? 'text-blue-600 dark:text-blue-400 font-semibold border-blue-300 dark:border-blue-700' : ''}`}
+                      />
+                    )}
                   </div>
 
-                  {/* Data de Entrega das Chaves */}
-                  <div>
-                    <Label className="text-sm mb-2">Entrega das Chaves</Label>
+                  {/* Data de Entrega: 3 colunas */}
+                  <div className="md:col-span-3">
+                    <Label className="text-xs mb-1">Entrega das Chaves</Label>
                     <Input
                       type="date"
                       value={data.deliveryDate || ""}
                       onChange={(e) => updateField("deliveryDate", e.target.value)}
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
+                </div>
                 </CardContent>
               </Card>
             </div>
