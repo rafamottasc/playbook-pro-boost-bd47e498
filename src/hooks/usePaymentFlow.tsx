@@ -132,11 +132,11 @@ export function usePaymentFlow() {
     constructionStartDate: "",
     deliveryDate: "",
     clientName: "",
-    downPayment: { type: 'percentage', percentage: 10, value: 0 },
+    downPayment: { type: 'percentage', percentage: 0, value: 0 },
     monthly: { enabled: false, autoCalculate: false },
     semiannualReinforcement: { enabled: false, percentage: 8 },
     annualReinforcement: { enabled: false, percentage: 8 },
-    keysPayment: { type: 'percentage', percentage: 8, value: 0 },
+    keysPayment: { type: 'percentage', percentage: 0, value: 0 },
   });
 
   const [cubValue, setCubValue] = useState<number | null>(null);

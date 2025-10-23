@@ -545,6 +545,17 @@ export default function Calculator() {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Data de Entrega das Chaves */}
+                  <div>
+                    <Label className="text-sm mb-2">Entrega das Chaves</Label>
+                    <Input
+                      type="date"
+                      value={data.deliveryDate || ""}
+                      onChange={(e) => updateField("deliveryDate", e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>

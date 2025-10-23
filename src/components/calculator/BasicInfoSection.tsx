@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
-import { ClipboardList, Building2, Key } from "lucide-react";
+import { ClipboardList, Building2 } from "lucide-react";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface BasicInfoSectionProps {
@@ -60,8 +60,8 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Linha 1: 3 campos principais */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Linha 1: 2 campos principais */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <Label className="mb-2 text-sm">Valor Total do Imóvel</Label>
             <Input
@@ -70,19 +70,6 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
               value={data.propertyValue ? `R$ ${formatCurrencyInput(data.propertyValue)}` : ""}
               onChange={(e) => formatCurrency(e.target.value)}
               className="h-10 font-semibold"
-            />
-          </div>
-
-          <div>
-        <Label className="mb-2 text-sm flex items-center gap-1.5">
-          <Key className="h-4 w-4 text-muted-foreground" />
-          Entrega das Chaves
-        </Label>
-            <Input
-              type="date"
-              value={data.deliveryDate}
-              onChange={(e) => onChange("deliveryDate", e.target.value)}
-              className="h-10"
             />
           </div>
 
