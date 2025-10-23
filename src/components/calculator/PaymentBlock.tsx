@@ -11,6 +11,7 @@ interface PaymentBlockProps {
   type: "monthly" | "semiannual" | "annual";
   data: PaymentFlowData;
   onChange: (field: string, value: any) => void;
+  calculatedValue?: number;
 }
 
 const CONFIG = {
@@ -37,7 +38,7 @@ const CONFIG = {
   },
 };
 
-export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
+export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentBlockProps) {
   const config = CONFIG[type];
   
   const fieldName = type === 'monthly' ? 'monthly' : 
@@ -220,10 +221,16 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                 <Input
                   type="text"
                   placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
-                  value={paymentData.value ? `R$ ${formatCurrencyInput(paymentData.value)}` : ""}
+                  value={
+                    type === 'monthly' && paymentData?.autoCalculate && calculatedValue
+                      ? `R$ ${formatCurrencyInput(calculatedValue)}`
+                      : paymentData.value 
+                        ? `R$ ${formatCurrencyInput(paymentData.value)}` 
+                        : ""
+                  }
                   onChange={(e) => handleValueChange(e.target.value)}
                   disabled={type === 'monthly' && paymentData?.autoCalculate}
-                  className="h-9"
+                  className={`h-9 ${type === 'monthly' && paymentData?.autoCalculate ? 'text-blue-600 dark:text-blue-400 font-semibold border-blue-300 dark:border-blue-700' : ''}`}
                 />
               )}
             </div>

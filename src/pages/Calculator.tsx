@@ -454,7 +454,7 @@ export default function Calculator() {
                 </CardContent>
               </Card>
 
-              <PaymentBlock type="monthly" data={data} onChange={updateField} />
+              <PaymentBlock type="monthly" data={data} onChange={updateField} calculatedValue={result.monthly?.value} />
               <PaymentBlock
                 type="semiannual"
                 data={data}
