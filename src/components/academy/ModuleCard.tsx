@@ -50,7 +50,7 @@ export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardP
       </div>
 
       <div className="p-4 bg-card">
-        <h3 className="font-bold text-lg mb-2 line-clamp-2">
+        <h3 className="font-bold text-lg mb-2 line-clamp-2 leading-tight">
           {module.title}
         </h3>
         {module.description && (
