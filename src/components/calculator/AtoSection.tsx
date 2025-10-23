@@ -13,10 +13,30 @@ interface AtoSectionProps {
 
 export function AtoSection({ data, onChange }: AtoSectionProps) {
   const handleTypeChange = (type: 'percentage' | 'value') => {
-    onChange("downPayment", { 
-      ...data.downPayment, 
-      ato: { ...data.downPayment.ato, type } 
-    });
+    const ato = data.downPayment.ato || { type: 'percentage' };
+    
+    if (type === 'percentage' && ato.value) {
+      // Converter R$ → %
+      const percentage = data.propertyValue > 0 
+        ? (ato.value / data.propertyValue) * 100 
+        : 0;
+      onChange("downPayment", { 
+        ...data.downPayment, 
+        ato: { ...ato, type: 'percentage', percentage, value: ato.value } 
+      });
+    } else if (type === 'value' && ato.percentage) {
+      // Converter % → R$
+      const value = (ato.percentage / 100) * data.propertyValue;
+      onChange("downPayment", { 
+        ...data.downPayment, 
+        ato: { ...ato, type: 'value', value, percentage: ato.percentage } 
+      });
+    } else {
+      onChange("downPayment", { 
+        ...data.downPayment, 
+        ato: { ...ato, type } 
+      });
+    }
   };
 
   const handlePercentageChange = (value: string) => {

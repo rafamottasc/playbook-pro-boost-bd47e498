@@ -50,18 +50,27 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
     onChange(fieldName, { ...paymentData, enabled: checked });
   };
 
-  const formatCurrency = (value: string) => {
-    const amount = parseCurrencyInput(value);
-    onChange(fieldName, { ...paymentData, value: amount });
-  };
-
   const handlePercentageChange = (value: string) => {
     const percentage = parseFloat(value) || 0;
     const calculatedValue = (percentage / 100) * data.propertyValue;
     onChange(fieldName, { 
       ...paymentData, 
       percentage,
-      value: calculatedValue
+      value: calculatedValue,
+      autoCalculate: false
+    });
+  };
+
+  const handleValueChange = (value: string) => {
+    const amount = parseCurrencyInput(value);
+    const calculatedPercentage = data.propertyValue > 0 
+      ? (amount / data.propertyValue) * 100 
+      : 0;
+    onChange(fieldName, { 
+      ...paymentData, 
+      value: amount,
+      percentage: calculatedPercentage,
+      autoCalculate: false
     });
   };
 
@@ -73,10 +82,32 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
   };
 
   const handleTypeChange = (newType: 'percentage' | 'value') => {
-    onChange(fieldName, { 
-      ...paymentData, 
-      type: newType 
-    });
+    if (newType === 'percentage' && paymentData?.value) {
+      // Converter R$ → %
+      const percentage = data.propertyValue > 0 
+        ? (paymentData.value / data.propertyValue) * 100 
+        : 0;
+      onChange(fieldName, { 
+        ...paymentData, 
+        type: 'percentage',
+        percentage,
+        value: paymentData.value
+      });
+    } else if (newType === 'value' && paymentData?.percentage) {
+      // Converter % → R$
+      const value = (paymentData.percentage / 100) * data.propertyValue;
+      onChange(fieldName, { 
+        ...paymentData, 
+        type: 'value',
+        value,
+        percentage: paymentData.percentage
+      });
+    } else {
+      onChange(fieldName, { 
+        ...paymentData, 
+        type: newType 
+      });
+    }
   };
 
   return (
@@ -160,7 +191,7 @@ export function PaymentBlock({ type, data, onChange }: PaymentBlockProps) {
                   type="text"
                   placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
                   value={paymentData.value ? `R$ ${formatCurrencyInput(paymentData.value)}` : ""}
-                  onChange={(e) => formatCurrency(e.target.value)}
+                  onChange={(e) => handleValueChange(e.target.value)}
                   className="h-9"
                 />
               )}

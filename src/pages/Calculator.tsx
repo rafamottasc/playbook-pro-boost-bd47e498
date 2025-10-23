@@ -230,7 +230,33 @@ export default function Calculator() {
   };
 
   const handleKeysTypeChange = (type: 'percentage' | 'value') => {
-    updateField("keysPayment", { ...data.keysPayment, type, isSaldoMode: false });
+    const current = data.keysPayment || { type: 'percentage' };
+    
+    if (type === 'percentage' && current.value) {
+      // Converter R$ → %
+      const percentage = data.propertyValue > 0 
+        ? (current.value / data.propertyValue) * 100 
+        : 0;
+      updateField("keysPayment", { 
+        ...current, 
+        type: 'percentage', 
+        percentage, 
+        value: current.value,
+        isSaldoMode: false 
+      });
+    } else if (type === 'value' && current.percentage) {
+      // Converter % → R$
+      const value = (current.percentage / 100) * data.propertyValue;
+      updateField("keysPayment", { 
+        ...current, 
+        type: 'value', 
+        value, 
+        percentage: current.percentage,
+        isSaldoMode: false 
+      });
+    } else {
+      updateField("keysPayment", { ...current, type, isSaldoMode: false });
+    }
   };
 
   const handleKeysPercentageChange = (value: string) => {
@@ -318,12 +344,28 @@ export default function Calculator() {
                   {/* Linha única no desktop */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
                     {/* Botões: 3 colunas */}
-                    <div className="md:col-span-3 grid grid-cols-2 gap-2">
+                     <div className="md:col-span-3 grid grid-cols-2 gap-2">
                       <Button 
                         type="button"
                         size="sm"
                         variant={data.constructionStartPayment?.type === 'percentage' ? 'default' : 'outline'}
-                        onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'percentage' })}
+                        onClick={() => {
+                          const current = data.constructionStartPayment || { type: 'percentage' };
+                          if (current.value) {
+                            // Converter R$ → %
+                            const percentage = data.propertyValue > 0 
+                              ? (current.value / data.propertyValue) * 100 
+                              : 0;
+                            updateField('constructionStartPayment', { 
+                              ...current, 
+                              type: 'percentage', 
+                              percentage, 
+                              value: current.value 
+                            });
+                          } else {
+                            updateField('constructionStartPayment', { ...current, type: 'percentage' });
+                          }
+                        }}
                         className="h-9"
                       >
                         %
@@ -332,7 +374,21 @@ export default function Calculator() {
                         type="button"
                         size="sm"
                         variant={data.constructionStartPayment?.type === 'value' ? 'default' : 'outline'}
-                        onClick={() => updateField('constructionStartPayment', { ...data.constructionStartPayment, type: 'value' })}
+                        onClick={() => {
+                          const current = data.constructionStartPayment || { type: 'value' };
+                          if (current.percentage) {
+                            // Converter % → R$
+                            const value = (current.percentage / 100) * data.propertyValue;
+                            updateField('constructionStartPayment', { 
+                              ...current, 
+                              type: 'value', 
+                              value, 
+                              percentage: current.percentage 
+                            });
+                          } else {
+                            updateField('constructionStartPayment', { ...current, type: 'value' });
+                          }
+                        }}
                         className="h-9"
                       >
                         R$

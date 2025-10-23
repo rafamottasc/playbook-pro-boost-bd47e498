@@ -30,6 +30,8 @@ export interface PaymentFlowData {
     enabled: boolean; 
     count?: number; 
     value?: number;
+    percentage?: number;
+    type?: 'percentage' | 'value';
     autoCalculate?: boolean;
     firstDueDate?: string;
   };
@@ -38,6 +40,7 @@ export interface PaymentFlowData {
     count?: number; 
     value?: number;
     percentage?: number;
+    type?: 'percentage' | 'value';
     autoCalculate?: boolean;
     firstDueDate?: string;
   };
@@ -46,6 +49,7 @@ export interface PaymentFlowData {
     count?: number; 
     value?: number;
     percentage?: number;
+    type?: 'percentage' | 'value';
     autoCalculate?: boolean;
     firstDueDate?: string;
   };
@@ -279,12 +283,19 @@ export function usePaymentFlow() {
     let totalMonthly = 0;
     if (data.monthly?.enabled && data.monthly.count) {
       if (data.monthly.autoCalculate) {
+        // Modo automático: calcular saldo restante
         const remainingBalance = data.propertyValue - downPaymentValue - constructionStartValue - totalSemiannual - totalAnnual - keysValue;
         monthlyValue = remainingBalance / data.monthly.count;
+        totalMonthly = monthlyValue * data.monthly.count;
       } else if (data.monthly.value) {
+        // Modo manual: usar valor definido pelo usuário
         monthlyValue = data.monthly.value;
+        totalMonthly = monthlyValue * data.monthly.count;
+      } else if (data.monthly.percentage) {
+        // Fallback: usar percentual se não tiver valor
+        monthlyValue = (data.monthly.percentage / 100) * data.propertyValue / data.monthly.count;
+        totalMonthly = monthlyValue * data.monthly.count;
       }
-      totalMonthly = monthlyValue * data.monthly.count;
     }
 
     // 6. Distribuir parcelas mensais até/após entrega
