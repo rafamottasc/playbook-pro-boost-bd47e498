@@ -83,16 +83,19 @@ export default function Calculator() {
     if (data.keysPayment?.isSaldoMode) {
       const timer = setTimeout(() => {
         const result = calculate();
-        const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
+        
+        // Calcular saldo restante EXCLUINDO o valor atual das chaves
+        const totalWithoutKeys = result.totalPaid - (result.keysPayment?.value || 0);
+        const remaining = data.propertyValue - totalWithoutKeys;
         
         updateField('keysPayment', {
           ...data.keysPayment,
           type: 'value',
           value: remaining,
-          percentage: (remaining / data.propertyValue) * 100,
+          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
           isSaldoMode: true
         });
-      }, 100); // Debounce de 100ms
+      }, 100);
       
       return () => clearTimeout(timer);
     }
@@ -102,21 +105,30 @@ export default function Calculator() {
     data.constructionStartPayment,
     data.monthly,
     data.semiannualReinforcement,
-    data.annualReinforcement
+    data.annualReinforcement,
+    data.keysPayment?.isSaldoMode
   ]);
 
   // Monitorar mudanças para recalcular reforços semestrais automaticamente
   useEffect(() => {
-    if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement?.autoCalculate) {
+    if (data.semiannualReinforcement?.enabled && 
+        data.semiannualReinforcement?.autoCalculate && 
+        data.semiannualReinforcement?.count) {
       const timer = setTimeout(() => {
         const result = calculate();
-        const remaining = data.propertyValue - result.totalPaid + (result.semiannualReinforcement?.value || 0);
+        
+        // Calcular saldo restante EXCLUINDO o valor atual dos reforços semestrais
+        const totalWithoutSemiannual = result.totalPaid - (result.semiannualReinforcement?.total || 0);
+        const remaining = data.propertyValue - totalWithoutSemiannual;
+        
+        // Dividir pelo número de reforços
+        const valuePerReinforcement = remaining / data.semiannualReinforcement.count;
         
         updateField('semiannualReinforcement', {
           ...data.semiannualReinforcement,
           type: 'value',
-          value: remaining,
-          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+          value: valuePerReinforcement,
+          percentage: data.propertyValue > 0 ? (valuePerReinforcement / data.propertyValue) * 100 : 0,
           autoCalculate: true
         });
       }, 100);
@@ -128,22 +140,33 @@ export default function Calculator() {
     data.downPayment,
     data.constructionStartPayment,
     data.monthly,
+    data.semiannualReinforcement?.count,
+    data.semiannualReinforcement?.enabled,
+    data.semiannualReinforcement?.autoCalculate,
     data.annualReinforcement,
     data.keysPayment
   ]);
 
   // Monitorar mudanças para recalcular reforços anuais automaticamente
   useEffect(() => {
-    if (data.annualReinforcement?.enabled && data.annualReinforcement?.autoCalculate) {
+    if (data.annualReinforcement?.enabled && 
+        data.annualReinforcement?.autoCalculate && 
+        data.annualReinforcement?.count) {
       const timer = setTimeout(() => {
         const result = calculate();
-        const remaining = data.propertyValue - result.totalPaid + (result.annualReinforcement?.value || 0);
+        
+        // Calcular saldo restante EXCLUINDO o valor atual dos reforços anuais
+        const totalWithoutAnnual = result.totalPaid - (result.annualReinforcement?.total || 0);
+        const remaining = data.propertyValue - totalWithoutAnnual;
+        
+        // Dividir pelo número de reforços
+        const valuePerReinforcement = remaining / data.annualReinforcement.count;
         
         updateField('annualReinforcement', {
           ...data.annualReinforcement,
           type: 'value',
-          value: remaining,
-          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+          value: valuePerReinforcement,
+          percentage: data.propertyValue > 0 ? (valuePerReinforcement / data.propertyValue) * 100 : 0,
           autoCalculate: true
         });
       }, 100);
@@ -155,6 +178,9 @@ export default function Calculator() {
     data.downPayment,
     data.constructionStartPayment,
     data.monthly,
+    data.annualReinforcement?.count,
+    data.annualReinforcement?.enabled,
+    data.annualReinforcement?.autoCalculate,
     data.semiannualReinforcement,
     data.keysPayment
   ]);

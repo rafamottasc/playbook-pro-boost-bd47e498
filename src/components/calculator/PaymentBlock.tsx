@@ -58,6 +58,18 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
       if (hasOtherAutoCalc) {
         return; // Bloqueia a ativação
       }
+      
+      // Validar se o número de parcelas/reforços está definido
+      if (!paymentData?.count || paymentData.count <= 0) {
+        const { toast } = require("@/hooks/use-toast");
+        toast({
+          title: "Defina o número de parcelas",
+          description: `Por favor, informe quantos ${type === 'monthly' ? 'meses' : 'reforços'} antes de ativar o cálculo automático.`,
+          variant: "destructive",
+          duration: 4000,
+        });
+        return;
+      }
     }
     
     onChange(fieldName, {
