@@ -51,6 +51,22 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
     onChange(fieldName, { ...paymentData, enabled: checked });
   };
 
+  const handleAutoCalculateToggle = (checked: boolean) => {
+    if (checked) {
+      // Verificar se outro campo já está usando auto-cálculo
+      const hasOtherAutoCalc = (window as any).checkOtherAutoCalculate?.(type);
+      if (hasOtherAutoCalc) {
+        return; // Bloqueia a ativação
+      }
+    }
+    
+    onChange(fieldName, {
+      ...paymentData,
+      autoCalculate: checked,
+      ...(checked ? { value: undefined, percentage: undefined } : {})
+    });
+  };
+
   const handlePercentageChange = (value: string) => {
     const percentage = parseFloat(value) || 0;
     const calculatedValue = (percentage / 100) * data.propertyValue;
@@ -112,14 +128,14 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
   };
 
   return (
-    <Card className={`animate-fade-in border-l-4 border-l-primary ${paymentData?.autoCalculate && type === 'monthly' ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}>
-      <CardHeader className={paymentData?.autoCalculate && type === 'monthly' ? 'bg-blue-50 dark:bg-blue-950/40' : ''}>
+    <Card className={`animate-fade-in border-l-4 border-l-primary ${paymentData?.autoCalculate ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}>
+      <CardHeader className={paymentData?.autoCalculate ? 'bg-blue-50 dark:bg-blue-950/40' : ''}>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <config.icon className="h-5 w-5 text-primary" />
               {config.title}
-              {paymentData?.autoCalculate && type === 'monthly' && (
+              {paymentData?.autoCalculate && (
                 <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-normal">
                   AUTO
                 </span>
@@ -135,24 +151,16 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
 
       {paymentData?.enabled && (
         <CardContent className="space-y-3">
-          {/* Switch de Cálculo Automático (apenas para mensais) */}
-          {type === 'monthly' && (
-            <div className="flex items-center gap-2 pb-3 border-b border-border">
-              <Switch 
-                checked={paymentData?.autoCalculate || false}
-                onCheckedChange={(checked) => {
-                  onChange(fieldName, { 
-                    ...paymentData, 
-                    autoCalculate: checked,
-                    ...(checked ? { value: undefined, percentage: undefined } : {})
-                  });
-                }}
-              />
-              <Label className="text-sm font-medium cursor-pointer">
-                Calcular automaticamente (saldo restante)
-              </Label>
-            </div>
-          )}
+          {/* Switch de Cálculo Automático - para todos os tipos */}
+          <div className="flex items-center gap-2 pb-3 border-b border-border">
+            <Switch 
+              checked={paymentData?.autoCalculate || false}
+              onCheckedChange={handleAutoCalculateToggle}
+            />
+            <Label className="text-sm font-medium cursor-pointer">
+              Calcular automaticamente (saldo restante)
+            </Label>
+          </div>
           
           {/* Layout compacto em uma linha para desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
@@ -163,7 +171,7 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
                 size="sm"
                 variant={paymentData?.type === 'percentage' ? 'default' : 'outline'}
                 onClick={() => handleTypeChange('percentage')}
-                disabled={type === 'monthly' && paymentData?.autoCalculate}
+                disabled={paymentData?.autoCalculate}
                 className="h-9 text-xs"
               >
                 %
@@ -173,7 +181,7 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
                 size="sm"
                 variant={paymentData?.type === 'value' ? 'default' : 'outline'}
                 onClick={() => handleTypeChange('value')}
-                disabled={type === 'monthly' && paymentData?.autoCalculate}
+                disabled={paymentData?.autoCalculate}
                 className="h-9 text-xs"
               >
                 R$
@@ -203,7 +211,7 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
             <div className="md:col-span-5">
               <Label className="text-xs mb-1">
                 {type === 'monthly' ? 'Valor/Mês' : 'Valor do Reforço'}
-                {type === 'monthly' && paymentData?.autoCalculate && (
+                {paymentData?.autoCalculate && (
                   <span className="text-blue-600 ml-1 font-semibold">(automático)</span>
                 )}
               </Label>
@@ -214,7 +222,7 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
                   placeholder="10"
                   value={paymentData.percentage || ""}
                   onChange={(e) => handlePercentageChange(e.target.value)}
-                  disabled={type === 'monthly' && paymentData?.autoCalculate}
+                  disabled={paymentData?.autoCalculate}
                   className="h-9"
                 />
               ) : (
@@ -222,15 +230,15 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
                   type="text"
                   placeholder={type === 'monthly' ? "R$ 11.840" : "R$ 80.000"}
                   value={
-                    type === 'monthly' && paymentData?.autoCalculate && calculatedValue
+                    paymentData?.autoCalculate && calculatedValue
                       ? `R$ ${formatCurrencyInput(calculatedValue)}`
                       : paymentData.value 
                         ? `R$ ${formatCurrencyInput(paymentData.value)}` 
                         : ""
                   }
                   onChange={(e) => handleValueChange(e.target.value)}
-                  disabled={type === 'monthly' && paymentData?.autoCalculate}
-                  className={`h-9 ${type === 'monthly' && paymentData?.autoCalculate ? 'text-blue-600 dark:text-blue-400 font-semibold border-blue-300 dark:border-blue-700' : ''}`}
+                  disabled={paymentData?.autoCalculate}
+                  className={`h-9 ${paymentData?.autoCalculate ? 'text-blue-600 dark:text-blue-400 font-semibold border-blue-300 dark:border-blue-700' : ''}`}
                 />
               )}
             </div>

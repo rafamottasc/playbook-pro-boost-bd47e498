@@ -22,6 +22,14 @@ import { Header } from "@/components/Header";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 import { migrateProposalData } from "@/lib/proposalMigration";
 
+// Mapa de nomes dos campos para exibição
+const FIELD_NAMES = {
+  monthly: "Parcelas Mensais",
+  semiannual: "Reforços Semestrais",
+  annual: "Reforços Anuais",
+  keys: "Pagamento na Entrega das Chaves"
+};
+
 export default function Calculator() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,7 +40,45 @@ export default function Calculator() {
 
   const result = calculate();
 
-  // Monitorar mudanças para recalcular saldo automaticamente
+  // Função para verificar se outro campo já está usando auto-cálculo
+  const checkOtherAutoCalculate = (currentField: string): string | null => {
+    if (currentField !== 'monthly' && data.monthly?.autoCalculate) {
+      return FIELD_NAMES.monthly;
+    }
+    if (currentField !== 'semiannual' && data.semiannualReinforcement?.autoCalculate) {
+      return FIELD_NAMES.semiannual;
+    }
+    if (currentField !== 'annual' && data.annualReinforcement?.autoCalculate) {
+      return FIELD_NAMES.annual;
+    }
+    if (currentField !== 'keys' && data.keysPayment?.isSaldoMode) {
+      return FIELD_NAMES.keys;
+    }
+    return null;
+  };
+
+  // Expor função globalmente para o PaymentBlock usar
+  useEffect(() => {
+    (window as any).checkOtherAutoCalculate = (field: string) => {
+      const otherField = checkOtherAutoCalculate(field);
+      if (otherField) {
+        toast({
+          title: "Cálculo automático já ativo",
+          description: `O campo "${otherField}" já está usando cálculo automático. Desative-o primeiro para usar em outro campo.`,
+          variant: "destructive",
+          duration: 4000,
+        });
+        return true;
+      }
+      return false;
+    };
+
+    return () => {
+      delete (window as any).checkOtherAutoCalculate;
+    };
+  }, [data.monthly?.autoCalculate, data.semiannualReinforcement?.autoCalculate, data.annualReinforcement?.autoCalculate, data.keysPayment?.isSaldoMode, toast]);
+
+  // Monitorar mudanças para recalcular saldo automaticamente (chaves)
   useEffect(() => {
     if (data.keysPayment?.isSaldoMode) {
       const timer = setTimeout(() => {
@@ -57,6 +103,60 @@ export default function Calculator() {
     data.monthly,
     data.semiannualReinforcement,
     data.annualReinforcement
+  ]);
+
+  // Monitorar mudanças para recalcular reforços semestrais automaticamente
+  useEffect(() => {
+    if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement?.autoCalculate) {
+      const timer = setTimeout(() => {
+        const result = calculate();
+        const remaining = data.propertyValue - result.totalPaid + (result.semiannualReinforcement?.value || 0);
+        
+        updateField('semiannualReinforcement', {
+          ...data.semiannualReinforcement,
+          type: 'value',
+          value: remaining,
+          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+          autoCalculate: true
+        });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [
+    data.propertyValue,
+    data.downPayment,
+    data.constructionStartPayment,
+    data.monthly,
+    data.annualReinforcement,
+    data.keysPayment
+  ]);
+
+  // Monitorar mudanças para recalcular reforços anuais automaticamente
+  useEffect(() => {
+    if (data.annualReinforcement?.enabled && data.annualReinforcement?.autoCalculate) {
+      const timer = setTimeout(() => {
+        const result = calculate();
+        const remaining = data.propertyValue - result.totalPaid + (result.annualReinforcement?.value || 0);
+        
+        updateField('annualReinforcement', {
+          ...data.annualReinforcement,
+          type: 'value',
+          value: remaining,
+          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+          autoCalculate: true
+        });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [
+    data.propertyValue,
+    data.downPayment,
+    data.constructionStartPayment,
+    data.monthly,
+    data.semiannualReinforcement,
+    data.keysPayment
   ]);
 
   // Carregar proposta do histórico via location.state
@@ -461,33 +561,45 @@ export default function Calculator() {
                 
                 {/* Switch de Cálculo Automático de Saldo */}
                 <div className="flex items-center gap-2 pb-3 border-b border-border">
-                  <Switch 
-                    checked={data.keysPayment?.isSaldoMode || false}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        // Ativar modo saldo automático
-                        const result = calculate();
-                        const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
-                        
-                        updateField('keysPayment', {
-                          type: 'value',
-                          value: remaining,
-                          percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
-                          isSaldoMode: true
-                        });
-                      } else {
-                        // Desativar modo automático
-                        updateField('keysPayment', {
-                          ...data.keysPayment,
-                          isSaldoMode: false
-                        });
-                      }
-                    }}
-                  />
-                  <Label className="text-sm font-medium cursor-pointer">
-                    Calcular automaticamente (saldo restante)
-                  </Label>
-                </div>
+          <Switch 
+            checked={data.keysPayment?.isSaldoMode || false}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                // Verificar se outro campo já está usando auto-cálculo
+                const otherField = checkOtherAutoCalculate('keys');
+                if (otherField) {
+                  toast({
+                    title: "Cálculo automático já ativo",
+                    description: `O campo "${otherField}" já está usando cálculo automático. Desative-o primeiro para usar em outro campo.`,
+                    variant: "destructive",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                // Ativar modo saldo automático
+                const result = calculate();
+                const remaining = data.propertyValue - result.totalPaid + (result.keysPayment?.value || 0);
+                
+                updateField('keysPayment', {
+                  type: 'value',
+                  value: remaining,
+                  percentage: data.propertyValue > 0 ? (remaining / data.propertyValue) * 100 : 0,
+                  isSaldoMode: true
+                });
+              } else {
+                // Desativar modo automático
+                updateField('keysPayment', {
+                  ...data.keysPayment,
+                  isSaldoMode: false
+                });
+              }
+            }}
+          />
+          <Label className="text-sm font-medium cursor-pointer">
+            Calcular automaticamente (saldo restante)
+          </Label>
+        </div>
                 
                 {/* Linha única no desktop */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
