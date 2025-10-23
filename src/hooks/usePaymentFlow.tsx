@@ -133,7 +133,7 @@ export function usePaymentFlow() {
     deliveryDate: "",
     clientName: "",
     downPayment: { type: 'percentage', percentage: 10, value: 0 },
-    monthly: { enabled: false, autoCalculate: true },
+    monthly: { enabled: false, autoCalculate: false },
     semiannualReinforcement: { enabled: false, percentage: 8 },
     annualReinforcement: { enabled: false, percentage: 8 },
     keysPayment: { type: 'percentage', percentage: 8, value: 0 },
