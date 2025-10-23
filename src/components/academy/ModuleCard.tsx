@@ -39,9 +39,6 @@ export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardP
             <BookOpen className="h-16 w-16 text-primary/40" />
           </div>
         )}
-        {/* Gradiente para melhor legibilidade */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
-        
         {isCompleted && (
           <div className="absolute top-3 right-3">
             <Badge className="bg-green-500 text-white shadow-lg">
@@ -50,21 +47,18 @@ export function ModuleCard({ module, lessonsCount, completedCount }: ModuleCardP
             </Badge>
           </div>
         )}
-        
-        {/* Info na parte inferior da imagem */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="font-bold text-white text-lg mb-1 line-clamp-2 drop-shadow-lg">
-            {module.title}
-          </h3>
-          {module.description && (
-            <p className="text-white/90 text-sm line-clamp-2 drop-shadow-md">
-              {module.description}
-            </p>
-          )}
-        </div>
       </div>
 
       <div className="p-4 bg-card">
+        <h3 className="font-bold text-lg mb-2 line-clamp-2">
+          {module.title}
+        </h3>
+        {module.description && (
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
+            {module.description}
+          </p>
+        )}
+        
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <BookOpen className="h-4 w-4" />
