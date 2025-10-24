@@ -29,6 +29,7 @@ export default function AcademyModules() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: false, 
     align: "start",
@@ -59,14 +60,13 @@ export default function AcademyModules() {
   }, [emblaApi, onSelect]);
 
   useEffect(() => {
-    // Check if user has seen onboarding
-    const hasSeenOnboarding = localStorage.getItem('academy_onboarding_seen');
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true);
-    }
-
-    fetchModules();
-  }, []);
+    const init = async () => {
+      await migrateLocalStorageToDatabase();
+      await checkOnboardingStatus();
+      await fetchModules();
+    };
+    init();
+  }, [user]);
 
   const fetchModules = async () => {
     try {
@@ -130,12 +130,88 @@ export default function AcademyModules() {
     }
   };
 
-  const handleCloseOnboarding = () => {
-    localStorage.setItem('academy_onboarding_seen', 'true');
-    setShowOnboarding(false);
+  const migrateLocalStorageToDatabase = async () => {
+    if (!user) return;
+    
+    try {
+      const hasSeenOnboarding = localStorage.getItem('academy_onboarding_seen');
+      
+      if (hasSeenOnboarding === 'true') {
+        const { data } = await supabase
+          .from('academy_onboarding_views')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (!data) {
+          await supabase
+            .from('academy_onboarding_views')
+            .insert({ user_id: user.id });
+        }
+        
+        localStorage.removeItem('academy_onboarding_seen');
+      }
+    } catch (error) {
+      console.error('Error migrating onboarding status:', error);
+    }
   };
 
-  if (loading) {
+  const checkOnboardingStatus = async () => {
+    if (!user) {
+      setCheckingOnboarding(false);
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase
+        .from('academy_onboarding_views')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking onboarding status:', error);
+      }
+      
+      if (!data) {
+        setShowOnboarding(true);
+      }
+    } catch (error) {
+      console.error('Unexpected error checking onboarding:', error);
+      const hasSeenOnboarding = localStorage.getItem('academy_onboarding_seen');
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+    } finally {
+      setCheckingOnboarding(false);
+    }
+  };
+
+  const handleCloseOnboarding = async () => {
+    if (!user) {
+      setShowOnboarding(false);
+      localStorage.setItem('academy_onboarding_seen', 'true');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('academy_onboarding_views')
+        .insert({ user_id: user.id });
+      
+      if (error) {
+        console.error('Error saving onboarding status:', error);
+        localStorage.setItem('academy_onboarding_seen', 'true');
+      }
+    } catch (error) {
+      console.error('Unexpected error saving onboarding:', error);
+      localStorage.setItem('academy_onboarding_seen', 'true');
+    } finally {
+      setShowOnboarding(false);
+    }
+  };
+
+  if (loading || checkingOnboarding) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
