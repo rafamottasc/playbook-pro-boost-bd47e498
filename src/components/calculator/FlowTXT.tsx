@@ -14,7 +14,7 @@ export function generateFlowTXT(
   const deliveryDate = data.deliveryDate ? format(new Date(data.deliveryDate), "dd/MM/yyyy") : "Não informado";
 
   let txt = `PROPOSTA DE PAGAMENTO - COMARC\n`;
-  txt += `=================================\n\n`;
+  txt += `----------------\n\n`;
 
   txt += `Data: ${currentDate}\n`;
   if (data.clientName) {
@@ -22,9 +22,9 @@ export function generateFlowTXT(
   }
   txt += `\n`;
 
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   txt += `DADOS DO IMOVEL\n`;
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   
   if (data.constructora) {
     txt += `Construtora: ${data.constructora}\n`;
@@ -44,9 +44,9 @@ export function generateFlowTXT(
   
   txt += `Valor Total: R$ ${formatMoney(data.propertyValue)}\n\n`;
 
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   txt += `CONDICOES DE PAGAMENTO\n`;
-  txt += `=================================\n\n`;
+  txt += `----------------\n\n`;
 
   // Ato
   if (result.downPayment.atoValue && result.downPayment.atoValue > 0) {
@@ -136,12 +136,12 @@ export function generateFlowTXT(
     txt += `\n\n`;
   }
 
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   txt += `TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)\n`;
-  txt += `=================================\n\n`;
+  txt += `----------------\n\n`;
 
   txt += `DISTRIBUICAO TEMPORAL\n`;
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   txt += `Ate Entrega: R$ ${formatMoney(result.timeline.totalUntilDelivery)}`;
   txt += ` (${result.timeline.percentageUntilDelivery.toFixed(1)}%)\n`;
   txt += `Apos Entrega: R$ ${formatMoney(result.timeline.totalAfterDelivery)}`;
@@ -149,9 +149,9 @@ export function generateFlowTXT(
 
   // Valores adicionais (m2 e CUB)
   if (result.pricePerSqm || result.totalInCub) {
-    txt += `=================================\n`;
+    txt += `----------------\n`;
     txt += `VALORES ADICIONAIS\n`;
-    txt += `=================================\n`;
+    txt += `----------------\n`;
     
     if (result.pricePerSqm) {
       txt += `Valor por m2: R$ ${formatCurrency(result.pricePerSqm)} / m2\n`;
@@ -169,7 +169,7 @@ export function generateFlowTXT(
     txt += `\n`;
   }
 
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   
   // Nome e CRECI
   let correctorInfo = correctorName;
@@ -185,7 +185,7 @@ export function generateFlowTXT(
   txt += `COMARC - Negócios Imobiliários\n\n`;
   
   // Separador
-  txt += `=================================\n`;
+  txt += `----------------\n`;
   
   // Data de geracao
   txt += `Gerado em: ${currentDate}\n`;
