@@ -80,6 +80,8 @@ export default function Calculator() {
 
   // Monitorar mudanças para recalcular saldo automaticamente (chaves)
   useEffect(() => {
+    if (isSaving) return; // ✅ Não calcular durante salvamento
+    
     if (data.keysPayment?.isSaldoMode) {
       // Validação: Verificar se valor do imóvel é válido
       if (!data.propertyValue || data.propertyValue <= 0) {
@@ -116,6 +118,7 @@ export default function Calculator() {
       return () => clearTimeout(timer);
     }
   }, [
+    isSaving,
     data.propertyValue,
     data.downPayment,
     data.constructionStartPayment,
@@ -127,6 +130,8 @@ export default function Calculator() {
 
   // Monitorar mudanças para recalcular reforços semestrais automaticamente
   useEffect(() => {
+    if (isSaving) return; // ✅ Não calcular durante salvamento
+    
     if (data.semiannualReinforcement?.enabled && 
         data.semiannualReinforcement?.autoCalculate && 
         data.semiannualReinforcement?.count) {
@@ -178,6 +183,7 @@ export default function Calculator() {
       return () => clearTimeout(timer);
     }
   }, [
+    isSaving,
     data.propertyValue,
     data.downPayment,
     data.constructionStartPayment,
@@ -191,6 +197,8 @@ export default function Calculator() {
 
   // Monitorar mudanças para recalcular reforços anuais automaticamente
   useEffect(() => {
+    if (isSaving) return; // ✅ Não calcular durante salvamento
+    
     if (data.annualReinforcement?.enabled && 
         data.annualReinforcement?.autoCalculate && 
         data.annualReinforcement?.count) {
@@ -242,6 +250,7 @@ export default function Calculator() {
       return () => clearTimeout(timer);
     }
   }, [
+    isSaving,
     data.propertyValue,
     data.downPayment,
     data.constructionStartPayment,
