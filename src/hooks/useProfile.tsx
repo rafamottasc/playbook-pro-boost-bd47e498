@@ -52,8 +52,43 @@ export const useProfile = () => {
 
     window.addEventListener('profile-updated', handleProfileUpdate as EventListener);
 
+    // 🔄 REALTIME: Listen for profile changes (block/unblock by admin)
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Profile updated via realtime:', payload);
+          
+          // Invalidate cache and reload
+          localStorage.removeItem(CACHE_KEY);
+          
+          // Update profile state with new data
+          if (payload.new) {
+            const updatedProfile: Profile = {
+              full_name: payload.new.full_name,
+              avatar_url: payload.new.avatar_url,
+              gender: payload.new.gender,
+              points: payload.new.points || 0,
+              team: payload.new.team,
+              creci: payload.new.creci,
+            };
+            setProfile(updatedProfile);
+            setCachedProfile(user.id, updatedProfile);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate as EventListener);
+      supabase.removeChannel(channel);
     };
   }, [user]);
 
