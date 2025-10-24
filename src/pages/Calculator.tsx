@@ -81,12 +81,28 @@ export default function Calculator() {
   // Monitorar mudanças para recalcular saldo automaticamente (chaves)
   useEffect(() => {
     if (data.keysPayment?.isSaldoMode) {
+      // Validação: Verificar se valor do imóvel é válido
+      if (!data.propertyValue || data.propertyValue <= 0) {
+        console.warn('Valor do imóvel inválido para cálculo automático das chaves');
+        return;
+      }
+
       const timer = setTimeout(() => {
         const result = calculate();
         
         // Calcular saldo restante EXCLUINDO o valor atual das chaves
         const totalWithoutKeys = result.totalPaid - (result.keysPayment?.value || 0);
         const remaining = data.propertyValue - totalWithoutKeys;
+        
+        // Validação: Prevenir valores negativos
+        if (remaining < 0) {
+          toast({
+            title: "Atenção",
+            description: "Os pagamentos já excedem o valor do imóvel. Ajuste os valores.",
+            variant: "destructive",
+          });
+          return;
+        }
         
         updateField('keysPayment', {
           ...data.keysPayment,
@@ -114,12 +130,38 @@ export default function Calculator() {
     if (data.semiannualReinforcement?.enabled && 
         data.semiannualReinforcement?.autoCalculate && 
         data.semiannualReinforcement?.count) {
+      
+      // Validação: Verificar se valor do imóvel e count são válidos
+      if (!data.propertyValue || data.propertyValue <= 0) {
+        console.warn('Valor do imóvel inválido para cálculo automático semestral');
+        return;
+      }
+      
+      if (data.semiannualReinforcement.count <= 0) {
+        console.warn('Número de reforços semestrais deve ser maior que zero');
+        return;
+      }
+
       const timer = setTimeout(() => {
         const result = calculate();
         
         // Calcular saldo restante EXCLUINDO o valor atual dos reforços semestrais
         const totalWithoutSemiannual = result.totalPaid - (result.semiannualReinforcement?.total || 0);
         const remaining = data.propertyValue - totalWithoutSemiannual;
+        
+        // Validação: Prevenir cálculo com saldo negativo
+        if (remaining <= 0) {
+          toast({
+            title: "Atenção nos Reforços Semestrais",
+            description: "Os outros pagamentos já cobrem o valor total. Desative o cálculo automático ou ajuste os valores.",
+            variant: "destructive",
+          });
+          updateField('semiannualReinforcement', {
+            ...data.semiannualReinforcement,
+            autoCalculate: false
+          });
+          return;
+        }
         
         // Dividir pelo número de reforços
         const valuePerReinforcement = remaining / data.semiannualReinforcement.count;
@@ -152,12 +194,38 @@ export default function Calculator() {
     if (data.annualReinforcement?.enabled && 
         data.annualReinforcement?.autoCalculate && 
         data.annualReinforcement?.count) {
+      
+      // Validação: Verificar se valor do imóvel e count são válidos
+      if (!data.propertyValue || data.propertyValue <= 0) {
+        console.warn('Valor do imóvel inválido para cálculo automático anual');
+        return;
+      }
+      
+      if (data.annualReinforcement.count <= 0) {
+        console.warn('Número de reforços anuais deve ser maior que zero');
+        return;
+      }
+
       const timer = setTimeout(() => {
         const result = calculate();
         
         // Calcular saldo restante EXCLUINDO o valor atual dos reforços anuais
         const totalWithoutAnnual = result.totalPaid - (result.annualReinforcement?.total || 0);
         const remaining = data.propertyValue - totalWithoutAnnual;
+        
+        // Validação: Prevenir cálculo com saldo negativo
+        if (remaining <= 0) {
+          toast({
+            title: "Atenção nos Reforços Anuais",
+            description: "Os outros pagamentos já cobrem o valor total. Desative o cálculo automático ou ajuste os valores.",
+            variant: "destructive",
+          });
+          updateField('annualReinforcement', {
+            ...data.annualReinforcement,
+            autoCalculate: false
+          });
+          return;
+        }
         
         // Dividir pelo número de reforços
         const valuePerReinforcement = remaining / data.annualReinforcement.count;
