@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,7 @@ export default function Auth() {
   
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { handleError, handleSuccess } = useErrorHandler();
+  const { checkRateLimit } = useRateLimit();
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -59,15 +61,13 @@ export default function Auth() {
     try {
       const validated = signInSchema.parse({ email, password });
       
-      // ✅ Check rate limit
+      // ✅ Check rate limit via hook
       setLoading(true);
-      const rateLimitResponse = await supabase.functions.invoke('rate-limit', {
-        body: { identifier: validated.email, action: 'login' }
-      });
+      const rateLimitResult = await checkRateLimit(validated.email, 'login');
 
-      if (rateLimitResponse.error || !rateLimitResponse.data?.allowed) {
+      if (!rateLimitResult.allowed) {
         setLoading(false);
-        const message = rateLimitResponse.data?.message || "Muitas tentativas. Aguarde alguns minutos.";
+        const message = rateLimitResult.message || "Muitas tentativas. Aguarde alguns minutos.";
         setRateLimitMessage(message);
         handleError({ message, code: 429 }, { action: 'login' });
         return;
@@ -116,14 +116,12 @@ export default function Auth() {
       
       setLoading(true);
       
-      // ✅ Check rate limit
-      const rateLimitResponse = await supabase.functions.invoke('rate-limit', {
-        body: { identifier: validated.email, action: 'signup' }
-      });
+      // ✅ Check rate limit via hook
+      const rateLimitResult = await checkRateLimit(validated.email, 'signup');
 
-      if (rateLimitResponse.error || !rateLimitResponse.data?.allowed) {
+      if (!rateLimitResult.allowed) {
         setLoading(false);
-        const message = rateLimitResponse.data?.message || "Muitas tentativas. Aguarde alguns minutos.";
+        const message = rateLimitResult.message || "Muitas tentativas. Aguarde alguns minutos.";
         setRateLimitMessage(message);
         handleError({ message, code: 429 }, { action: 'signup' });
         return;

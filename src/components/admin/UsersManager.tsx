@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useUsersManagement } from "@/hooks/useUsersManagement";
+import { getStatusBadge, formatDate, getLastActivityStatus } from "@/lib/userHelpers";
 import { Shield, User, Mail, Phone, Ban, Trash2, CheckCircle2, Clock, ShieldMinus, Unlock, ChevronDown, BookOpen, Trophy } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { formatPhone } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -59,8 +61,18 @@ interface UserWithRole {
 }
 
 export function UsersManager() {
-  const [users, setUsers] = useState<UserWithRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    users,
+    loading,
+    setUsers,
+    loadUsers,
+    loadUserMetrics,
+    toggleAdminRole,
+    toggleBlockUser,
+    toggleApproval,
+    deleteUser,
+  } = useUsersManagement();
+  
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [removeAdminUserId, setRemoveAdminUserId] = useState<string | null>(null);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
@@ -72,189 +84,11 @@ export function UsersManager() {
     loadUsers();
   }, []);
 
-  const loadUsers = async () => {
-    try {
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, whatsapp, avatar_url, created_at, last_sign_in_at, blocked, approved, team")
-        .order("created_at");
-
-      if (profilesError) throw profilesError;
-
-      const { data: userRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("*");
-
-      if (rolesError) throw rolesError;
-
-      // Identificar o primeiro admin (admin mais antigo)
-      const adminProfiles = profiles?.filter(p => 
-        userRoles?.some(ur => ur.user_id === p.id && ur.role === 'admin')
-      );
-      const firstAdminId = adminProfiles?.[0]?.id;
-
-      const usersWithRoles = profiles?.map((profile) => ({
-        ...profile,
-        blocked: profile.blocked === true,
-        approved: profile.approved === true,
-        last_sign_in_at: profile.last_sign_in_at,
-        roles: userRoles
-          ?.filter((role) => role.user_id === profile.id)
-          .map((role) => role.role) || [],
-        isFirstAdmin: profile.id === firstAdminId,
-      })) || [];
-
-      setUsers(usersWithRoles);
-      
-    } catch (error: any) {
-      toast({
-        title: "❌ Erro ao carregar usuários",
-        description: "Não foi possível carregar a lista de usuários. Verifique sua conexão e tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Pagination calculations
   const totalPages = Math.ceil(users.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedUsers = users.slice(startIndex, endIndex);
-
-  const getStatusBadge = (approved: boolean, blocked: boolean) => {
-    if (blocked) {
-      return <Badge variant="destructive">Bloqueado</Badge>;
-    }
-    if (approved) {
-      return <Badge className="bg-green-600 hover:bg-green-700 text-white">Ativo</Badge>;
-    }
-    return <Badge variant="outline" className="border-yellow-500 text-yellow-600">Pendente</Badge>;
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Nunca";
-    try {
-      return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: ptBR });
-    } catch {
-      return "Data inválida";
-    }
-  };
-
-  const getLastActivityStatus = (lastSignIn: string | null) => {
-    if (!lastSignIn) return { 
-      text: "Nunca", 
-      status: "offline", 
-      color: "text-muted-foreground",
-      badge: "⚪"
-    };
-
-    const now = new Date();
-    const lastActivity = new Date(lastSignIn);
-    
-    const diffMs = now.getTime() - lastActivity.getTime();
-    const diffMinutes = Math.floor(diffMs / 60000);
-
-    console.log('[Status Atividade]', {
-      now: now.toISOString(),
-      lastActivity: lastActivity.toISOString(),
-      diffMinutes,
-      diffMs
-    });
-
-    if (diffMinutes < 5) {
-      return {
-        text: "Online agora",
-        status: "online",
-        color: "text-green-600",
-        badge: "🟢"
-      };
-    }
-
-    if (diffMinutes < 60) {
-      return {
-        text: `Há ${diffMinutes} min`,
-        status: "recent",
-        color: "text-green-500",
-        badge: "🟡"
-      };
-    }
-
-    try {
-      return {
-        text: formatDistanceToNow(lastActivity, { 
-          addSuffix: true, 
-          locale: ptBR 
-        }),
-        status: "offline",
-        color: "text-muted-foreground",
-        badge: "⚪"
-      };
-    } catch {
-      return {
-        text: "Data inválida",
-        status: "offline",
-        color: "text-muted-foreground",
-        badge: "⚪"
-      };
-    }
-  };
-
-  const loadUserMetrics = async (userId: string): Promise<UserMetrics> => {
-    try {
-      // Buscar total de aulas disponíveis
-      const { count: totalLessons } = await supabase
-        .from("academy_lessons")
-        .select("*", { count: "exact", head: true })
-        .eq("published", true);
-
-      // Buscar progresso do usuário
-      const { data: progress } = await supabase
-        .from("user_lesson_progress")
-        .select(`
-          watched,
-          watched_at,
-          lesson:academy_lessons(title)
-        `)
-        .eq("user_id", userId)
-        .order("watched_at", { ascending: false });
-
-      const completedLessons = progress?.filter(p => p.watched).length || 0;
-      const progressPercentage = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
-
-      // Última aula assistida
-      const lastWatched = progress?.find(p => p.watched && p.watched_at);
-      const lastWatchedLesson = lastWatched ? {
-        title: (lastWatched.lesson as any)?.title || "Sem título",
-        watchedAt: lastWatched.watched_at
-      } : null;
-
-      // Buscar pontos do perfil
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("points")
-        .eq("id", userId)
-        .single();
-
-      return {
-        totalLessons: totalLessons || 0,
-        completedLessons,
-        progressPercentage,
-        lastWatchedLesson,
-        points: profile?.points || 0
-      };
-    } catch (error) {
-      console.error("Erro ao carregar métricas:", error);
-      return {
-        totalLessons: 0,
-        completedLessons: 0,
-        progressPercentage: 0,
-        lastWatchedLesson: null,
-        points: 0
-      };
-    }
-  };
 
   const handleExpand = async (userId: string) => {
     const newExpandedUsers = new Set(expandedUsers);
@@ -286,54 +120,6 @@ export function UsersManager() {
     setExpandedUsers(newExpandedUsers);
   };
 
-  const toggleAdminRole = async (userId: string, currentRoles: string[], isFirstAdmin: boolean) => {
-    if (isFirstAdmin) {
-      toast({
-        title: "Ação não permitida",
-        description: "O administrador principal do sistema não pode ser removido.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const isAdmin = currentRoles.includes("admin");
-
-      if (isAdmin) {
-        const { error } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", userId)
-          .eq("role", "admin");
-
-      if (error) throw error;
-      toast({ 
-        title: "✅ Permissão removida",
-        description: "O usuário não é mais administrador."
-      });
-      } else {
-        const { error } = await supabase
-          .from("user_roles")
-          .insert([{ user_id: userId, role: "admin" }]);
-
-        if (error) throw error;
-        toast({ 
-          title: "✅ Permissão concedida",
-          description: "O usuário agora é administrador."
-        });
-      }
-
-      setRemoveAdminUserId(null);
-      loadUsers();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar permissões",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleAdminRoleClick = (userId: string, currentRoles: string[], isFirstAdmin: boolean) => {
     const isAdmin = currentRoles.includes("admin");
     
@@ -343,108 +129,6 @@ export function UsersManager() {
     } else {
       // Se está adicionando admin, executa direto
       toggleAdminRole(userId, currentRoles, isFirstAdmin);
-    }
-  };
-
-  const toggleBlockUser = async (userId: string, currentBlocked: boolean) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ blocked: !currentBlocked })
-        .eq("id", userId);
-
-      if (error) throw error;
-      
-      toast({ 
-        title: currentBlocked ? "🔓 Usuário desbloqueado" : "🚫 Usuário bloqueado",
-        description: currentBlocked 
-          ? "O usuário pode acessar o sistema novamente." 
-          : "O usuário foi impedido de acessar o sistema."
-      });
-      
-      await loadUsers();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao bloquear/desbloquear usuário",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleApproval = async (userId: string, currentApproved: boolean) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ approved: !currentApproved })
-        .eq("id", userId);
-
-      if (error) throw error;
-      
-      toast({ 
-        title: currentApproved ? "❌ Aprovação removida" : "✅ Usuário aprovado",
-        description: currentApproved 
-          ? "O usuário não poderá mais acessar o sistema até ser aprovado novamente." 
-          : "O usuário agora pode acessar todas as funcionalidades do sistema."
-      });
-      
-      await loadUsers();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao aprovar/desaprovar usuário",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteUser = async (userId: string) => {
-    try {
-      console.log('Iniciando deleção do usuário:', userId);
-      
-      // Obter token de autenticação atual
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error('Sessão não encontrada. Faça login novamente.');
-      }
-
-      console.log('Token de autenticação obtido');
-
-      // Chamar Edge Function para deletar usuário completamente
-      const { data, error } = await supabase.functions.invoke('delete-user', {
-        body: { userId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
-
-      console.log('Resposta da Edge Function:', { data, error });
-
-      if (error) {
-        console.error('Erro ao invocar Edge Function:', error);
-        throw error;
-      }
-      
-      if (data?.error) {
-        console.error('Erro retornado pela Edge Function:', data.error);
-        throw new Error(data.error);
-      }
-      
-      toast({ 
-        title: "✅ Usuário excluído com sucesso",
-        description: "Todos os dados do usuário foram removidos do sistema."
-      });
-      
-      setDeleteUserId(null);
-      await loadUsers();
-    } catch (error: any) {
-      console.error('Erro completo ao excluir usuário:', error);
-      toast({
-        title: "Erro ao excluir usuário",
-        description: error.message || "Erro desconhecido ao excluir usuário",
-        variant: "destructive",
-      });
     }
   };
 
@@ -554,7 +238,18 @@ export function UsersManager() {
                           </Badge>
                         )}
                         
-                        {getStatusBadge(user.approved, user.blocked)}
+                        {getStatusBadge(user.approved, user.blocked).className ? (
+                          <Badge 
+                            variant={getStatusBadge(user.approved, user.blocked).variant}
+                            className={getStatusBadge(user.approved, user.blocked).className}
+                          >
+                            {getStatusBadge(user.approved, user.blocked).text}
+                          </Badge>
+                        ) : (
+                          <Badge variant={getStatusBadge(user.approved, user.blocked).variant}>
+                            {getStatusBadge(user.approved, user.blocked).text}
+                          </Badge>
+                        )}
                         
                         <div className="flex items-center gap-1 text-xs">
                           <span>{activityStatus.badge}</span>
