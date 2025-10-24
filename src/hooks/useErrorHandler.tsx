@@ -19,9 +19,11 @@ export function useErrorHandler() {
     // Log error for monitoring
     logger.error("Application error", {
       action: context.action,
-      message: errorMessage,
-      code: errorCode,
-      metadata: context.details,
+      metadata: {
+        message: errorMessage,
+        code: errorCode,
+        ...context.details,
+      }
     });
 
     // Determine user-friendly message

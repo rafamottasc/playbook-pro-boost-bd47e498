@@ -97,6 +97,24 @@ export type Database = {
         }
         Relationships: []
       }
+      academy_onboarding_views: {
+        Row: {
+          id: string
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: []
+      }
       announcement_views: {
         Row: {
           announcement_id: string | null
@@ -1450,6 +1468,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_attempts: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          identifier: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          identifier: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          identifier?: string
+        }
+        Relationships: []
+      }
       resource_categories: {
         Row: {
           active: boolean | null
@@ -1865,6 +1904,7 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       decrement_question_likes: {
         Args: { question_id: string }
         Returns: undefined

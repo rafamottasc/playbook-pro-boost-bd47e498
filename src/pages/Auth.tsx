@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Check, Circle } from "lucide-react";
+import { Eye, EyeOff, Check, Circle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
 import comarcLogoDark from "@/assets/logo-comarc-dark.png";
@@ -27,8 +27,10 @@ export default function Auth() {
   const [resetEmail, setResetEmail] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
+  
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
-  const { toast } = useToast();
+  const { handleError, handleSuccess } = useErrorHandler();
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -52,43 +54,57 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRateLimitMessage(null);
     
     try {
       const validated = signInSchema.parse({ email, password });
       
+      // ✅ Check rate limit
       setLoading(true);
+      const rateLimitResponse = await supabase.functions.invoke('rate-limit', {
+        body: { identifier: validated.email, action: 'login' }
+      });
+
+      if (rateLimitResponse.error || !rateLimitResponse.data?.allowed) {
+        setLoading(false);
+        const message = rateLimitResponse.data?.message || "Muitas tentativas. Aguarde alguns minutos.";
+        setRateLimitMessage(message);
+        handleError({ message, code: 429 }, { action: 'login' });
+        return;
+      }
+      
       const { error } = await signIn(validated.email, validated.password);
       setLoading(false);
 
       if (error) {
         // Tratamento específico para conta bloqueada
         if (error.message === "blocked_account") {
-          toast({
-            title: "Acesso Bloqueado",
-            description: "Sua conta foi bloqueada. Entre em contato com o administrador.",
-            variant: "destructive",
-          });
+          handleError({ 
+            message: "Sua conta foi bloqueada. Entre em contato com o administrador.",
+            userMessage: "Sua conta foi bloqueada. Entre em contato com o administrador."
+          }, { action: 'login_blocked' });
         } else {
-          toast({
-            title: "Erro no login",
-            description: translateAuthError(error.message),
-            variant: "destructive",
-          });
+          handleError(error, { action: 'login', details: { email: validated.email } });
         }
+      } else {
+        handleSuccess("Login realizado com sucesso!");
       }
     } catch (error) {
+      setLoading(false);
       if (error instanceof ZodError) {
-        toast({
-          title: "Erro de validação",
-          description: error.issues[0].message,
-          variant: "destructive",
-        });
+        handleError({ 
+          message: error.issues[0].message,
+          userMessage: error.issues[0].message
+        }, { action: 'login_validation' });
+      } else {
+        handleError(error, { action: 'login' });
       }
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRateLimitMessage(null);
     
     try {
       const validated = signUpSchema.parse({ 
@@ -100,6 +116,19 @@ export default function Auth() {
       
       setLoading(true);
       
+      // ✅ Check rate limit
+      const rateLimitResponse = await supabase.functions.invoke('rate-limit', {
+        body: { identifier: validated.email, action: 'signup' }
+      });
+
+      if (rateLimitResponse.error || !rateLimitResponse.data?.allowed) {
+        setLoading(false);
+        const message = rateLimitResponse.data?.message || "Muitas tentativas. Aguarde alguns minutos.";
+        setRateLimitMessage(message);
+        handleError({ message, code: 429 }, { action: 'signup' });
+        return;
+      }
+      
       // Verificar se email ou whatsapp já existem
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
@@ -109,24 +138,17 @@ export default function Auth() {
       
       if (checkError && checkError.code !== 'PGRST116') {
         setLoading(false);
-        toast({
-          title: "Erro ao verificar dados",
-          description: "Tente novamente mais tarde",
-          variant: "destructive",
-        });
+        handleError(checkError, { action: 'check_duplicate_user' });
         return;
       }
       
       if (existingProfile) {
         setLoading(false);
         const isDuplicateEmail = existingProfile.email === validated.email;
-        toast({
-          title: "Usuário já cadastrado",
-          description: isDuplicateEmail 
-            ? "Este e-mail já está em uso" 
-            : "Este WhatsApp já está cadastrado",
-          variant: "destructive",
-        });
+        handleError({
+          message: isDuplicateEmail ? "Este e-mail já está em uso" : "Este WhatsApp já está cadastrado",
+          userMessage: isDuplicateEmail ? "Este e-mail já está em uso" : "Este WhatsApp já está cadastrado"
+        }, { action: 'duplicate_user' });
         return;
       }
       
@@ -139,48 +161,37 @@ export default function Auth() {
       setLoading(false);
 
       if (error) {
-        toast({
-          title: "Erro no cadastro",
-          description: translateAuthError(error.message),
-          variant: "destructive",
-        });
+        handleError(error, { action: 'signup', details: { email: validated.email } });
       } else {
-        toast({
-          title: "Cadastro realizado!",
-          description: "Bem-vindo ao sistema COMARC",
-        });
+        handleSuccess("Cadastro realizado com sucesso! Bem-vindo ao sistema COMARC.");
       }
     } catch (error) {
+      setLoading(false);
       if (error instanceof ZodError) {
-        toast({
-          title: "Erro de validação",
-          description: error.issues[0].message,
-          variant: "destructive",
-        });
+        handleError({ 
+          message: error.issues[0].message,
+          userMessage: error.issues[0].message
+        }, { action: 'signup_validation' });
+      } else {
+        handleError(error, { action: 'signup' });
       }
     }
   };
 
   const handleGoogleSignIn = async () => {
+    setRateLimitMessage(null);
+    
     try {
       setLoading(true);
       const { error } = await signInWithGoogle();
       setLoading(false);
 
       if (error) {
-        toast({
-          title: "Erro no login com Google",
-          description: translateAuthError(error.message),
-          variant: "destructive",
-        });
+        handleError(error, { action: 'google_signin' });
       }
     } catch (error) {
       setLoading(false);
-      toast({
-        title: "Erro",
-        description: "Não foi possível conectar com o Google",
-        variant: "destructive",
-      });
+      handleError(error, { action: 'google_signin' });
     }
   };
 
@@ -197,26 +208,21 @@ export default function Auth() {
       setLoading(false);
 
       if (error) {
-        toast({
-          title: "Erro",
-          description: translateAuthError(error.message),
-          variant: "destructive",
-        });
+        handleError(error, { action: 'reset_password' });
       } else {
-        toast({
-          title: "E-mail enviado!",
-          description: "Verifique sua caixa de entrada para redefinir sua senha",
-        });
+        handleSuccess("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
         setShowResetPassword(false);
         setResetEmail("");
       }
     } catch (error) {
+      setLoading(false);
       if (error instanceof ZodError) {
-        toast({
-          title: "Erro de validação",
-          description: error.issues[0].message,
-          variant: "destructive",
-        });
+        handleError({ 
+          message: error.issues[0].message,
+          userMessage: error.issues[0].message
+        }, { action: 'reset_password_validation' });
+      } else {
+        handleError(error, { action: 'reset_password' });
       }
     }
   };
@@ -287,6 +293,13 @@ export default function Auth() {
 
             <TabsContent value="login">
               <form onSubmit={handleSignIn} className="space-y-4">
+                {rateLimitMessage && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                    <p className="text-sm text-destructive">{rateLimitMessage}</p>
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
                   <Input
@@ -405,6 +418,13 @@ export default function Auth() {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                {rateLimitMessage && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                    <p className="text-sm text-destructive">{rateLimitMessage}</p>
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Nome Completo</Label>
                   <Input
