@@ -14,8 +14,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,7 +75,6 @@ export function UsersManager() {
   
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [removeAdminUserId, setRemoveAdminUserId] = useState<string | null>(null);
-  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
@@ -90,15 +89,8 @@ export function UsersManager() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedUsers = users.slice(startIndex, endIndex);
 
-  const handleExpand = async (userId: string) => {
-    const newExpandedUsers = new Set(expandedUsers);
-    
-    if (expandedUsers.has(userId)) {
-      newExpandedUsers.delete(userId);
-    } else {
-      newExpandedUsers.add(userId);
-      
-      // Se está expandindo e ainda não tem métricas, buscar
+  const handleExpand = async (isOpen: boolean, userId: string) => {
+    if (isOpen) {
       const user = users.find(u => u.id === userId);
       if (user && !user.metrics) {
         try {
@@ -116,8 +108,6 @@ export function UsersManager() {
         }
       }
     }
-    
-    setExpandedUsers(newExpandedUsers);
   };
 
   const handleAdminRoleClick = (userId: string, currentRoles: string[], isFirstAdmin: boolean) => {
@@ -185,43 +175,42 @@ export function UsersManager() {
 
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 items-start">
           {paginatedUsers.map((user) => {
-            const isExpanded = expandedUsers.has(user.id);
             const activityStatus = getLastActivityStatus(user.last_sign_in_at);
             
             return (
-              <Card key={user.id} className="p-3 sm:p-6 overflow-hidden">
-                <div className="flex flex-col gap-3 sm:gap-4">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <Avatar className="h-10 w-10 sm:h-16 sm:w-16 flex-shrink-0">
-                      <AvatarImage src={user.avatar_url || ""} loading="lazy" />
-                      <AvatarFallback className="text-sm sm:text-lg">
-                        {user.full_name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+              <Collapsible 
+                key={user.id}
+                onOpenChange={(isOpen) => handleExpand(isOpen, user.id)}
+              >
+                <Card className="p-3 sm:p-6 overflow-hidden">
+                  <div className="flex flex-col gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <Avatar className="h-10 w-10 sm:h-16 sm:w-16 flex-shrink-0">
+                        <AvatarImage src={user.avatar_url || ""} loading="lazy" />
+                        <AvatarFallback className="text-sm sm:text-lg">
+                          {user.full_name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <h3 className="font-semibold text-sm sm:text-lg truncate">
-                          {user.full_name}
-                        </h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleExpand(user.id)}
-                          className="flex-shrink-0 h-8 px-2"
-                        >
-                          <motion.div
-                            animate={{ rotate: isExpanded ? 180 : 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </motion.div>
-                        </Button>
-                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <h3 className="font-semibold text-sm sm:text-lg truncate">
+                            {user.full_name}
+                          </h3>
+                          <CollapsibleTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex-shrink-0 h-8 px-2"
+                            >
+                              <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                            </Button>
+                          </CollapsibleTrigger>
+                        </div>
 
                       <div className="flex flex-wrap items-center gap-2 text-xs pb-2 border-b">
                         {user.roles.includes("admin") ? (
@@ -295,68 +284,58 @@ export function UsersManager() {
                         )}
                       </div>
 
-                      <AnimatePresence>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pt-4 border-t mt-4 space-y-4">
-                              {user.metrics && (
-                                <div className="space-y-2">
-                                  <h4 className="font-semibold flex items-center gap-2 text-sm">
-                                    <BookOpen className="h-4 w-4" />
-                                    Aprendizado e Progresso
-                                  </h4>
-                                  
-                                  <div className="text-sm space-y-2">
-                                    <p className="text-muted-foreground">
-                                      Aulas concluídas: <span className="font-medium text-foreground">{user.metrics.completedLessons}</span> de <span className="font-medium text-foreground">{user.metrics.totalLessons}</span> ({user.metrics.progressPercentage}%)
-                                    </p>
-                                    
-                                    <Progress value={user.metrics.progressPercentage} className="h-2" />
-                                    
-                                    {user.metrics.lastWatchedLesson && (
-                                      <p className="text-muted-foreground flex items-start gap-1">
-                                        <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                                        <span>
-                                          Última aula: <span className="font-medium text-foreground">"{user.metrics.lastWatchedLesson.title}"</span>{" "}
-                                          {formatDistanceToNow(new Date(user.metrics.lastWatchedLesson.watchedAt), { 
-                                            addSuffix: true, 
-                                            locale: ptBR 
-                                          })}
-                                        </span>
-                                      </p>
-                                    )}
-                                    
-                                    <p className="flex items-center gap-1">
-                                      <Trophy className="h-3 w-3 text-yellow-500" />
-                                      <span className="text-muted-foreground">
-                                        Pontos acumulados: <span className="font-medium text-foreground">{user.metrics.points} pts</span>
-                                      </span>
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-
-                              <div className="space-y-2">
-                                <h4 className="font-semibold flex items-center gap-2 text-sm">
-                                  <Clock className="h-4 w-4" />
-                                  Informações de Acesso
-                                </h4>
+                      <CollapsibleContent>
+                        <div className="pt-4 border-t mt-4 space-y-4">
+                          {user.metrics && (
+                            <div className="space-y-2">
+                              <h4 className="font-semibold flex items-center gap-2 text-sm">
+                                <BookOpen className="h-4 w-4" />
+                                Aprendizado e Progresso
+                              </h4>
+                              
+                              <div className="text-sm space-y-2">
+                                <p className="text-muted-foreground">
+                                  Aulas concluídas: <span className="font-medium text-foreground">{user.metrics.completedLessons}</span> de <span className="font-medium text-foreground">{user.metrics.totalLessons}</span> ({user.metrics.progressPercentage}%)
+                                </p>
                                 
-                                <div className="text-sm space-y-1 text-muted-foreground">
-                                  <p>Criado em: <span className="font-medium text-foreground">{formatDate(user.created_at)}</span></p>
-                                  <p>Último acesso: <span className="font-medium text-foreground">{formatDate(user.last_sign_in_at)}</span></p>
-                                </div>
+                                <Progress value={user.metrics.progressPercentage} className="h-2" />
+                                
+                                {user.metrics.lastWatchedLesson && (
+                                  <p className="text-muted-foreground flex items-start gap-1">
+                                    <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                    <span>
+                                      Última aula: <span className="font-medium text-foreground">"{user.metrics.lastWatchedLesson.title}"</span>{" "}
+                                      {formatDistanceToNow(new Date(user.metrics.lastWatchedLesson.watchedAt), { 
+                                        addSuffix: true, 
+                                        locale: ptBR 
+                                      })}
+                                    </span>
+                                  </p>
+                                )}
+                                
+                                <p className="flex items-center gap-1">
+                                  <Trophy className="h-3 w-3 text-yellow-500" />
+                                  <span className="text-muted-foreground">
+                                    Pontos acumulados: <span className="font-medium text-foreground">{user.metrics.points} pts</span>
+                                  </span>
+                                </p>
                               </div>
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                          )}
+
+                          <div className="space-y-2">
+                            <h4 className="font-semibold flex items-center gap-2 text-sm">
+                              <Clock className="h-4 w-4" />
+                              Informações de Acesso
+                            </h4>
+                            
+                            <div className="text-sm space-y-1 text-muted-foreground">
+                              <p>Criado em: <span className="font-medium text-foreground">{formatDate(user.created_at)}</span></p>
+                              <p>Último acesso: <span className="font-medium text-foreground">{formatDate(user.last_sign_in_at)}</span></p>
+                            </div>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
                     </div>
                   </div>
 
@@ -431,9 +410,10 @@ export function UsersManager() {
                   )}
                 </div>
               </Card>
-            );
-          })}
-        </div>
+            </Collapsible>
+          );
+        })}
+      </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
