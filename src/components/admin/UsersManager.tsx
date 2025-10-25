@@ -274,12 +274,7 @@ export function UsersManager() {
                         {user.team && (
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Shield className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="truncate">
-                              {user.team === 'Equipe Leão' && '🦁 '}
-                              {user.team === 'Equipe Lobo' && '🐺 '}
-                              {user.team === 'Equipe Águia' && '🦅 '}
-                              {user.team}
-                            </span>
+                            <span className="truncate">{user.team}</span>
                           </div>
                         )}
                       </div>
