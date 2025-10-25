@@ -1648,6 +1648,36 @@ export type Database = {
           },
         ]
       }
+      teams: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          display_order: number | null
+          emoji: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          emoji?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          emoji?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       theme_settings: {
         Row: {
           created_at: string

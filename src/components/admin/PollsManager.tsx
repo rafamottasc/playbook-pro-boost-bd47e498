@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTeams } from "@/hooks/useTeams";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ export function PollsManager() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pollToDelete, setPollToDelete] = useState<Poll | null>(null);
   const { toast } = useToast();
+  const { teams } = useTeams();
 
   // Form state
   const [title, setTitle] = useState("");
@@ -479,9 +481,11 @@ export function PollsManager() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="team:Águia">Equipe Águia</SelectItem>
-                  <SelectItem value="team:Leão">Equipe Leão</SelectItem>
-                  <SelectItem value="team:Tubarão">Equipe Tubarão</SelectItem>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={`team:${team.name}`}>
+                      {team.emoji} {team.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

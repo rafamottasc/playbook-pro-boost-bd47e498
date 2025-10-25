@@ -6,7 +6,7 @@ import {
   FolderOpen, GraduationCap,
   MessageSquare, Workflow, Building2,
   Megaphone, Vote, MessageCircle, Smile,
-  Users, Calculator, Palette, DoorOpen
+  Users, Calculator, Palette, DoorOpen, Users2
 } from "lucide-react";
 
 // Lazy imports para otimização de bundle
@@ -23,6 +23,7 @@ const PollsManager = lazy(() => import("@/components/admin/PollsManager").then(m
 const CubManager = lazy(() => import("@/components/admin/CubManager").then(m => ({ default: m.CubManager })));
 const ThemeManager = lazy(() => import("@/components/admin/ThemeManager").then(m => ({ default: m.ThemeManager })));
 const RoomsManager = lazy(() => import("@/components/admin/RoomsManager").then(m => ({ default: m.RoomsManager })));
+const TeamsManager = lazy(() => import("@/components/admin/TeamsManager").then(m => ({ default: m.TeamsManager })));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center p-8">
@@ -183,6 +184,10 @@ export default function Admin() {
                   <Users className="h-4 w-4" />
                   Usuários
                 </TabsTrigger>
+                <TabsTrigger value="teams" className="gap-2">
+                  <Users2 className="h-4 w-4" />
+                  Equipes
+                </TabsTrigger>
                 <TabsTrigger value="rooms" className="gap-2">
                   <DoorOpen className="h-4 w-4" />
                   Salas
@@ -200,6 +205,12 @@ export default function Admin() {
               <TabsContent value="users">
                 <Suspense fallback={<LoadingFallback />}>
                   <UsersManager />
+                </Suspense>
+              </TabsContent>
+              
+              <TabsContent value="teams">
+                <Suspense fallback={<LoadingFallback />}>
+                  <TeamsManager />
                 </Suspense>
               </TabsContent>
               

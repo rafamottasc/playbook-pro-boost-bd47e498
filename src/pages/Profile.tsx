@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Award, User } from "lucide-react";
+import { Upload, Award, User, AlertCircle } from "lucide-react";
+import { useTeams } from "@/hooks/useTeams";
 import { profileUpdateSchema } from "@/lib/validations";
 import { ZodError } from "zod";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
@@ -22,6 +23,7 @@ import { formatPhone, unformatPhone } from "@/lib/utils";
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { teams, loading: teamsLoading } = useTeams();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -344,21 +346,40 @@ export default function Profile() {
                   <Select
                     value={profile.team || "none"}
                     onValueChange={(value) => setProfile({ ...profile, team: value === "none" ? "" : value })}
-                    disabled={loading}
+                    disabled={loading || teamsLoading}
                   >
                     <SelectTrigger id="team">
                       <SelectValue placeholder="Selecione sua equipe" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Nenhuma equipe</SelectItem>
-                      <SelectItem value="Equipe Leão">🦁 Equipe Leão</SelectItem>
-                      <SelectItem value="Equipe Lobo">🐺 Equipe Lobo</SelectItem>
-                      <SelectItem value="Equipe Águia">🦅 Equipe Águia</SelectItem>
+                      {teams.length === 0 && !teamsLoading ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Nenhuma equipe disponível.<br />
+                          Peça ao administrador para criar equipes.
+                        </div>
+                      ) : (
+                        teams.map((team) => (
+                          <SelectItem key={team.id} value={team.name}>
+                            {team.emoji} {team.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
                     Identifica sua equipe dentro da imobiliária
                   </p>
+                  
+                  {profile.team && !teams.some(t => t.name === profile.team) && profile.team !== "" && (
+                    <div className="flex items-start gap-2 p-2 bg-muted rounded-md text-xs">
+                      <AlertCircle className="h-3 w-3 text-muted-foreground mt-0.5" />
+                      <span className="text-muted-foreground">
+                        Sua equipe atual <strong>"{profile.team}"</strong> foi desativada. 
+                        Você pode continuar com ela ou escolher outra.
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
