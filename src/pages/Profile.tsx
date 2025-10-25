@@ -358,13 +358,13 @@ export default function Profile() {
                           Nenhuma equipe disponível.<br />
                           Peça ao administrador para criar equipes.
                         </div>
-                      ) : (
-                        teams.map((team) => (
-                          <SelectItem key={team.id} value={team.name}>
-                            {team.emoji} {team.name}
-                          </SelectItem>
-                        ))
-                      )}
+              ) : (
+                teams.map((team) => (
+                  <SelectItem key={team.id} value={team.name}>
+                    {team.name}
+                  </SelectItem>
+                ))
+              )}
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">

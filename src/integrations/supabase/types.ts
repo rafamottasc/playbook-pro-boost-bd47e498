@@ -1653,7 +1653,6 @@ export type Database = {
           active: boolean | null
           created_at: string | null
           display_order: number | null
-          emoji: string | null
           id: string
           name: string
           updated_at: string | null
@@ -1662,7 +1661,6 @@ export type Database = {
           active?: boolean | null
           created_at?: string | null
           display_order?: number | null
-          emoji?: string | null
           id?: string
           name: string
           updated_at?: string | null
@@ -1671,7 +1669,6 @@ export type Database = {
           active?: boolean | null
           created_at?: string | null
           display_order?: number | null
-          emoji?: string | null
           id?: string
           name?: string
           updated_at?: string | null

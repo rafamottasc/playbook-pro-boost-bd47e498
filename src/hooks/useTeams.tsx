@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Team {
   id: string;
   name: string;
-  emoji: string;
   active: boolean;
   display_order: number;
 }

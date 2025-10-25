@@ -12,7 +12,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface Team {
   id: string;
   name: string;
-  emoji: string;
   active: boolean;
   display_order: number;
   created_at: string;
@@ -23,7 +22,6 @@ export function TeamsManager() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTeamName, setNewTeamName] = useState("");
-  const [newTeamEmoji, setNewTeamEmoji] = useState("👥");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -65,7 +63,6 @@ export function TeamsManager() {
       .from("teams")
       .insert({
         name: newTeamName.trim(),
-        emoji: newTeamEmoji,
         display_order: teams.length + 1,
       });
 
@@ -78,10 +75,9 @@ export function TeamsManager() {
     } else {
       toast({
         title: "Equipe criada!",
-        description: `${newTeamEmoji} ${newTeamName} foi adicionada com sucesso.`,
+        description: `${newTeamName} foi adicionada com sucesso.`,
       });
       setNewTeamName("");
-      setNewTeamEmoji("👥");
       loadTeams();
     }
 
@@ -125,14 +121,6 @@ export function TeamsManager() {
       <CardContent className="space-y-6">
         <div className="flex gap-2">
           <Input
-            placeholder="Emoji (ex: 🦁)"
-            value={newTeamEmoji}
-            onChange={(e) => setNewTeamEmoji(e.target.value)}
-            className="w-20"
-            maxLength={2}
-            disabled={submitting}
-          />
-          <Input
             placeholder="Nome da nova equipe"
             value={newTeamName}
             onChange={(e) => setNewTeamName(e.target.value)}
@@ -167,7 +155,6 @@ export function TeamsManager() {
                 className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{team.emoji}</span>
                   <div>
                     <p className="font-medium">{team.name}</p>
                     {!team.active && (
@@ -198,7 +185,7 @@ export function TeamsManager() {
                         <AlertDialogTitle>Excluir equipe?</AlertDialogTitle>
                         <AlertDialogDescription>
                           <div className="space-y-2">
-                            <p>Tem certeza que deseja excluir <strong>{team.emoji} {team.name}</strong>?</p>
+                            <p>Tem certeza que deseja excluir <strong>{team.name}</strong>?</p>
                             <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-md">
                               <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
                               <p className="text-sm">

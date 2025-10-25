@@ -479,14 +479,14 @@ export function PollsManager() {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={`team:${team.name}`}>
-                      {team.emoji} {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {teams.map((team) => (
+                <SelectItem key={team.id} value={`team:${team.name}`}>
+                  {team.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
               </Select>
             </div>
 
