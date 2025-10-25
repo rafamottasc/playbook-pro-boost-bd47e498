@@ -796,7 +796,7 @@ export function ResourcesManager() {
               <div key={category.id} className="space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b mt-8">
                   <FileText className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">📁 {category.name}</h3>
+                  <h3 className="text-lg font-semibold">{category.name}</h3>
                   <span className="text-sm text-muted-foreground">
                     ({categoryResources.length} {categoryResources.length === 1 ? 'recurso' : 'recursos'})
                   </span>
