@@ -119,18 +119,19 @@ export function TeamsManager() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Nome da nova equipe"
             value={newTeamName}
             onChange={(e) => setNewTeamName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddTeam()}
             disabled={submitting}
+            className="w-full"
           />
           <Button 
             onClick={handleAddTeam} 
             disabled={submitting || !newTeamName.trim()}
-            className="whitespace-nowrap"
+            className="whitespace-nowrap w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
             Adicionar
