@@ -96,11 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Verificar se perfil está incompleto e redirecionar para /profile
     const isProfileIncomplete = !profile?.avatar_url || !profile?.whatsapp || !profile?.team;
+    const currentPath = window.location.pathname;
 
     // Verificar se é a PRIMEIRA VEZ que o usuário acessa o sistema
     // (profile_onboarding_completed = FALSE)
     if (isProfileIncomplete && !profile?.profile_onboarding_completed) {
-      if (window.location.pathname !== "/profile") {
+      if (currentPath !== "/profile" && currentPath !== "/auth") {
         console.log("[useAuth] First access detected, redirecting to /profile");
 
         setTimeout(() => {

@@ -49,7 +49,8 @@ export default function Auth() {
 
   useEffect(() => {
     // Only navigate after authentication state is fully initialized
-    if (user && !initializing) {
+    // AND not if we're in the profile onboarding flow
+    if (user && !initializing && window.location.pathname !== '/profile') {
       navigate("/");
     }
   }, [user, initializing, navigate]);
