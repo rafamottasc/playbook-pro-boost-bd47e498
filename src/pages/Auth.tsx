@@ -188,7 +188,15 @@ export default function Auth() {
       setLoading(false);
 
       if (error) {
-        handleError(error, { action: 'google_signin' });
+        // Tratamento específico para erro de OAuth
+        if (error.message?.includes('Unable to exchange external code')) {
+          handleError({
+            message: 'Falha na autenticação com Google. Verifique se as credenciais OAuth estão corretas no backend.',
+            userMessage: 'Erro ao conectar com o Google. Por favor, tente novamente ou entre em contato com o suporte.'
+          }, { action: 'google_signin_oauth_error' });
+        } else {
+          handleError(error, { action: 'google_signin' });
+        }
       }
     } catch (error) {
       setLoading(false);
@@ -253,6 +261,7 @@ export default function Auth() {
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   disabled={loading}
+                  autoComplete="email"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
@@ -310,6 +319,7 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
@@ -323,6 +333,7 @@ export default function Auth() {
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
                       className="pr-10"
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
@@ -457,6 +468,7 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
@@ -470,6 +482,7 @@ export default function Auth() {
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
                       className="pr-10"
+                      autoComplete="new-password"
                     />
                     <button
                       type="button"
