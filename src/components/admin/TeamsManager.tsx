@@ -149,7 +149,7 @@ export function TeamsManager() {
             Nenhuma equipe cadastrada ainda
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {teams.map((team) => (
               <div
                 key={team.id}
