@@ -2,8 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator, Hand } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Calculator, Hand } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { PageTransition } from "@/components/PageTransition";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
@@ -16,12 +15,10 @@ interface NavCard {
   description: string;
   icon: React.ReactNode;
   route: string;
-  adminOnly?: boolean;
 }
 
 export default function Home() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
   const { profile } = useProfile();
 
   // Função para gerar saudação baseada no horário
@@ -84,16 +81,9 @@ export default function Home() {
       icon: <TrendingUp className="w-12 h-12" />,
       route: "/campaigns",
     },
-    {
-      title: "Painel Admin",
-      description: "Gerenciamento completo do sistema e configurações",
-      icon: <Settings className="w-12 h-12" />,
-      route: "/admin",
-      adminOnly: true,
-    },
   ];
 
-  const visibleCards = navigationCards.filter((card) => !card.adminOnly || isAdmin);
+  
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,7 +112,7 @@ export default function Home() {
             {/* Colunas 1 e 2 - Cards de navegação em grid 2 colunas */}
             <div className="flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {visibleCards.map((card, index) => (
+                {navigationCards.map((card, index) => (
                   <Card
                     key={card.route}
                     className="cursor-pointer animate-fade-in transition-all duration-300 border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:translate-y-[-2px]"
