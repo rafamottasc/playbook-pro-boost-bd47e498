@@ -1,16 +1,6 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Header } from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessagesManager } from "@/components/admin/MessagesManager";
-import { ResourcesManager } from "@/components/admin/ResourcesManager";
-import { UsersManager } from "@/components/admin/UsersManager";
-import { AcademyManager } from "@/components/admin/AcademyManager";
-import { FunnelsManager } from "@/components/admin/FunnelsManager";
-import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
-import PartnersManager from "@/pages/admin/PartnersManager";
-import MoodMetricsOptimized from "@/components/admin/MoodMetricsOptimized";
-import { FeedbacksManager } from "@/components/admin/FeedbacksManager";
-import { PollsManager } from "@/components/admin/PollsManager";
 import { 
   BookOpen, Rocket, Heart, Settings,
   FolderOpen, GraduationCap,
@@ -18,9 +8,30 @@ import {
   Megaphone, Vote, MessageCircle, Smile,
   Users, Calculator, Palette, DoorOpen
 } from "lucide-react";
-import { CubManager } from "@/components/admin/CubManager";
-import { ThemeManager } from "@/components/admin/ThemeManager";
-import { RoomsManager } from "@/components/admin/RoomsManager";
+
+// Lazy imports para otimização de bundle
+const MessagesManager = lazy(() => import("@/components/admin/MessagesManager").then(m => ({ default: m.MessagesManager })));
+const ResourcesManager = lazy(() => import("@/components/admin/ResourcesManager").then(m => ({ default: m.ResourcesManager })));
+const UsersManager = lazy(() => import("@/components/admin/UsersManager").then(m => ({ default: m.UsersManager })));
+const AcademyManager = lazy(() => import("@/components/admin/AcademyManager").then(m => ({ default: m.AcademyManager })));
+const FunnelsManager = lazy(() => import("@/components/admin/FunnelsManager").then(m => ({ default: m.FunnelsManager })));
+const AnnouncementsManager = lazy(() => import("@/components/admin/AnnouncementsManager").then(m => ({ default: m.AnnouncementsManager })));
+const PartnersManager = lazy(() => import("@/pages/admin/PartnersManager"));
+const MoodMetricsOptimized = lazy(() => import("@/components/admin/MoodMetricsOptimized"));
+const FeedbacksManager = lazy(() => import("@/components/admin/FeedbacksManager").then(m => ({ default: m.FeedbacksManager })));
+const PollsManager = lazy(() => import("@/components/admin/PollsManager").then(m => ({ default: m.PollsManager })));
+const CubManager = lazy(() => import("@/components/admin/CubManager").then(m => ({ default: m.CubManager })));
+const ThemeManager = lazy(() => import("@/components/admin/ThemeManager").then(m => ({ default: m.ThemeManager })));
+const RoomsManager = lazy(() => import("@/components/admin/RoomsManager").then(m => ({ default: m.RoomsManager })));
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="text-center space-y-2">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+      <p className="text-sm text-muted-foreground">Carregando...</p>
+    </div>
+  </div>
+);
 
 export default function Admin() {
   return (
@@ -65,11 +76,15 @@ export default function Admin() {
               </TabsList>
               
               <TabsContent value="resources">
-                <ResourcesManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ResourcesManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="academy">
-                <AcademyManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <AcademyManager />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -93,15 +108,21 @@ export default function Admin() {
               </TabsList>
               
               <TabsContent value="messages">
-                <MessagesManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <MessagesManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="funis">
-                <FunnelsManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <FunnelsManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="construtoras">
-                <PartnersManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <PartnersManager />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -129,19 +150,27 @@ export default function Admin() {
               </TabsList>
               
               <TabsContent value="avisos">
-                <AnnouncementsManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <AnnouncementsManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="enquetes">
-                <PollsManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <PollsManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="feedbacks">
-                <FeedbacksManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <FeedbacksManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="clima">
-                <MoodMetricsOptimized />
+                <Suspense fallback={<LoadingFallback />}>
+                  <MoodMetricsOptimized />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -169,19 +198,27 @@ export default function Admin() {
               </TabsList>
               
               <TabsContent value="users">
-                <UsersManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <UsersManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="rooms">
-                <RoomsManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <RoomsManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="calculator">
-                <CubManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <CubManager />
+                </Suspense>
               </TabsContent>
               
               <TabsContent value="theme">
-                <ThemeManager />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ThemeManager />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </TabsContent>
