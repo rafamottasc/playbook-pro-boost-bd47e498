@@ -1,15 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator, Hand, Calendar } from "lucide-react";
+import { MessageSquare, GraduationCap, FolderOpen, Building2, TrendingUp, Settings, Calculator, Hand } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { PageTransition } from "@/components/PageTransition";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DailyMoodCard } from "@/components/DailyMoodCard";
-import { FeedbackCard } from "@/components/FeedbackCard";
-import { FeedbackModal } from "@/components/FeedbackModal";
 import { PollPopup } from "@/components/PollPopup";
 import { UpcomingMeetingsSidebar } from "@/components/agenda/UpcomingMeetingsSidebar";
 
@@ -25,7 +23,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const { profile } = useProfile();
-  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
   // Função para gerar saudação baseada no horário
   const getGreeting = () => {
@@ -145,9 +142,6 @@ export default function Home() {
                     </CardContent>
                   </Card>
                 ))}
-
-                {/* Feedback Card */}
-                <FeedbackCard onClick={() => setFeedbackModalOpen(true)} />
               </div>
             </div>
 
@@ -156,12 +150,6 @@ export default function Home() {
               <UpcomingMeetingsSidebar />
             </div>
           </div>
-
-          {/* Feedback Modal */}
-          <FeedbackModal 
-            open={feedbackModalOpen} 
-            onOpenChange={setFeedbackModalOpen} 
-          />
 
           {/* Poll Popup */}
           <PollPopup />

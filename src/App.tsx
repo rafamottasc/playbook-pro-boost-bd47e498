@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageTransition } from "@/components/PageTransition";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { FloatingFeedbackButton } from "@/components/FloatingFeedbackButton";
 import Home from "./pages/Home";
 import Playbooks from "./pages/Playbooks";
 import Auth from "./pages/Auth";
@@ -247,6 +248,7 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <ThemeLoader />
+              <FloatingFeedbackButton />
               <AppRoutes />
             </AuthProvider>
           </BrowserRouter>
