@@ -12,8 +12,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     storage: localStorage,
     persistSession: true,
-    detectSessionInUrl: true, // 🔥 ESSENCIAL para manter o login após OAuth (Google)
+    detectSessionInUrl: true, // 🔥 ESSENCIAL para autenticação via Google funcionar
     autoRefreshToken: true,
-    storageKey: "supabase.auth.token", // 🔒 garante consistência do localStorage
+    storageKey: "supabase.auth.token", // 🔒 Mantém consistência no localStorage
   },
 });
