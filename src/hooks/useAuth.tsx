@@ -101,7 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Verificar se é a PRIMEIRA VEZ que o usuário acessa o sistema
     // (profile_onboarding_completed = FALSE)
     if (isProfileIncomplete && !profile?.profile_onboarding_completed) {
-      if (currentPath !== "/profile" && currentPath !== "/auth") {
+      if (currentPath !== "/profile" && 
+          currentPath !== "/auth" && 
+          currentPath !== "/pending-approval") {
         console.log("[useAuth] First access detected, redirecting to /profile");
 
         setTimeout(() => {
