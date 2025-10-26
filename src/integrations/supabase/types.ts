@@ -459,6 +459,68 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_tasks: {
+        Row: {
+          category_id: string | null
+          completed_at: string | null
+          created_at: string
+          display_order: number
+          done: boolean
+          id: string
+          notes: string | null
+          period: string
+          priority: string
+          recurrence: string | null
+          scheduled_time: string | null
+          task_date: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          display_order?: number
+          done?: boolean
+          id?: string
+          notes?: string | null
+          period: string
+          priority?: string
+          recurrence?: string | null
+          scheduled_time?: string | null
+          task_date?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          display_order?: number
+          done?: boolean
+          id?: string
+          notes?: string | null
+          period?: string
+          priority?: string
+          recurrence?: string | null
+          scheduled_time?: string | null
+          task_date?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_tasks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_attachments: {
         Row: {
           created_at: string | null
@@ -1644,6 +1706,156 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users_with_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_attachments: {
+        Row: {
+          attachment_type: string
+          created_at: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          task_id: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          attachment_type: string
+          created_at?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          task_id: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          created_at?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          task_id?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "daily_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_categories: {
+        Row: {
+          color: string
+          created_at: string
+          display_order: number
+          icon: string
+          id: string
+          is_system: boolean
+          label: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          is_system?: boolean
+          label: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          is_system?: boolean
+          label?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_checklist_items: {
+        Row: {
+          created_at: string
+          display_order: number
+          done: boolean
+          id: string
+          task_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          done?: boolean
+          id?: string
+          task_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          done?: boolean
+          id?: string
+          task_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "daily_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_contacts: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          task_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          task_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_contacts_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "daily_tasks"
             referencedColumns: ["id"]
           },
         ]
