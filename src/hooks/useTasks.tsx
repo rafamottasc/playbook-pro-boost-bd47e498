@@ -102,18 +102,50 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: async (newTask: Omit<Partial<DailyTask>, 'period' | 'title'> & { period: 'manha' | 'tarde' | 'noite'; title: string }) => {
+    mutationFn: async (newTask: Omit<Partial<DailyTask>, 'period' | 'title'> & { 
+      period: 'manha' | 'tarde' | 'noite'; 
+      title: string;
+      checklist_items?: ChecklistItem[];
+      contacts?: TaskContact[];
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { data, error } = await supabase
+      // Separar dados relacionados
+      const { checklist_items, contacts, ...taskData } = newTask;
+
+      // 1. Criar tarefa principal (apenas campos da tabela daily_tasks)
+      const { data: task, error } = await supabase
         .from('daily_tasks')
-        .insert([{ ...newTask, user_id: user.id }])
+        .insert([{ ...taskData, user_id: user.id, task_date: taskDate }])
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+
+      // 2. Salvar checklist
+      if (checklist_items && checklist_items.length > 0) {
+        const checklistData = checklist_items.map((item, index) => ({
+          task_id: task.id,
+          text: item.text,
+          done: item.done || false,
+          display_order: index,
+        }));
+        await supabase.from('task_checklist_items').insert(checklistData);
+      }
+
+      // 3. Salvar contatos
+      if (contacts && contacts.length > 0) {
+        const contactsData = contacts.map(contact => ({
+          task_id: task.id,
+          name: contact.name,
+          phone: contact.phone || null,
+          address: contact.address || null,
+        }));
+        await supabase.from('task_contacts').insert(contactsData);
+      }
+
+      return task;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });

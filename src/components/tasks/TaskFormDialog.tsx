@@ -63,11 +63,13 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
+    
+    // Envia apenas os campos da tabela daily_tasks + dados relacionados
     onSave({
       ...formData,
       checklist_items: checklistItems,
       contacts,
-      attachments,
+      // Attachments são gerenciados separadamente pelo TaskAttachmentsManager
     });
     onOpenChange(false);
     // Reset form

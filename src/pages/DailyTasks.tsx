@@ -14,6 +14,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -27,6 +28,7 @@ import { CategoryManager } from "@/components/tasks/CategoryManager";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskFormDialog } from "@/components/tasks/TaskFormDialog";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import type { DailyTask } from "@/hooks/useTasks";
 
 // Componente wrapper para drag and drop
@@ -44,6 +46,29 @@ function DraggableTaskCard({ task, ...props }: any) {
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <TaskCard task={task} {...props} />
+    </div>
+  );
+}
+
+// Componente de área droppable para períodos
+function DroppablePeriod({ 
+  period, 
+  children 
+}: { 
+  period: 'manha' | 'tarde' | 'noite'; 
+  children: React.ReactNode 
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: period });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={cn(
+        "min-h-[200px] rounded-lg transition-colors",
+        isOver && "bg-primary/10 border-2 border-primary border-dashed"
+      )}
+    >
+      {children}
     </div>
   );
 }
@@ -109,9 +134,26 @@ export default function DailyTasks() {
     if (!over) return;
 
     const taskId = active.id as string;
-    const targetPeriod = over.id as 'manha' | 'tarde' | 'noite';
+    
+    // Verificar se foi solto sobre um período (manha, tarde, noite)
+    let targetPeriod: 'manha' | 'tarde' | 'noite' | undefined;
+    
+    // Se over.id for 'manha', 'tarde' ou 'noite', usar diretamente
+    if (['manha', 'tarde', 'noite'].includes(over.id as string)) {
+      targetPeriod = over.id as 'manha' | 'tarde' | 'noite';
+    } else {
+      // Se foi solto sobre uma tarefa, encontrar o período dessa tarefa
+      for (const period of ['manha', 'tarde', 'noite'] as const) {
+        if (tasksByPeriod[period].some(t => t.id === over.id)) {
+          targetPeriod = period;
+          break;
+        }
+      }
+    }
 
-    // Encontra a tarefa em qualquer período
+    if (!targetPeriod) return;
+
+    // Encontra a tarefa arrastada
     let taskToMove: DailyTask | undefined;
     for (const period of ['manha', 'tarde', 'noite'] as const) {
       taskToMove = tasksByPeriod[period].find(t => t.id === taskId);
@@ -329,43 +371,45 @@ export default function DailyTasks() {
                       </Button>
                     </div>
 
-                    <SortableContext 
-                      items={tasksByPeriod[period].map(t => t.id)}
-                      strategy={verticalListSortingStrategy}
-                      id={period}
-                    >
-                      {tasksByPeriod[period].length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                          <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                          <p className="text-sm">Nenhuma tarefa</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3 min-h-[400px]">
-                          {tasksByPeriod[period].map(task => (
-                            <DraggableTaskCard
-                              key={task.id}
-                              task={task}
-                              onToggle={toggleTask}
-                              onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
-                              onDelete={handleDeleteTask}
-                              onDuplicate={(id: string) => {
-                                const taskToDup = tasksByPeriod[period].find(t => t.id === id);
-                                if (taskToDup) duplicateTask(taskToDup);
-                              }}
-                              onPostpone={(id: string) => {
-                                const taskToPost = tasksByPeriod[period].find(t => t.id === id);
-                                if (taskToPost) postponeTask(taskToPost);
-                              }}
-                              onMove={(id: string, p: 'manha' | 'tarde' | 'noite') => {
-                                const taskToMove = tasksByPeriod[period].find(t => t.id === id);
-                                if (taskToMove) moveTask(taskToMove.id, p);
-                              }}
-                              checklistProgress={getChecklistProgress(task.id)}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </SortableContext>
+                    <DroppablePeriod period={period}>
+                      <SortableContext 
+                        items={tasksByPeriod[period].map(t => t.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {tasksByPeriod[period].length === 0 ? (
+                          <div className="text-center py-12 text-muted-foreground">
+                            <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                            <p className="text-sm">Nenhuma tarefa</p>
+                            <p className="text-xs mt-2 opacity-70">Arraste tarefas para cá</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {tasksByPeriod[period].map(task => (
+                              <DraggableTaskCard
+                                key={task.id}
+                                task={task}
+                                onToggle={toggleTask}
+                                onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                                onDelete={handleDeleteTask}
+                                onDuplicate={(id: string) => {
+                                  const taskToDup = tasksByPeriod[period].find(t => t.id === id);
+                                  if (taskToDup) duplicateTask(taskToDup);
+                                }}
+                                onPostpone={(id: string) => {
+                                  const taskToPost = tasksByPeriod[period].find(t => t.id === id);
+                                  if (taskToPost) postponeTask(taskToPost);
+                                }}
+                                onMove={(id: string, p: 'manha' | 'tarde' | 'noite') => {
+                                  const taskToMove = tasksByPeriod[period].find(t => t.id === id);
+                                  if (taskToMove) moveTask(taskToMove.id, p);
+                                }}
+                                checklistProgress={getChecklistProgress(task.id)}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </SortableContext>
+                    </DroppablePeriod>
                   </CardContent>
                 </Card>
               );
