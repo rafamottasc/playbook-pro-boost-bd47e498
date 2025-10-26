@@ -49,9 +49,6 @@ export function CategoryManager() {
     });
   };
 
-  const customCategories = categories.filter(c => !c.is_system);
-  const systemCategories = categories.filter(c => c.is_system);
-
   return (
     <div className="space-y-6">
       {/* Form para criar nova categoria */}
@@ -108,38 +105,18 @@ export function CategoryManager() {
         </CardContent>
       </Card>
 
-      {/* Lista de categorias do sistema */}
+      {/* Lista unificada de todas as categorias */}
       <Card>
         <CardHeader>
-          <CardTitle>Categorias Padrão</CardTitle>
+          <CardTitle>Minhas Categorias</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {systemCategories.map(cat => (
-            <div
-              key={cat.id}
-              className={cn(
-                "p-3 rounded-lg flex items-center justify-between",
-                cat.color
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <DynamicIcon name={cat.icon} className="w-4 h-4" />
-                <span className="font-medium">{cat.label}</span>
-              </div>
-              <span className="text-xs opacity-60">Sistema</span>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Lista de categorias customizadas */}
-      {customCategories.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Minhas Categorias</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {customCategories.map(cat => (
+          {categories.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Nenhuma categoria cadastrada
+            </p>
+          ) : (
+            categories.map(cat => (
               <div
                 key={cat.id}
                 className={cn(
@@ -150,19 +127,24 @@ export function CategoryManager() {
                 <div className="flex items-center gap-2">
                   <DynamicIcon name={cat.icon} className="w-4 h-4" />
                   <span className="font-medium">{cat.label}</span>
+                  {cat.is_system && (
+                    <span className="text-xs opacity-60 ml-2">(Sistema)</span>
+                  )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => deleteCategory(cat.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {!cat.is_system && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => deleteCategory(cat.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

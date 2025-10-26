@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckSquare, ChevronRight, Coffee, Sunrise, Sun, Moon } from "lucide-react";
+import { ClipboardList, ChevronRight, Coffee, Sunrise, Sun, Moon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTasks } from "@/hooks/useTasks";
 import { PriorityBadge } from "./PriorityBadge";
@@ -42,7 +42,7 @@ export function TasksPreviewCard() {
     <Card className="shadow-comarc">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
-          <CheckSquare className="w-5 h-5 text-primary" />
+          <ClipboardList className="w-5 h-5 text-primary" />
           Tarefas do Dia
         </CardTitle>
       </CardHeader>

@@ -5,7 +5,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, Coffee, Sunrise, Sun, Moon } from "lucide-react";
+import { Settings, Plus, Coffee, Sunrise, Sun, Moon, ClipboardList } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useTasks } from "@/hooks/useTasks";
 import { useTaskChecklistProgress } from "@/hooks/useTaskChecklistProgress";
@@ -18,6 +29,25 @@ import { TaskFormDialog } from "@/components/tasks/TaskFormDialog";
 import { useToast } from "@/hooks/use-toast";
 import type { DailyTask } from "@/hooks/useTasks";
 
+// Componente wrapper para drag and drop
+function DraggableTaskCard({ task, ...props }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <TaskCard task={task} {...props} />
+    </div>
+  );
+}
+
 export default function DailyTasks() {
   const [taskDate] = useState(new Date().toISOString().split('T')[0]);
   const { tasksByPeriod, stats, isLoading, toggleTask, deleteTask, duplicateTask, postponeTask, moveTask, createTask, updateTask } = useTasks(taskDate);
@@ -28,8 +58,17 @@ export default function DailyTasks() {
   const [editingTask, setEditingTask] = useState<DailyTask | null>(null);
   const [defaultPeriod, setDefaultPeriod] = useState<'manha' | 'tarde' | 'noite' | undefined>();
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleOpenTaskDialog = (period?: 'manha' | 'tarde' | 'noite', task?: DailyTask) => {
     setDefaultPeriod(period);
@@ -63,6 +102,27 @@ export default function DailyTasks() {
     }
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const targetPeriod = over.id as 'manha' | 'tarde' | 'noite';
+
+    // Encontra a tarefa em qualquer período
+    let taskToMove: DailyTask | undefined;
+    for (const period of ['manha', 'tarde', 'noite'] as const) {
+      taskToMove = tasksByPeriod[period].find(t => t.id === taskId);
+      if (taskToMove) break;
+    }
+
+    if (taskToMove && taskToMove.period !== targetPeriod) {
+      moveTask(taskId, targetPeriod);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -80,7 +140,8 @@ export default function DailyTasks() {
           {/* Header Compacto */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              📋 Minha Agenda
+              <ClipboardList className="w-6 h-6 text-primary" />
+              Minha Agenda
             </h1>
             <p className="text-sm text-muted-foreground">
               {format(new Date(taskDate), "EEEE, dd 'de' MMMM", { locale: ptBR })}
@@ -217,10 +278,11 @@ export default function DailyTasks() {
         <Card className="mb-6 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
-                  📋 Minha Agenda Pro
-                </h1>
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <ClipboardList className="w-8 h-8 text-primary" />
+                Minha Agenda Pro
+              </h1>
                 <p className="text-muted-foreground">
                   {format(new Date(taskDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </p>
@@ -243,60 +305,73 @@ export default function DailyTasks() {
           </CardContent>
         </Card>
 
-        {/* 3 Colunas (Desktop) */}
-        <div className="grid grid-cols-3 gap-6">
-          {(['manha', 'tarde', 'noite'] as const).map(period => {
-            const Icon = period === 'manha' ? Sunrise : period === 'tarde' ? Sun : Moon;
-            const label = period === 'manha' ? 'Manhã' : period === 'tarde' ? 'Tarde' : 'Noite';
-            
-            return (
-              <Card key={period} className="shadow-md">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                      <Icon className="w-5 h-5" /> {label}
-                    </h2>
-                    <Button size="sm" onClick={() => handleOpenTaskDialog(period)}>
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
+        {/* 3 Colunas com Drag and Drop (Desktop) */}
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragEnd={handleDragEnd}
+          onDragStart={(event) => setActiveId(event.active.id as string)}
+        >
+          <div className="grid grid-cols-3 gap-6">
+            {(['manha', 'tarde', 'noite'] as const).map(period => {
+              const Icon = period === 'manha' ? Sunrise : period === 'tarde' ? Sun : Moon;
+              const label = period === 'manha' ? 'Manhã' : period === 'tarde' ? 'Tarde' : 'Noite';
+              
+              return (
+                <Card key={period} className="shadow-md">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                        <Icon className="w-5 h-5" /> {label}
+                      </h2>
+                      <Button size="sm" onClick={() => handleOpenTaskDialog(period)}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
 
-                  {tasksByPeriod[period].length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">Nenhuma tarefa</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 min-h-[400px]">
-                      {tasksByPeriod[period].map(task => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleTask}
-                          onEdit={(t) => handleOpenTaskDialog(undefined, t)}
-                          onDelete={handleDeleteTask}
-                          onDuplicate={(id) => {
-                            const taskToDup = tasksByPeriod[period].find(t => t.id === id);
-                            if (taskToDup) duplicateTask(taskToDup);
-                          }}
-                          onPostpone={(id) => {
-                            const taskToPost = tasksByPeriod[period].find(t => t.id === id);
-                            if (taskToPost) postponeTask(taskToPost);
-                          }}
-                          onMove={(id, p) => {
-                            const taskToMove = tasksByPeriod[period].find(t => t.id === id);
-                            if (taskToMove) moveTask(taskToMove.id, p);
-                          }}
-                          checklistProgress={getChecklistProgress(task.id)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <SortableContext 
+                      items={tasksByPeriod[period].map(t => t.id)}
+                      strategy={verticalListSortingStrategy}
+                      id={period}
+                    >
+                      {tasksByPeriod[period].length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                          <p className="text-sm">Nenhuma tarefa</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 min-h-[400px]">
+                          {tasksByPeriod[period].map(task => (
+                            <DraggableTaskCard
+                              key={task.id}
+                              task={task}
+                              onToggle={toggleTask}
+                              onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                              onDelete={handleDeleteTask}
+                              onDuplicate={(id: string) => {
+                                const taskToDup = tasksByPeriod[period].find(t => t.id === id);
+                                if (taskToDup) duplicateTask(taskToDup);
+                              }}
+                              onPostpone={(id: string) => {
+                                const taskToPost = tasksByPeriod[period].find(t => t.id === id);
+                                if (taskToPost) postponeTask(taskToPost);
+                              }}
+                              onMove={(id: string, p: 'manha' | 'tarde' | 'noite') => {
+                                const taskToMove = tasksByPeriod[period].find(t => t.id === id);
+                                if (taskToMove) moveTask(taskToMove.id, p);
+                              }}
+                              checklistProgress={getChecklistProgress(task.id)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </SortableContext>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </DndContext>
       </main>
 
       {/* Dialog de Categorias */}

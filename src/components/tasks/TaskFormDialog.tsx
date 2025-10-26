@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Sunrise, Sun, Moon } from "lucide-react";
 import { useTaskCategories } from "@/hooks/useTaskCategories";
 import { TaskChecklistManager } from "./TaskChecklistManager";
 import { TaskContactsManager } from "./TaskContactsManager";
 import { TaskAttachmentsManager } from "./TaskAttachmentsManager";
 import { CategoryBadge } from "./CategoryBadge";
-import type { DailyTask } from "@/hooks/useTasks";
+import type { DailyTask, ChecklistItem, TaskContact, TaskAttachment } from "@/hooks/useTasks";
 
 interface TaskFormDialogProps {
   open: boolean;
@@ -37,6 +38,10 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
     recurrence: 'none' as 'none' | 'daily' | 'weekly' | 'monthly',
   });
 
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+  const [contacts, setContacts] = useState<TaskContact[]>([]);
+  const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
+
   useEffect(() => {
     if (task) {
       setFormData({
@@ -48,6 +53,9 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
         notes: task.notes || '',
         recurrence: task.recurrence || 'none',
       });
+      setChecklistItems(task.checklist_items || []);
+      setContacts(task.contacts || []);
+      setAttachments(task.attachments || []);
     } else if (defaultPeriod) {
       setFormData(prev => ({ ...prev, period: defaultPeriod }));
     }
@@ -55,7 +63,12 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
-    onSave(formData);
+    onSave({
+      ...formData,
+      checklist_items: checklistItems,
+      contacts,
+      attachments,
+    });
     onOpenChange(false);
     // Reset form
     setFormData({
@@ -67,6 +80,9 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
       notes: '',
       recurrence: 'none',
     });
+    setChecklistItems([]);
+    setContacts([]);
+    setAttachments([]);
   };
 
   const FormContent = (
@@ -116,9 +132,24 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="manha">🌅 Manhã</SelectItem>
-              <SelectItem value="tarde">☀️ Tarde</SelectItem>
-              <SelectItem value="noite">🌙 Noite</SelectItem>
+              <SelectItem value="manha">
+                <div className="flex items-center gap-2">
+                  <Sunrise className="w-4 h-4" />
+                  Manhã
+                </div>
+              </SelectItem>
+              <SelectItem value="tarde">
+                <div className="flex items-center gap-2">
+                  <Sun className="w-4 h-4" />
+                  Tarde
+                </div>
+              </SelectItem>
+              <SelectItem value="noite">
+                <div className="flex items-center gap-2">
+                  <Moon className="w-4 h-4" />
+                  Noite
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -190,29 +221,40 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
           </AccordionContent>
         </AccordionItem>
 
-        {/* Checklist - Simplificado */}
+        {/* Checklist */}
         <AccordionItem value="checklist">
           <AccordionTrigger>Checklist</AccordionTrigger>
           <AccordionContent>
-            <p className="text-sm text-muted-foreground">Checklist em desenvolvimento</p>
+            <TaskChecklistManager 
+              items={checklistItems} 
+              onChange={setChecklistItems} 
+            />
           </AccordionContent>
         </AccordionItem>
 
-        {/* Contatos - Simplificado */}
+        {/* Contatos */}
         <AccordionItem value="contacts">
           <AccordionTrigger>Contatos</AccordionTrigger>
           <AccordionContent>
-            <p className="text-sm text-muted-foreground">Contatos em desenvolvimento</p>
+            <TaskContactsManager 
+              contacts={contacts} 
+              onChange={setContacts} 
+            />
           </AccordionContent>
         </AccordionItem>
 
-        {/* Anexos - Simplificado */}
-        <AccordionItem value="attachments">
-          <AccordionTrigger>Anexos</AccordionTrigger>
-          <AccordionContent>
-            <p className="text-sm text-muted-foreground">Anexos em desenvolvimento</p>
-          </AccordionContent>
-        </AccordionItem>
+        {/* Anexos */}
+        {task && (
+          <AccordionItem value="attachments">
+            <AccordionTrigger>Anexos</AccordionTrigger>
+            <AccordionContent>
+              <TaskAttachmentsManager 
+                taskId={task.id} 
+                attachments={attachments} 
+              />
+            </AccordionContent>
+          </AccordionItem>
+        )}
       </Accordion>
     </div>
   );
