@@ -18,6 +18,7 @@ import Resources from "./pages/Resources";
 import Profile from "./pages/Profile";
 import Campaigns from "./pages/Campaigns";
 import NotFound from "./pages/NotFound";
+import DailyTasks from "./pages/DailyTasks";
 import Notifications from "./pages/Notifications";
 import PendingApproval from "./pages/PendingApproval";
 import AcademyModules from "./pages/academy/AcademyModules";
@@ -189,6 +190,18 @@ function AppRoutes() {
                         <ErrorBoundary>
                           <PageTransition>
                             <AgendaReport />
+                          </PageTransition>
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tarefas"
+                    element={
+                      <ProtectedRoute>
+                        <ErrorBoundary>
+                          <PageTransition>
+                            <DailyTasks />
                           </PageTransition>
                         </ErrorBoundary>
                       </ProtectedRoute>

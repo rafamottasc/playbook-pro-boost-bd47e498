@@ -9,6 +9,7 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DailyMoodCard } from "@/components/DailyMoodCard";
 import { PollPopup } from "@/components/PollPopup";
 import { UpcomingMeetingsSidebar } from "@/components/agenda/UpcomingMeetingsSidebar";
+import { TasksPreviewCard } from "@/components/tasks/TasksPreviewCard";
 
 interface NavCard {
   title: string;
@@ -136,8 +137,9 @@ export default function Home() {
             </div>
 
             {/* Coluna 3 - Sidebar de Reuniões */}
-            <div className="w-full lg:w-[380px]">
+            <div className="w-full lg:w-[380px] space-y-6">
               <UpcomingMeetingsSidebar />
+              <TasksPreviewCard />
             </div>
           </div>
 
