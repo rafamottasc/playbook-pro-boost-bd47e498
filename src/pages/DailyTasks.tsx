@@ -312,7 +312,7 @@ export default function DailyTasks() {
           onDragEnd={handleDragEnd}
           onDragStart={(event) => setActiveId(event.active.id as string)}
         >
-          <div className="grid grid-cols-3 gap-6">
+          <div className="space-y-6">
             {(['manha', 'tarde', 'noite'] as const).map(period => {
               const Icon = period === 'manha' ? Sunrise : period === 'tarde' ? Sun : Moon;
               const label = period === 'manha' ? 'Manhã' : period === 'tarde' ? 'Tarde' : 'Noite';
