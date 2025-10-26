@@ -7,8 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
 import { useTaskCategories } from "@/hooks/useTaskCategories";
 import { cn } from "@/lib/utils";
+import { IconPicker } from "@/components/admin/IconPicker";
+import { DynamicIcon } from "@/components/admin/DynamicIcon";
 
-const AVAILABLE_ICONS = ['📞', '🏠', '📝', '🔄', '👥', '📌', '⭐', '💼', '🎯', '📊', '✉️', '🔔', '🎓', '🛍️', '🚗', '💰', '📅', '🔑', '🌟', '⚡'];
+const AVAILABLE_ICONS = [
+  "Phone", "Home", "FileText", "RefreshCw", "Users", "Bookmark",
+  "Briefcase", "Mail", "Calendar", "DollarSign", "Package", "Car",
+  "Heart", "Target", "Star", "CheckSquare", "Clock", "Bell",
+  "Award", "TrendingUp", "ShoppingBag", "Coffee", "Lightbulb", "Zap"
+];
 
 const AVAILABLE_COLORS = [
   { value: 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400', label: 'Vermelho' },
@@ -26,7 +33,7 @@ export function CategoryManager() {
   const { categories, createCategory, deleteCategory } = useTaskCategories();
   const [newCategory, setNewCategory] = useState({
     label: '',
-    icon: '📌',
+    icon: 'Bookmark',
     color: AVAILABLE_COLORS[0].value,
     display_order: categories.length,
   });
@@ -36,7 +43,7 @@ export function CategoryManager() {
     createCategory(newCategory);
     setNewCategory({
       label: '',
-      icon: '📌',
+      icon: 'Bookmark',
       color: AVAILABLE_COLORS[0].value,
       display_order: categories.length + 1,
     });
@@ -66,21 +73,10 @@ export function CategoryManager() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="cat-icon">Ícone</Label>
-              <Select
+              <IconPicker
                 value={newCategory.icon}
-                onValueChange={(value) => setNewCategory({ ...newCategory, icon: value })}
-              >
-                <SelectTrigger id="cat-icon">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AVAILABLE_ICONS.map(icon => (
-                    <SelectItem key={icon} value={icon}>
-                      <span className="text-lg">{icon}</span> {icon}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(value) => setNewCategory({ ...newCategory, icon: value })}
+              />
             </div>
 
             <div className="space-y-2">
@@ -127,7 +123,7 @@ export function CategoryManager() {
               )}
             >
               <div className="flex items-center gap-2">
-                <span className="text-lg">{cat.icon}</span>
+                <DynamicIcon name={cat.icon} className="w-4 h-4" />
                 <span className="font-medium">{cat.label}</span>
               </div>
               <span className="text-xs opacity-60">Sistema</span>
@@ -152,7 +148,7 @@ export function CategoryManager() {
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{cat.icon}</span>
+                  <DynamicIcon name={cat.icon} className="w-4 h-4" />
                   <span className="font-medium">{cat.label}</span>
                 </div>
                 <Button

@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckSquare, ChevronRight, Coffee } from "lucide-react";
+import { CheckSquare, ChevronRight, Coffee, Sunrise, Sun, Moon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTasks } from "@/hooks/useTasks";
 import { PriorityBadge } from "./PriorityBadge";
+import { DynamicIcon } from "@/components/admin/DynamicIcon";
 
 export function TasksPreviewCard() {
   const navigate = useNavigate();
@@ -82,12 +83,12 @@ export function TasksPreviewCard() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate flex items-center gap-1">
                     {task.category && (
-                      <span>{task.category.icon}</span>
+                      <DynamicIcon name={task.category.icon} className="w-3 h-3" />
                     )}
                     {task.title}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {task.period === 'manha' ? '🌅' : task.period === 'tarde' ? '☀️' : '🌙'}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    {task.period === 'manha' ? <Sunrise className="w-3 h-3" /> : task.period === 'tarde' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
                     {task.scheduled_time && ` ${task.scheduled_time}`}
                   </p>
                 </div>

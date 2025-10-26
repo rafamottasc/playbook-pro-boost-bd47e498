@@ -5,19 +5,63 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, Coffee } from "lucide-react";
+import { Settings, Plus, Coffee, Sunrise, Sun, Moon } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useTasks } from "@/hooks/useTasks";
+import { useTaskChecklistProgress } from "@/hooks/useTaskChecklistProgress";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryManager } from "@/components/tasks/CategoryManager";
+import { TaskCard } from "@/components/tasks/TaskCard";
+import { TaskFormDialog } from "@/components/tasks/TaskFormDialog";
+import { useToast } from "@/hooks/use-toast";
+import type { DailyTask } from "@/hooks/useTasks";
 
 export default function DailyTasks() {
   const [taskDate] = useState(new Date().toISOString().split('T')[0]);
-  const { tasksByPeriod, stats, isLoading } = useTasks(taskDate);
+  const { tasksByPeriod, stats, isLoading, toggleTask, deleteTask, duplicateTask, postponeTask, moveTask, createTask, updateTask } = useTasks(taskDate);
+  const { getChecklistProgress } = useTaskChecklistProgress();
   const [activePeriod, setActivePeriod] = useState<'manha' | 'tarde' | 'noite'>('manha');
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<DailyTask | null>(null);
+  const [defaultPeriod, setDefaultPeriod] = useState<'manha' | 'tarde' | 'noite' | undefined>();
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+
+  const handleOpenTaskDialog = (period?: 'manha' | 'tarde' | 'noite', task?: DailyTask) => {
+    setDefaultPeriod(period);
+    setEditingTask(task || null);
+    setShowTaskDialog(true);
+  };
+
+  const handleSaveTask = async (taskData: Partial<DailyTask>) => {
+    try {
+      if (editingTask) {
+        await updateTask({ id: editingTask.id, ...taskData });
+      } else {
+        await createTask(taskData as any);
+      }
+      setShowTaskDialog(false);
+      setEditingTask(null);
+      setDefaultPeriod(undefined);
+    } catch (error) {
+      console.error('Erro ao salvar tarefa:', error);
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setDeleteConfirm(taskId);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirm) {
+      await deleteTask(deleteConfirm);
+      setDeleteConfirm(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -67,14 +111,14 @@ export default function DailyTasks() {
           {/* Tabs de Períodos */}
           <Tabs value={activePeriod} onValueChange={(v) => setActivePeriod(v as any)}>
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="manha" className="text-xs">
-                🌅 Manhã ({tasksByPeriod.manha.length})
+              <TabsTrigger value="manha" className="text-xs flex items-center gap-1">
+                <Sunrise className="w-3 h-3" /> Manhã ({tasksByPeriod.manha.length})
               </TabsTrigger>
-              <TabsTrigger value="tarde" className="text-xs">
-                ☀️ Tarde ({tasksByPeriod.tarde.length})
+              <TabsTrigger value="tarde" className="text-xs flex items-center gap-1">
+                <Sun className="w-3 h-3" /> Tarde ({tasksByPeriod.tarde.length})
               </TabsTrigger>
-              <TabsTrigger value="noite" className="text-xs">
-                🌙 Noite ({tasksByPeriod.noite.length})
+              <TabsTrigger value="noite" className="text-xs flex items-center gap-1">
+                <Moon className="w-3 h-3" /> Noite ({tasksByPeriod.noite.length})
               </TabsTrigger>
             </TabsList>
 
@@ -89,12 +133,26 @@ export default function DailyTasks() {
                 ) : (
                   <div className="space-y-3">
                     {tasksByPeriod[period].map(task => (
-                      <Card key={task.id}>
-                        <CardContent className="p-4">
-                          <p className="font-medium">{task.title}</p>
-                          <p className="text-sm text-muted-foreground">{task.scheduled_time}</p>
-                        </CardContent>
-                      </Card>
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onToggle={toggleTask}
+                        onEdit={(t) => handleOpenTaskDialog(undefined, t)}
+                        onDelete={handleDeleteTask}
+                        onDuplicate={(id) => {
+                          const taskToDup = tasksByPeriod[period].find(t => t.id === id);
+                          if (taskToDup) duplicateTask(taskToDup);
+                        }}
+                        onPostpone={(id) => {
+                          const taskToPost = tasksByPeriod[period].find(t => t.id === id);
+                          if (taskToPost) postponeTask(taskToPost);
+                        }}
+                        onMove={(id, p) => {
+                          const taskToMove = tasksByPeriod[period].find(t => t.id === id);
+                          if (taskToMove) moveTask(taskToMove.id, p);
+                        }}
+                        checklistProgress={getChecklistProgress(task.id)}
+                      />
                     ))}
                   </div>
                 )}
@@ -106,6 +164,7 @@ export default function DailyTasks() {
           <Button
             size="lg"
             className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg"
+            onClick={() => handleOpenTaskDialog(activePeriod)}
           >
             <Plus className="w-6 h-6" />
           </Button>
@@ -120,6 +179,31 @@ export default function DailyTasks() {
             <CategoryManager />
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de Tarefa */}
+        <TaskFormDialog
+          open={showTaskDialog}
+          onOpenChange={setShowTaskDialog}
+          task={editingTask}
+          defaultPeriod={defaultPeriod}
+          onSave={handleSaveTask}
+        />
+
+        {/* Confirmação de Exclusão */}
+        <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. A tarefa será excluída permanentemente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
@@ -162,17 +246,17 @@ export default function DailyTasks() {
         {/* 3 Colunas (Desktop) */}
         <div className="grid grid-cols-3 gap-6">
           {(['manha', 'tarde', 'noite'] as const).map(period => {
-            const icon = period === 'manha' ? '🌅' : period === 'tarde' ? '☀️' : '🌙';
+            const Icon = period === 'manha' ? Sunrise : period === 'tarde' ? Sun : Moon;
             const label = period === 'manha' ? 'Manhã' : period === 'tarde' ? 'Tarde' : 'Noite';
             
             return (
               <Card key={period} className="shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">
-                      {icon} {label}
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <Icon className="w-5 h-5" /> {label}
                     </h2>
-                    <Button size="sm">
+                    <Button size="sm" onClick={() => handleOpenTaskDialog(period)}>
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -185,12 +269,26 @@ export default function DailyTasks() {
                   ) : (
                     <div className="space-y-3 min-h-[400px]">
                       {tasksByPeriod[period].map(task => (
-                        <Card key={task.id}>
-                          <CardContent className="p-4">
-                            <p className="font-medium">{task.title}</p>
-                            <p className="text-sm text-muted-foreground">{task.scheduled_time}</p>
-                          </CardContent>
-                        </Card>
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleTask}
+                          onEdit={(t) => handleOpenTaskDialog(undefined, t)}
+                          onDelete={handleDeleteTask}
+                          onDuplicate={(id) => {
+                            const taskToDup = tasksByPeriod[period].find(t => t.id === id);
+                            if (taskToDup) duplicateTask(taskToDup);
+                          }}
+                          onPostpone={(id) => {
+                            const taskToPost = tasksByPeriod[period].find(t => t.id === id);
+                            if (taskToPost) postponeTask(taskToPost);
+                          }}
+                          onMove={(id, p) => {
+                            const taskToMove = tasksByPeriod[period].find(t => t.id === id);
+                            if (taskToMove) moveTask(taskToMove.id, p);
+                          }}
+                          checklistProgress={getChecklistProgress(task.id)}
+                        />
                       ))}
                     </div>
                   )}
@@ -210,6 +308,31 @@ export default function DailyTasks() {
           <CategoryManager />
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Tarefa */}
+      <TaskFormDialog
+        open={showTaskDialog}
+        onOpenChange={setShowTaskDialog}
+        task={editingTask}
+        defaultPeriod={defaultPeriod}
+        onSave={handleSaveTask}
+      />
+
+      {/* Confirmação de Exclusão */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A tarefa será excluída permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
