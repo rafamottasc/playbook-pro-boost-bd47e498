@@ -16,7 +16,7 @@ export function FloatingFeedbackButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 md:w-14 md:h-14 bg-sky-600 text-white rounded-full shadow-lg hover:bg-sky-700 transition-all duration-300 animate-fade-in hover:scale-110"
+        className="fixed bottom-6 left-6 md:bottom-6 md:right-6 z-50 flex items-center justify-center w-14 h-14 bg-sky-600 text-white rounded-full shadow-lg hover:bg-sky-700 transition-all duration-300 animate-fade-in hover:scale-110"
         aria-label="Enviar feedback"
       >
         <MessageSquare size={22} />

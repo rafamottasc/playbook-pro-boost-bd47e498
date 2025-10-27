@@ -178,7 +178,7 @@ export default function DailyTasks() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-6">
+        <main className="container mx-auto px-4 py-6 pb-24">
           {/* Header Compacto */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -266,7 +266,7 @@ export default function DailyTasks() {
           {/* FAB: Botão Flutuante "+" */}
           <Button
             size="lg"
-            className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg"
+            className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-40"
             onClick={() => handleOpenTaskDialog(activePeriod)}
           >
             <Plus className="w-6 h-6" />
