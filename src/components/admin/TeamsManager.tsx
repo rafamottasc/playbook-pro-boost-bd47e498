@@ -107,6 +107,27 @@ export function TeamsManager() {
     }
   };
 
+  const handleDeleteTeam = async (teamId: string) => {
+    const { error } = await supabase
+      .from("teams")
+      .delete()
+      .eq("id", teamId);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir equipe",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Equipe excluída",
+        description: "A equipe foi removida permanentemente.",
+      });
+      loadTeams();
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -200,7 +221,7 @@ export function TeamsManager() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleToggleActive(team.id, team.active)}
+                          onClick={() => handleDeleteTeam(team.id)}
                           className="bg-destructive hover:bg-destructive/90"
                         >
                           Confirmar Exclusão
