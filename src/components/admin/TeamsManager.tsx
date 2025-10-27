@@ -215,7 +215,7 @@ export function TeamsManager() {
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" type="button">
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </AlertDialogTrigger>
@@ -228,8 +228,7 @@ export function TeamsManager() {
                             <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-md">
                               <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
                               <p className="text-sm">
-                                <strong>Atenção:</strong> Usuários vinculados a essa equipe terão seus dados mantidos, 
-                                mas a equipe não aparecerá mais como opção de seleção.
+                                <strong>Atenção:</strong> Esta ação é permanente e não pode ser desfeita.
                               </p>
                             </div>
                           </div>
@@ -238,7 +237,11 @@ export function TeamsManager() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDeleteTeam(team.id, team.name)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteTeam(team.id, team.name);
+                          }}
                           className="bg-destructive hover:bg-destructive/90"
                         >
                           Confirmar Exclusão
