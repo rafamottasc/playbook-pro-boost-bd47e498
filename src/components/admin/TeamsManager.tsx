@@ -107,24 +107,41 @@ export function TeamsManager() {
     }
   };
 
-  const handleDeleteTeam = async (teamId: string) => {
-    const { error } = await supabase
-      .from("teams")
-      .delete()
-      .eq("id", teamId);
+  const handleDeleteTeam = async (teamId: string, teamName: string) => {
+    try {
+      console.log('Tentando excluir equipe:', teamId);
+      
+      const { error, data } = await supabase
+        .from("teams")
+        .delete()
+        .eq("id", teamId)
+        .select();
 
-    if (error) {
-      toast({
-        title: "Erro ao excluir equipe",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+      console.log('Resultado da exclusão:', { error, data });
+
+      if (error) {
+        console.error('Erro ao excluir:', error);
+        toast({
+          title: "Erro ao excluir equipe",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Equipe excluída",
-        description: "A equipe foi removida permanentemente.",
+        description: `${teamName} foi removida permanentemente.`,
       });
-      loadTeams();
+      
+      await loadTeams();
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      toast({
+        title: "Erro ao excluir equipe",
+        description: "Ocorreu um erro inesperado. Verifique o console.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -221,7 +238,7 @@ export function TeamsManager() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDeleteTeam(team.id)}
+                          onClick={() => handleDeleteTeam(team.id, team.name)}
                           className="bg-destructive hover:bg-destructive/90"
                         >
                           Confirmar Exclusão
