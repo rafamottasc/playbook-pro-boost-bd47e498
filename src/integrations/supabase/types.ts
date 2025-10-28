@@ -472,6 +472,7 @@ export type Database = {
           priority: string
           recurrence: string | null
           scheduled_time: string | null
+          status: string
           task_date: string
           title: string
           updated_at: string
@@ -489,6 +490,7 @@ export type Database = {
           priority?: string
           recurrence?: string | null
           scheduled_time?: string | null
+          status?: string
           task_date?: string
           title: string
           updated_at?: string
@@ -506,6 +508,7 @@ export type Database = {
           priority?: string
           recurrence?: string | null
           scheduled_time?: string | null
+          status?: string
           task_date?: string
           title?: string
           updated_at?: string

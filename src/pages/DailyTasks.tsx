@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, Coffee, Sunrise, Sun, Moon, ClipboardList } from "lucide-react";
+import { Settings, Plus, Circle, PlayCircle, CheckCircle2, ClipboardList } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -50,15 +50,15 @@ function DraggableTaskCard({ task, ...props }: any) {
   );
 }
 
-// Componente de área droppable para períodos
-function DroppablePeriod({ 
-  period, 
+// Componente de área droppable para status
+function DroppableStatus({ 
+  status, 
   children 
 }: { 
-  period: 'manha' | 'tarde' | 'noite'; 
+  status: 'todo' | 'in_progress' | 'done'; 
   children: React.ReactNode 
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: period });
+  const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
     <div 
@@ -75,13 +75,13 @@ function DroppablePeriod({
 
 export default function DailyTasks() {
   const [taskDate] = useState(new Date().toISOString().split('T')[0]);
-  const { tasksByPeriod, stats, isLoading, toggleTask, deleteTask, duplicateTask, postponeTask, moveTask, createTask, updateTask } = useTasks(taskDate);
+  const { tasksByStatus, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask } = useTasks(taskDate);
   const { getChecklistProgress } = useTaskChecklistProgress();
-  const [activePeriod, setActivePeriod] = useState<'manha' | 'tarde' | 'noite'>('manha');
+  const [activeStatus, setActiveStatus] = useState<'todo' | 'in_progress' | 'done'>('todo');
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<DailyTask | null>(null);
-  const [defaultPeriod, setDefaultPeriod] = useState<'manha' | 'tarde' | 'noite' | undefined>();
+  const [defaultStatus, setDefaultStatus] = useState<'todo' | 'in_progress' | 'done' | undefined>();
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const isMobile = useIsMobile();
@@ -95,8 +95,8 @@ export default function DailyTasks() {
     })
   );
 
-  const handleOpenTaskDialog = (period?: 'manha' | 'tarde' | 'noite', task?: DailyTask) => {
-    setDefaultPeriod(period);
+  const handleOpenTaskDialog = (status?: 'todo' | 'in_progress' | 'done', task?: DailyTask) => {
+    setDefaultStatus(status);
     setEditingTask(task || null);
     setShowTaskDialog(true);
   };
@@ -106,11 +106,16 @@ export default function DailyTasks() {
       if (editingTask) {
         await updateTask({ id: editingTask.id, ...taskData });
       } else {
-        await createTask(taskData as any);
+        // Criar com status definido
+        await createTask({ 
+          ...taskData, 
+          status: taskData.status || defaultStatus || 'todo',
+          done: (taskData.status || defaultStatus) === 'done'
+        } as any);
       }
       setShowTaskDialog(false);
       setEditingTask(null);
-      setDefaultPeriod(undefined);
+      setDefaultStatus(undefined);
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
     }
@@ -135,33 +140,32 @@ export default function DailyTasks() {
 
     const taskId = active.id as string;
     
-    // Verificar se foi solto sobre um período (manha, tarde, noite)
-    let targetPeriod: 'manha' | 'tarde' | 'noite' | undefined;
+    // Verificar se foi solto sobre um status
+    let targetStatus: 'todo' | 'in_progress' | 'done' | undefined;
     
-    // Se over.id for 'manha', 'tarde' ou 'noite', usar diretamente
-    if (['manha', 'tarde', 'noite'].includes(over.id as string)) {
-      targetPeriod = over.id as 'manha' | 'tarde' | 'noite';
+    if (['todo', 'in_progress', 'done'].includes(over.id as string)) {
+      targetStatus = over.id as 'todo' | 'in_progress' | 'done';
     } else {
-      // Se foi solto sobre uma tarefa, encontrar o período dessa tarefa
-      for (const period of ['manha', 'tarde', 'noite'] as const) {
-        if (tasksByPeriod[period].some(t => t.id === over.id)) {
-          targetPeriod = period;
+      // Se foi solto sobre uma tarefa, encontrar o status dessa tarefa
+      for (const status of ['todo', 'in_progress', 'done'] as const) {
+        if (tasksByStatus[status].some(t => t.id === over.id)) {
+          targetStatus = status;
           break;
         }
       }
     }
 
-    if (!targetPeriod) return;
+    if (!targetStatus) return;
 
     // Encontra a tarefa arrastada
     let taskToMove: DailyTask | undefined;
-    for (const period of ['manha', 'tarde', 'noite'] as const) {
-      taskToMove = tasksByPeriod[period].find(t => t.id === taskId);
+    for (const status of ['todo', 'in_progress', 'done'] as const) {
+      taskToMove = tasksByStatus[status].find(t => t.id === taskId);
       if (taskToMove) break;
     }
 
-    if (taskToMove && taskToMove.period !== targetPeriod) {
-      moveTask(taskId, targetPeriod);
+    if (taskToMove && taskToMove.status !== targetStatus) {
+      moveTaskToStatus(taskId, targetStatus);
     }
   };
 
@@ -173,7 +177,7 @@ export default function DailyTasks() {
     );
   }
 
-  // Mobile Layout
+  // Mobile Layout - Tabs
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background">
@@ -183,7 +187,7 @@ export default function DailyTasks() {
           <div className="mb-4">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <ClipboardList className="w-6 h-6 text-primary" />
-              Minha Agenda
+              Minhas Tarefas
             </h1>
             <p className="text-sm text-muted-foreground">
               {format(new Date(taskDate), "EEEE, dd 'de' MMMM", { locale: ptBR })}
@@ -211,31 +215,37 @@ export default function DailyTasks() {
             Gerenciar Categorias
           </Button>
 
-          {/* Tabs de Períodos */}
-          <Tabs value={activePeriod} onValueChange={(v) => setActivePeriod(v as any)}>
+          {/* Tabs de Status */}
+          <Tabs value={activeStatus} onValueChange={(v) => setActiveStatus(v as any)}>
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="manha" className="text-xs flex items-center gap-1">
-                <Sunrise className="w-3 h-3" /> Manhã ({tasksByPeriod.manha.length})
+              <TabsTrigger value="todo" className="text-xs flex items-center gap-1">
+                <Circle className="w-3 h-3" /> Para Fazer ({tasksByStatus.todo.length})
               </TabsTrigger>
-              <TabsTrigger value="tarde" className="text-xs flex items-center gap-1">
-                <Sun className="w-3 h-3" /> Tarde ({tasksByPeriod.tarde.length})
+              <TabsTrigger value="in_progress" className="text-xs flex items-center gap-1">
+                <PlayCircle className="w-3 h-3" /> Andamento ({tasksByStatus.in_progress.length})
               </TabsTrigger>
-              <TabsTrigger value="noite" className="text-xs flex items-center gap-1">
-                <Moon className="w-3 h-3" /> Noite ({tasksByPeriod.noite.length})
+              <TabsTrigger value="done" className="text-xs flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Concluído ({tasksByStatus.done.length})
               </TabsTrigger>
             </TabsList>
 
-            {/* Conteúdo de cada período */}
-            {(['manha', 'tarde', 'noite'] as const).map(period => (
-              <TabsContent key={period} value={period}>
-                {tasksByPeriod[period].length === 0 ? (
+            {/* Conteúdo de cada status */}
+            {(['todo', 'in_progress', 'done'] as const).map(status => (
+              <TabsContent key={status} value={status}>
+                {tasksByStatus[status].length === 0 ? (
                   <div className="text-center py-12">
-                    <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Nenhuma tarefa neste período</p>
+                    {status === 'todo' && <Circle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+                    {status === 'in_progress' && <PlayCircle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+                    {status === 'done' && <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+                    <p className="text-sm text-muted-foreground">
+                      {status === 'todo' && 'Nenhuma tarefa para fazer'}
+                      {status === 'in_progress' && 'Nenhuma tarefa em andamento'}
+                      {status === 'done' && 'Nenhuma tarefa concluída'}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {tasksByPeriod[period].map(task => (
+                    {tasksByStatus[status].map(task => (
                       <TaskCard
                         key={task.id}
                         task={task}
@@ -243,16 +253,8 @@ export default function DailyTasks() {
                         onEdit={(t) => handleOpenTaskDialog(undefined, t)}
                         onDelete={handleDeleteTask}
                         onDuplicate={(id) => {
-                          const taskToDup = tasksByPeriod[period].find(t => t.id === id);
+                          const taskToDup = tasksByStatus[status].find(t => t.id === id);
                           if (taskToDup) duplicateTask(taskToDup);
-                        }}
-                        onPostpone={(id) => {
-                          const taskToPost = tasksByPeriod[period].find(t => t.id === id);
-                          if (taskToPost) postponeTask(taskToPost);
-                        }}
-                        onMove={(id, p) => {
-                          const taskToMove = tasksByPeriod[period].find(t => t.id === id);
-                          if (taskToMove) moveTask(taskToMove.id, p);
                         }}
                         checklistProgress={getChecklistProgress(task.id)}
                       />
@@ -267,13 +269,13 @@ export default function DailyTasks() {
           <Button
             size="lg"
             className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-40"
-            onClick={() => handleOpenTaskDialog(activePeriod)}
+            onClick={() => handleOpenTaskDialog(activeStatus)}
           >
             <Plus className="w-6 h-6" />
           </Button>
         </main>
 
-        {/* Dialog de Categorias */}
+        {/* Dialogs */}
         <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -283,16 +285,14 @@ export default function DailyTasks() {
           </DialogContent>
         </Dialog>
 
-        {/* Dialog de Tarefa */}
         <TaskFormDialog
           open={showTaskDialog}
           onOpenChange={setShowTaskDialog}
           task={editingTask}
-          defaultPeriod={defaultPeriod}
+          defaultStatus={defaultStatus}
           onSave={handleSaveTask}
         />
 
-        {/* Confirmação de Exclusão */}
         <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -311,20 +311,20 @@ export default function DailyTasks() {
     );
   }
 
-  // Desktop Layout
+  // Desktop Layout - 3 Colunas
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8">
         {/* Header Desktop */}
-        <Card className="mb-6 shadow-md">
+        <Card className="mb-6 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                <ClipboardList className="w-8 h-8 text-primary" />
-                Minha Agenda Pro
-              </h1>
+              <div>
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                  <ClipboardList className="w-8 h-8 text-primary" />
+                  Minhas Tarefas
+                </h1>
                 <p className="text-muted-foreground">
                   {format(new Date(taskDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </p>
@@ -347,78 +347,180 @@ export default function DailyTasks() {
           </CardContent>
         </Card>
 
-        {/* 3 Colunas com Drag and Drop (Desktop) */}
+        {/* 3 Colunas Kanban com Drag and Drop */}
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragEnd={handleDragEnd}
           onDragStart={(event) => setActiveId(event.active.id as string)}
         >
-          <div className="space-y-6">
-            {(['manha', 'tarde', 'noite'] as const).map(period => {
-              const Icon = period === 'manha' ? Sunrise : period === 'tarde' ? Sun : Moon;
-              const label = period === 'manha' ? 'Manhã' : period === 'tarde' ? 'Tarde' : 'Noite';
-              
-              return (
-                <Card key={period} className="shadow-md">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold flex items-center gap-2">
-                        <Icon className="w-5 h-5" /> {label}
-                      </h2>
-                      <Button size="sm" onClick={() => handleOpenTaskDialog(period)}>
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
+          <div className="grid grid-cols-3 gap-6">
+            {/* Para Fazer */}
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-b-primary">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <Circle className="w-5 h-5 text-foreground" /> Para Fazer
+                  </h2>
+                  <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                    {tasksByStatus.todo.length}
+                  </span>
+                </div>
 
-                    <DroppablePeriod period={period}>
-                      <SortableContext 
-                        items={tasksByPeriod[period].map(t => t.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {tasksByPeriod[period].length === 0 ? (
-                          <div className="text-center py-12 text-muted-foreground">
-                            <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p className="text-sm">Nenhuma tarefa</p>
-                            <p className="text-xs mt-2 opacity-70">Arraste tarefas para cá</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {tasksByPeriod[period].map(task => (
-                              <DraggableTaskCard
-                                key={task.id}
-                                task={task}
-                                onToggle={toggleTask}
-                                onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
-                                onDelete={handleDeleteTask}
-                                onDuplicate={(id: string) => {
-                                  const taskToDup = tasksByPeriod[period].find(t => t.id === id);
-                                  if (taskToDup) duplicateTask(taskToDup);
-                                }}
-                                onPostpone={(id: string) => {
-                                  const taskToPost = tasksByPeriod[period].find(t => t.id === id);
-                                  if (taskToPost) postponeTask(taskToPost);
-                                }}
-                                onMove={(id: string, p: 'manha' | 'tarde' | 'noite') => {
-                                  const taskToMove = tasksByPeriod[period].find(t => t.id === id);
-                                  if (taskToMove) moveTask(taskToMove.id, p);
-                                }}
-                                checklistProgress={getChecklistProgress(task.id)}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </SortableContext>
-                    </DroppablePeriod>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                <DroppableStatus status="todo">
+                  <SortableContext 
+                    items={tasksByStatus.todo.map(t => t.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {tasksByStatus.todo.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Circle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">Nenhuma tarefa</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {tasksByStatus.todo.map(task => (
+                          <DraggableTaskCard
+                            key={task.id}
+                            task={task}
+                            onToggle={toggleTask}
+                            onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                            onDelete={handleDeleteTask}
+                            onDuplicate={(id: string) => {
+                              const taskToDup = tasksByStatus.todo.find(t => t.id === id);
+                              if (taskToDup) duplicateTask(taskToDup);
+                            }}
+                            checklistProgress={getChecklistProgress(task.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </SortableContext>
+                </DroppableStatus>
+
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4"
+                  onClick={() => handleOpenTaskDialog('todo')}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Tarefa
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Em Andamento */}
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-b-primary">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <PlayCircle className="w-5 h-5 text-foreground" /> Em Andamento
+                  </h2>
+                  <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                    {tasksByStatus.in_progress.length}
+                  </span>
+                </div>
+
+                <DroppableStatus status="in_progress">
+                  <SortableContext 
+                    items={tasksByStatus.in_progress.map(t => t.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {tasksByStatus.in_progress.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <PlayCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">Nenhuma tarefa</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {tasksByStatus.in_progress.map(task => (
+                          <DraggableTaskCard
+                            key={task.id}
+                            task={task}
+                            onToggle={toggleTask}
+                            onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                            onDelete={handleDeleteTask}
+                            onDuplicate={(id: string) => {
+                              const taskToDup = tasksByStatus.in_progress.find(t => t.id === id);
+                              if (taskToDup) duplicateTask(taskToDup);
+                            }}
+                            checklistProgress={getChecklistProgress(task.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </SortableContext>
+                </DroppableStatus>
+
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4"
+                  onClick={() => handleOpenTaskDialog('in_progress')}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Tarefa
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Concluído */}
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-b-primary">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-foreground" /> Concluído
+                  </h2>
+                  <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                    {tasksByStatus.done.length}
+                  </span>
+                </div>
+
+                <DroppableStatus status="done">
+                  <SortableContext 
+                    items={tasksByStatus.done.map(t => t.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {tasksByStatus.done.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">Nenhuma tarefa</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {tasksByStatus.done.map(task => (
+                          <DraggableTaskCard
+                            key={task.id}
+                            task={task}
+                            onToggle={toggleTask}
+                            onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                            onDelete={handleDeleteTask}
+                            onDuplicate={(id: string) => {
+                              const taskToDup = tasksByStatus.done.find(t => t.id === id);
+                              if (taskToDup) duplicateTask(taskToDup);
+                            }}
+                            checklistProgress={getChecklistProgress(task.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </SortableContext>
+                </DroppableStatus>
+
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4"
+                  onClick={() => handleOpenTaskDialog('done')}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Tarefa
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </DndContext>
       </main>
 
-      {/* Dialog de Categorias */}
+      {/* Dialogs */}
       <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -428,16 +530,14 @@ export default function DailyTasks() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Tarefa */}
       <TaskFormDialog
         open={showTaskDialog}
         onOpenChange={setShowTaskDialog}
         task={editingTask}
-        defaultPeriod={defaultPeriod}
+        defaultStatus={defaultStatus}
         onSave={handleSaveTask}
       />
 
-      {/* Confirmação de Exclusão */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

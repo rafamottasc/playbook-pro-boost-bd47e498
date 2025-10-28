@@ -45,7 +45,8 @@ export interface DailyTask {
   notes?: string;
   task_date: string;
   scheduled_time?: string;
-  period: 'manha' | 'tarde' | 'noite';
+  period: 'manha' | 'tarde' | 'noite'; // Deprecated, mantido para compatibilidade
+  status: 'todo' | 'in_progress' | 'done';
   priority: 'urgente' | 'importante' | 'normal' | 'baixa';
   recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
   done: boolean;
@@ -84,7 +85,14 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
     },
   });
 
-  // Group tasks by period
+  // Group tasks by status (Kanban)
+  const tasksByStatus = useMemo(() => ({
+    todo: tasks.filter(t => t.status === 'todo'),
+    in_progress: tasks.filter(t => t.status === 'in_progress'),
+    done: tasks.filter(t => t.status === 'done'),
+  }), [tasks]);
+
+  // Mantém tasksByPeriod para compatibilidade temporária
   const tasksByPeriod = useMemo(() => ({
     manha: tasks.filter(t => t.period === 'manha'),
     tarde: tasks.filter(t => t.period === 'tarde'),
@@ -102,8 +110,7 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: async (newTask: Omit<Partial<DailyTask>, 'period' | 'title'> & { 
-      period: 'manha' | 'tarde' | 'noite'; 
+    mutationFn: async (newTask: Omit<Partial<DailyTask>, 'title'> & { 
       title: string;
       checklist_items?: ChecklistItem[];
       contacts?: TaskContact[];
@@ -160,11 +167,21 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
     },
   });
 
-  // Toggle task done
+  // Toggle task done - agora alterna status
   const toggleTask = useCallback(async (taskId: string, currentDone: boolean) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Alterna entre in_progress e done
+    const newStatus = task.status === 'done' ? 'in_progress' : 'done';
+    const newDone = newStatus === 'done';
+
     const { error } = await supabase
       .from('daily_tasks')
-      .update({ done: !currentDone })
+      .update({ 
+        done: newDone,
+        status: newStatus 
+      })
       .eq('id', taskId);
 
     if (error) {
@@ -177,8 +194,8 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
     }
 
     queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-    toast({ title: !currentDone ? "Tarefa concluída! ✓" : "Tarefa reaberta" });
-  }, [queryClient, toast]);
+    toast({ title: newDone ? "Tarefa concluída! ✓" : "Tarefa em andamento" });
+  }, [tasks, queryClient, toast]);
 
   // Update task mutation
   const updateTaskMutation = useMutation({
@@ -282,42 +299,16 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
     toast({ title: "Tarefa duplicada com sucesso!" });
   }, [queryClient, toast]);
 
-  // Postpone task (+1 hour)
-  const postponeTask = useCallback(async (task: DailyTask) => {
-    if (!task.scheduled_time) {
-      toast({ title: "Esta tarefa não possui horário definido", variant: "destructive" });
-      return;
-    }
-
-    const [hours, minutes] = task.scheduled_time.split(':').map(Number);
-    const newHours = (hours + 1) % 24;
-    const newTime = `${String(newHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-
-    // Adjust period if necessary
-    let newPeriod = task.period;
-    if (newHours >= 6 && newHours < 12) newPeriod = 'manha';
-    else if (newHours >= 12 && newHours < 18) newPeriod = 'tarde';
-    else newPeriod = 'noite';
+  // Move task to new status (Kanban)
+  const moveTaskToStatus = useCallback(async (taskId: string, newStatus: 'todo' | 'in_progress' | 'done') => {
+    const newDone = newStatus === 'done';
 
     const { error } = await supabase
       .from('daily_tasks')
-      .update({ scheduled_time: newTime, period: newPeriod })
-      .eq('id', task.id);
-
-    if (error) {
-      toast({ title: "Erro ao adiar tarefa", variant: "destructive" });
-      return;
-    }
-
-    queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-    toast({ title: "Tarefa adiada em 1 hora" });
-  }, [queryClient, toast]);
-
-  // Move task between periods
-  const moveTask = useCallback(async (taskId: string, newPeriod: 'manha' | 'tarde' | 'noite') => {
-    const { error } = await supabase
-      .from('daily_tasks')
-      .update({ period: newPeriod })
+      .update({ 
+        status: newStatus,
+        done: newDone 
+      })
       .eq('id', taskId);
 
     if (error) {
@@ -359,7 +350,8 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
 
   return {
     tasks,
-    tasksByPeriod,
+    tasksByStatus,
+    tasksByPeriod, // Deprecated, mantido para compatibilidade
     stats,
     isLoading,
     createTask: createTaskMutation.mutate,
@@ -367,8 +359,7 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
     updateTask: updateTaskMutation.mutate,
     deleteTask: deleteTaskMutation.mutate,
     duplicateTask,
-    postponeTask,
-    moveTask,
+    moveTaskToStatus,
     toggleChecklistItem,
     getChecklistProgress,
   };

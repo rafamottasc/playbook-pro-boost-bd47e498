@@ -3,7 +3,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Clock, MoreVertical, Edit, Copy, Clock3, MoveRight, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat } from "lucide-react";
+import { Clock, MoreVertical, Edit, Copy, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { CategoryBadge } from "./CategoryBadge";
 import { PriorityBadge } from "./PriorityBadge";
@@ -15,8 +17,6 @@ interface TaskCardProps {
   onEdit: (task: DailyTask) => void;
   onDelete: (taskId: string) => void;
   onDuplicate: (taskId: string) => void;
-  onPostpone: (taskId: string) => void;
-  onMove: (taskId: string, period: 'manha' | 'tarde' | 'noite') => void;
   checklistProgress?: { completed: number; total: number };
 }
 
@@ -25,11 +25,11 @@ export function TaskCard({
   onToggle, 
   onEdit, 
   onDelete, 
-  onDuplicate, 
-  onPostpone, 
-  onMove,
+  onDuplicate,
   checklistProgress 
 }: TaskCardProps) {
+  const today = new Date().toISOString().split('T')[0];
+  const isOtherDay = task.task_date !== today;
   return (
     <Card className={cn(
       "transition-all hover:shadow-lg group",
@@ -91,23 +91,6 @@ export function TaskCard({
                 <Copy className="w-4 h-4 mr-2" />
                 Duplicar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onPostpone(task.id)}>
-                <Clock3 className="w-4 h-4 mr-2" />
-                Adiar +1h
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onMove(task.id, 'manha')}>
-                <MoveRight className="w-4 h-4 mr-2" />
-                Mover para Manhã
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onMove(task.id, 'tarde')}>
-                <MoveRight className="w-4 h-4 mr-2" />
-                Mover para Tarde
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onMove(task.id, 'noite')}>
-                <MoveRight className="w-4 h-4 mr-2" />
-                Mover para Noite
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onDelete(task.id)}
@@ -128,6 +111,12 @@ export function TaskCard({
             <Badge variant="outline" className="text-xs">
               <Clock className="w-3 h-3 mr-1" />
               {task.scheduled_time}
+            </Badge>
+          )}
+          {isOtherDay && (
+            <Badge variant="outline" className="text-xs">
+              <CalendarIcon className="w-3 h-3 mr-1" />
+              {format(new Date(task.task_date), "dd/MM", { locale: ptBR })}
             </Badge>
           )}
           {task.recurrence && task.recurrence !== 'none' && (

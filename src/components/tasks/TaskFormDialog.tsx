@@ -8,7 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sunrise, Sun, Moon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { useTaskCategories } from "@/hooks/useTaskCategories";
 import { TaskChecklistManager } from "./TaskChecklistManager";
 import { TaskContactsManager } from "./TaskContactsManager";
@@ -20,18 +25,19 @@ interface TaskFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   task?: DailyTask | null;
-  defaultPeriod?: 'manha' | 'tarde' | 'noite';
+  defaultStatus?: 'todo' | 'in_progress' | 'done';
   onSave: (taskData: Partial<DailyTask>) => void;
 }
 
-export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave }: TaskFormDialogProps) {
+export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave }: TaskFormDialogProps) {
   const isMobile = useIsMobile();
   const { categories } = useTaskCategories();
 
   const [formData, setFormData] = useState({
     title: '',
     category_id: '',
-    period: defaultPeriod || 'manha',
+    status: defaultStatus || 'todo' as 'todo' | 'in_progress' | 'done',
+    task_date: new Date().toISOString().split('T')[0],
     scheduled_time: '',
     priority: 'normal' as 'baixa' | 'normal' | 'importante' | 'urgente',
     notes: '',
@@ -41,25 +47,28 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [contacts, setContacts] = useState<TaskContact[]>([]);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
     if (task) {
       setFormData({
         title: task.title || '',
         category_id: task.category_id || '',
-        period: task.period || 'manha',
+        status: task.status || 'todo',
+        task_date: task.task_date || new Date().toISOString().split('T')[0],
         scheduled_time: task.scheduled_time || '',
         priority: task.priority || 'normal',
         notes: task.notes || '',
         recurrence: task.recurrence || 'none',
       });
+      setSelectedDate(new Date(task.task_date || new Date()));
       setChecklistItems(task.checklist_items || []);
       setContacts(task.contacts || []);
       setAttachments(task.attachments || []);
-    } else if (defaultPeriod) {
-      setFormData(prev => ({ ...prev, period: defaultPeriod }));
+    } else if (defaultStatus) {
+      setFormData(prev => ({ ...prev, status: defaultStatus }));
     }
-  }, [task, defaultPeriod]);
+  }, [task, defaultStatus]);
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
@@ -76,12 +85,14 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
     setFormData({
       title: '',
       category_id: '',
-      period: defaultPeriod || 'manha',
+      status: defaultStatus || 'todo',
+      task_date: new Date().toISOString().split('T')[0],
       scheduled_time: '',
       priority: 'normal',
       notes: '',
       recurrence: 'none',
     });
+    setSelectedDate(new Date());
     setChecklistItems([]);
     setContacts([]);
     setAttachments([]);
@@ -122,38 +133,39 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultPeriod, onSave
         </Select>
       </div>
 
-      {/* Período e Horário */}
+      {/* Data e Horário */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="period">Período</Label>
-          <Select
-            value={formData.period}
-            onValueChange={(value: any) => setFormData({ ...formData, period: value })}
-          >
-            <SelectTrigger id="period">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="manha">
-                <div className="flex items-center gap-2">
-                  <Sunrise className="w-4 h-4" />
-                  Manhã
-                </div>
-              </SelectItem>
-              <SelectItem value="tarde">
-                <div className="flex items-center gap-2">
-                  <Sun className="w-4 h-4" />
-                  Tarde
-                </div>
-              </SelectItem>
-              <SelectItem value="noite">
-                <div className="flex items-center gap-2">
-                  <Moon className="w-4 h-4" />
-                  Noite
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="date">Data</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                    setFormData({ ...formData, task_date: format(date, 'yyyy-MM-dd') });
+                  }
+                }}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="space-y-2">
