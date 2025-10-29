@@ -122,9 +122,15 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
       const { checklist_items, contacts, ...taskData } = newTask;
 
       // 1. Criar tarefa principal (apenas campos da tabela daily_tasks)
+      // Garantir que period sempre tenha um valor padrão para compatibilidade
       const { data: task, error } = await supabase
         .from('daily_tasks')
-        .insert([{ ...taskData, user_id: user.id, task_date: taskDate }])
+        .insert([{ 
+          ...taskData, 
+          period: taskData.period || 'manha', // Valor padrão para compatibilidade
+          user_id: user.id, 
+          task_date: taskDate 
+        }])
         .select()
         .single();
 

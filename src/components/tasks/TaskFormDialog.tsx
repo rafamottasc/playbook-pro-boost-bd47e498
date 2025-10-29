@@ -42,6 +42,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
     priority: 'normal' as 'baixa' | 'normal' | 'importante' | 'urgente',
     notes: '',
     recurrence: 'none' as 'none' | 'daily' | 'weekly' | 'monthly',
+    period: 'manha' as 'manha' | 'tarde' | 'noite', // Valor padrão para compatibilidade
   });
 
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
@@ -91,6 +92,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       priority: 'normal',
       notes: '',
       recurrence: 'none',
+      period: 'manha', // Valor padrão para compatibilidade
     });
     setSelectedDate(new Date());
     setChecklistItems([]);

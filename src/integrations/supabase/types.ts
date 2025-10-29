@@ -468,7 +468,7 @@ export type Database = {
           done: boolean
           id: string
           notes: string | null
-          period: string
+          period: string | null
           priority: string
           recurrence: string | null
           scheduled_time: string | null
@@ -486,7 +486,7 @@ export type Database = {
           done?: boolean
           id?: string
           notes?: string | null
-          period: string
+          period?: string | null
           priority?: string
           recurrence?: string | null
           scheduled_time?: string | null
@@ -504,7 +504,7 @@ export type Database = {
           done?: boolean
           id?: string
           notes?: string | null
-          period?: string
+          period?: string | null
           priority?: string
           recurrence?: string | null
           scheduled_time?: string | null
