@@ -61,6 +61,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         priority: task.priority || 'normal',
         notes: task.notes || '',
         recurrence: task.recurrence || 'none',
+        period: task.period || 'manha', // Adicionar period ao editar
       });
       setSelectedDate(new Date(task.task_date || new Date()));
       setChecklistItems(task.checklist_items || []);

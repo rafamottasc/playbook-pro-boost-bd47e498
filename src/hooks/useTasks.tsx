@@ -206,9 +206,12 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
   // Update task mutation
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<DailyTask> & { id: string }) => {
+      // Filtrar apenas campos da tabela daily_tasks (remover relacionamentos)
+      const { checklist_items, contacts, attachments, category, ...validUpdates } = updates;
+      
       const { error } = await supabase
         .from('daily_tasks')
-        .update(updates)
+        .update(validUpdates)
         .eq('id', id);
 
       if (error) throw error;
