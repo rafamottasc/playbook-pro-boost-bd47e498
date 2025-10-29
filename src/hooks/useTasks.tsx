@@ -205,9 +205,9 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
 
   // Update task mutation
   const updateTaskMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<DailyTask> & { id: string }) => {
+    mutationFn: async ({ id, checklist_items, contacts, ...updates }: Partial<DailyTask> & { id: string }) => {
       // Filtrar apenas campos da tabela daily_tasks (remover relacionamentos)
-      const { checklist_items, contacts, attachments, category, ...validUpdates } = updates;
+      const { attachments, category, ...validUpdates } = updates;
       
       const { error } = await supabase
         .from('daily_tasks')
@@ -215,6 +215,38 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
         .eq('id', id);
 
       if (error) throw error;
+
+      // Atualizar checklist
+      if (checklist_items !== undefined) {
+        // Remove itens antigos
+        await supabase.from('task_checklist_items').delete().eq('task_id', id);
+        // Adiciona novos itens
+        if (checklist_items.length > 0) {
+          const checklistData = checklist_items.map((item, index) => ({
+            task_id: id,
+            text: item.text,
+            done: item.done || false,
+            display_order: index,
+          }));
+          await supabase.from('task_checklist_items').insert(checklistData);
+        }
+      }
+
+      // Atualizar contatos
+      if (contacts !== undefined) {
+        // Remove contatos antigos
+        await supabase.from('task_contacts').delete().eq('task_id', id);
+        // Adiciona novos contatos
+        if (contacts.length > 0) {
+          const contactsData = contacts.map(contact => ({
+            task_id: id,
+            name: contact.name,
+            phone: contact.phone || null,
+            address: contact.address || null,
+          }));
+          await supabase.from('task_contacts').insert(contactsData);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });

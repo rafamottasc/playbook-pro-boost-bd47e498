@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Clock, MoreVertical, Edit, Copy, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat, CalendarIcon } from "lucide-react";
+import { Clock, MoreVertical, Edit, Copy, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat, CalendarIcon, ChevronDown, ChevronUp, MessageCircle, MapPin, ExternalLink, Download, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -28,8 +29,16 @@ export function TaskCard({
   onDuplicate,
   checklistProgress 
 }: TaskCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const today = new Date().toISOString().split('T')[0];
   const isOtherDay = task.task_date !== today;
+
+  const hasExpandableContent = 
+    (task.notes && task.notes.length > 100) ||
+    (task.checklist_items && task.checklist_items.length > 0) ||
+    (task.contacts && task.contacts.length > 0) ||
+    (task.attachments && task.attachments.length > 0);
+
   return (
     <Card className={cn(
       "transition-all hover:shadow-lg group",
@@ -127,46 +136,193 @@ export function TaskCard({
           )}
         </div>
 
-        {/* Linha 3: Informações detalhadas inline */}
+        {/* Linha 3: Informações resumidas */}
         <div className="ml-8 space-y-1.5">
-          {task.notes && (
+          {/* Notas - resumo */}
+          {task.notes && !isExpanded && (
             <p className="text-xs text-muted-foreground flex items-start gap-2">
               <FileText className="w-3 h-3 mt-0.5 flex-shrink-0" />
               <span className="line-clamp-2">{task.notes}</span>
             </p>
           )}
           
-          {checklistProgress && checklistProgress.total > 0 && (
-            <p className="text-xs flex items-center gap-2 text-muted-foreground">
-              <CheckSquare className="w-3 h-3" />
-              Checklist: {checklistProgress.completed}/{checklistProgress.total}
-            </p>
-          )}
-          
-          {task.contacts && task.contacts.length > 0 && (
-            <div className="text-xs space-y-0.5">
-              {task.contacts.map(c => (
-                <p key={c.id} className="flex items-center gap-2 text-muted-foreground">
-                  <User className="w-3 h-3" />
-                  {c.name}
-                  {c.phone && (
-                    <span className="flex items-center gap-1">
-                      <Phone className="w-3 h-3" />
-                      {c.phone}
-                    </span>
-                  )}
-                </p>
-              ))}
-            </div>
-          )}
-          
-          {task.attachments && task.attachments.length > 0 && (
-            <p className="text-xs flex items-center gap-2 text-muted-foreground">
-              <Paperclip className="w-3 h-3" />
-              {task.attachments.length} anexo{task.attachments.length > 1 ? 's' : ''}
-            </p>
-          )}
+          {/* Indicadores de conteúdo */}
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            {checklistProgress && checklistProgress.total > 0 && (
+              <span className="flex items-center gap-1">
+                <CheckSquare className="w-3 h-3" />
+                {checklistProgress.completed}/{checklistProgress.total}
+              </span>
+            )}
+            
+            {task.contacts && task.contacts.length > 0 && (
+              <span className="flex items-center gap-1">
+                <User className="w-3 h-3" />
+                {task.contacts.length}
+              </span>
+            )}
+            
+            {task.attachments && task.attachments.length > 0 && (
+              <span className="flex items-center gap-1">
+                <Paperclip className="w-3 h-3" />
+                {task.attachments.length}
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Conteúdo Expandido */}
+        {isExpanded && (
+          <div className="ml-8 space-y-3 pt-2 border-t">
+            {/* Notas completas */}
+            {task.notes && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium flex items-center gap-1">
+                  <FileText className="w-3 h-3" />
+                  Notas
+                </p>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap">{task.notes}</p>
+              </div>
+            )}
+
+            {/* Checklist completo */}
+            {task.checklist_items && task.checklist_items.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium flex items-center gap-1">
+                  <CheckSquare className="w-3 h-3" />
+                  Checklist
+                </p>
+                <div className="space-y-1">
+                  {task.checklist_items.map(item => (
+                    <div key={item.id} className="flex items-center gap-2 text-xs">
+                      <Checkbox checked={item.done} disabled className="h-3 w-3" />
+                      <span className={cn(item.done && "line-through text-muted-foreground")}>
+                        {item.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contatos completos */}
+            {task.contacts && task.contacts.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  Contatos
+                </p>
+                <div className="space-y-2">
+                  {task.contacts.map(contact => (
+                    <div key={contact.id} className="space-y-1 p-2 bg-muted/50 rounded text-xs">
+                      <p className="font-medium">{contact.name}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {contact.phone && (
+                          <>
+                            <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
+                              <a href={`tel:${contact.phone}`}>
+                                <Phone className="w-3 h-3 mr-1" />
+                                Ligar
+                              </a>
+                            </Button>
+                            <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
+                              <a 
+                                href={`https://wa.me/55${contact.phone.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <MessageCircle className="w-3 h-3 mr-1" />
+                                WhatsApp
+                              </a>
+                            </Button>
+                          </>
+                        )}
+                        {contact.address && (
+                          <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
+                            <a 
+                              href={`https://maps.google.com/?q=${encodeURIComponent(contact.address)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <MapPin className="w-3 h-3 mr-1" />
+                              Mapa
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Anexos completos */}
+            {task.attachments && task.attachments.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium flex items-center gap-1">
+                  <Paperclip className="w-3 h-3" />
+                  Anexos
+                </p>
+                <div className="space-y-1">
+                  {task.attachments.map(attachment => (
+                    <div key={attachment.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded text-xs">
+                      {attachment.attachment_type === 'file' ? (
+                        <>
+                          {attachment.file_type === 'image' && <ImageIcon className="w-3 h-3" />}
+                          {attachment.file_type === 'pdf' && <FileText className="w-3 h-3" />}
+                          <span className="flex-1 truncate">{attachment.title}</span>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" asChild>
+                            <a href={attachment.file_url} target="_blank" rel="noopener noreferrer">
+                              {attachment.file_type === 'image' ? (
+                                <ExternalLink className="w-3 h-3" />
+                              ) : (
+                                <Download className="w-3 h-3" />
+                              )}
+                            </a>
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-3 h-3" />
+                          <span className="flex-1 truncate">{attachment.title}</span>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" asChild>
+                            <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Botão Expandir/Recolher */}
+        {hasExpandableContent && (
+          <div className="ml-8 pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="h-6 text-xs"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3 h-3 mr-1" />
+                  Recolher
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3 h-3 mr-1" />
+                  Ver mais
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
