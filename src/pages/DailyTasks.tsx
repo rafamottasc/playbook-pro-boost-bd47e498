@@ -44,8 +44,8 @@ function DraggableTaskCard({ task, ...props }: any) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} {...props} />
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <TaskCard task={task} {...props} dragHandleProps={listeners} />
     </div>
   );
 }

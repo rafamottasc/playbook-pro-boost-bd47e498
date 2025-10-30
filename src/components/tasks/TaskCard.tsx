@@ -20,6 +20,7 @@ interface TaskCardProps {
   onDuplicate: (taskId: string) => void;
   onToggleChecklistItem?: (taskId: string, itemId: string) => void;
   checklistProgress?: { completed: number; total: number };
+  dragHandleProps?: any;
 }
 
 export function TaskCard({ 
@@ -29,7 +30,8 @@ export function TaskCard({
   onDelete, 
   onDuplicate,
   onToggleChecklistItem,
-  checklistProgress 
+  checklistProgress,
+  dragHandleProps
 }: TaskCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const today = new Date().toISOString().split('T')[0];
@@ -50,11 +52,13 @@ export function TaskCard({
       <CardContent className="p-4 space-y-3">
         {/* Linha 1: Checkbox + Título + Botões de Ação */}
         <div className="flex items-start gap-3">
-          <Checkbox
-            checked={task.done}
-            onCheckedChange={() => onToggle(task.id, task.done)}
-            className="mt-1"
-          />
+          <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+            <Checkbox
+              checked={task.done}
+              onCheckedChange={() => onToggle(task.id, task.done)}
+              className="mt-1"
+            />
+          </div>
           
           <h3 
             className={cn(
