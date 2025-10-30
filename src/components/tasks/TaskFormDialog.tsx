@@ -78,6 +78,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
     // Envia apenas os campos da tabela daily_tasks + dados relacionados
     onSave({
       ...formData,
+      scheduled_time: formData.scheduled_time.trim() || null, // Aceitar horário vazio
       checklist_items: checklistItems,
       contacts,
       // Attachments são gerenciados separadamente pelo TaskAttachmentsManager

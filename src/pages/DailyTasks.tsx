@@ -75,7 +75,7 @@ function DroppableStatus({
 
 export default function DailyTasks() {
   const [taskDate] = useState(new Date().toISOString().split('T')[0]);
-  const { tasksByStatus, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask } = useTasks(taskDate);
+  const { tasksByStatus, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask, toggleChecklistItem } = useTasks(taskDate);
   const { getChecklistProgress } = useTaskChecklistProgress();
   const [activeStatus, setActiveStatus] = useState<'todo' | 'in_progress' | 'done'>('todo');
   const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -256,6 +256,7 @@ export default function DailyTasks() {
                           const taskToDup = tasksByStatus[status].find(t => t.id === id);
                           if (taskToDup) duplicateTask(taskToDup);
                         }}
+                        onToggleChecklistItem={toggleChecklistItem}
                         checklistProgress={getChecklistProgress(task.id)}
                       />
                     ))}
@@ -390,6 +391,7 @@ export default function DailyTasks() {
                               const taskToDup = tasksByStatus.todo.find(t => t.id === id);
                               if (taskToDup) duplicateTask(taskToDup);
                             }}
+                            onToggleChecklistItem={toggleChecklistItem}
                             checklistProgress={getChecklistProgress(task.id)}
                           />
                         ))}
@@ -444,6 +446,7 @@ export default function DailyTasks() {
                               const taskToDup = tasksByStatus.in_progress.find(t => t.id === id);
                               if (taskToDup) duplicateTask(taskToDup);
                             }}
+                            onToggleChecklistItem={toggleChecklistItem}
                             checklistProgress={getChecklistProgress(task.id)}
                           />
                         ))}
@@ -498,6 +501,7 @@ export default function DailyTasks() {
                               const taskToDup = tasksByStatus.done.find(t => t.id === id);
                               if (taskToDup) duplicateTask(taskToDup);
                             }}
+                            onToggleChecklistItem={toggleChecklistItem}
                             checklistProgress={getChecklistProgress(task.id)}
                           />
                         ))}

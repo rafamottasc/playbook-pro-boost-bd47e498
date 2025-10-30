@@ -18,6 +18,7 @@ interface TaskCardProps {
   onEdit: (task: DailyTask) => void;
   onDelete: (taskId: string) => void;
   onDuplicate: (taskId: string) => void;
+  onToggleChecklistItem?: (taskId: string, itemId: string) => void;
   checklistProgress?: { completed: number; total: number };
 }
 
@@ -27,6 +28,7 @@ export function TaskCard({
   onEdit, 
   onDelete, 
   onDuplicate,
+  onToggleChecklistItem,
   checklistProgress 
 }: TaskCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -195,7 +197,11 @@ export function TaskCard({
                 <div className="space-y-1">
                   {task.checklist_items.map(item => (
                     <div key={item.id} className="flex items-center gap-2 text-xs">
-                      <Checkbox checked={item.done} disabled className="h-3 w-3" />
+                  <Checkbox 
+                    checked={item.done} 
+                    onCheckedChange={() => onToggleChecklistItem?.(task.id, item.id)}
+                    className="h-3 w-3" 
+                  />
                       <span className={cn(item.done && "line-through text-muted-foreground")}>
                         {item.text}
                       </span>

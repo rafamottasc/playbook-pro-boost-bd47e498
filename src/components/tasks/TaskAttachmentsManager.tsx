@@ -13,6 +13,23 @@ interface TaskAttachmentsManagerProps {
   readonly?: boolean;
 }
 
+// Função para normalizar URLs
+const normalizeUrl = (url: string): string => {
+  const trimmed = url.trim();
+  
+  // Se já tem protocolo, retorna como está
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  
+  // Se parece com URL mas não tem protocolo, adiciona https://
+  if (/^[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  
+  return trimmed;
+};
+
 export function TaskAttachmentsManager({ taskId, attachments, readonly = false }: TaskAttachmentsManagerProps) {
   const { uploadFile, isUploading, addLink, isAddingLink, deleteAttachment } = useTaskAttachments();
   const [linkTitle, setLinkTitle] = useState("");
@@ -30,7 +47,8 @@ export function TaskAttachmentsManager({ taskId, attachments, readonly = false }
 
   const handleAddLink = () => {
     if (!linkTitle.trim() || !linkUrl.trim()) return;
-    addLink({ taskId, title: linkTitle.trim(), url: linkUrl.trim() });
+    const normalizedUrl = normalizeUrl(linkUrl);
+    addLink({ taskId, title: linkTitle.trim(), url: normalizedUrl });
     setLinkTitle("");
     setLinkUrl("");
   };
@@ -102,7 +120,7 @@ export function TaskAttachmentsManager({ taskId, attachments, readonly = false }
                 disabled={limitReached || isAddingLink}
               />
               <Input 
-                placeholder="https://..." 
+                placeholder="exemplo: google.com.br ou https://google.com.br" 
                 type="url"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
