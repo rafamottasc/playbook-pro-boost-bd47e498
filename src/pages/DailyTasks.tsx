@@ -44,8 +44,8 @@ function DraggableTaskCard({ task, ...props }: any) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <TaskCard task={task} {...props} dragHandleProps={listeners} />
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+      <TaskCard task={task} {...props} />
     </div>
   );
 }
