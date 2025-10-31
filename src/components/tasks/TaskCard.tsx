@@ -83,6 +83,14 @@ export function TaskCard({
             >
               <Edit className="w-4 h-4" />
             </Button>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-8 w-8"
+              onClick={() => onDelete(task.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
             {hasExpandableContent && (
               <Button
                 size="icon"
@@ -100,14 +108,6 @@ export function TaskCard({
                 )}
               </Button>
             )}
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={() => onDelete(task.id)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
           </div>
 
           {/* Menu "⋮" só no mobile */}
