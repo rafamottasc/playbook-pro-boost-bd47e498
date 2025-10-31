@@ -52,11 +52,16 @@ export function TaskCard({
       <CardContent className="p-4 space-y-3">
         {/* Linha 1: Checkbox + Título + Botões de Ação */}
         <div className="flex items-start gap-3">
-          <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+          <div 
+            {...dragHandleProps} 
+            className="cursor-grab active:cursor-grabbing"
+            style={{ pointerEvents: dragHandleProps ? 'none' : 'auto' }}
+          >
             <Checkbox
               checked={task.done}
               onCheckedChange={() => onToggle(task.id, task.done)}
               className="mt-1"
+              style={{ pointerEvents: 'auto' }}
             />
           </div>
           
@@ -316,8 +321,11 @@ export function TaskCard({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="h-6 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="h-8 text-xs px-4 hover:bg-accent transition-colors"
             >
               {isExpanded ? (
                 <>
