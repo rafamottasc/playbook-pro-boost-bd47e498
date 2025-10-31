@@ -55,13 +55,11 @@ export function TaskCard({
           <div 
             {...dragHandleProps} 
             className="cursor-grab active:cursor-grabbing"
-            style={{ pointerEvents: dragHandleProps ? 'none' : 'auto' }}
           >
             <Checkbox
               checked={task.done}
               onCheckedChange={() => onToggle(task.id, task.done)}
               className="mt-1"
-              style={{ pointerEvents: 'auto' }}
             />
           </div>
           
@@ -76,7 +74,7 @@ export function TaskCard({
           </h3>
 
           {/* Botões sempre visíveis no desktop */}
-          <div className="hidden md:flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="hidden md:flex gap-1">
             <Button 
               size="icon" 
               variant="ghost" 
@@ -85,6 +83,23 @@ export function TaskCard({
             >
               <Edit className="w-4 h-4" />
             </Button>
+            {hasExpandableContent && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="h-8 w-8"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+            )}
             <Button 
               size="icon" 
               variant="ghost" 
@@ -233,24 +248,16 @@ export function TaskCard({
                       <p className="font-medium">{contact.name}</p>
                       <div className="flex flex-wrap gap-1">
                         {contact.phone && (
-                          <>
-                            <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
-                              <a href={`tel:${contact.phone}`}>
-                                <Phone className="w-3 h-3 mr-1" />
-                                Ligar
-                              </a>
-                            </Button>
-                            <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
-                              <a 
-                                href={`https://wa.me/55${contact.phone.replace(/\D/g, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <MessageCircle className="w-3 h-3 mr-1" />
-                                WhatsApp
-                              </a>
-                            </Button>
-                          </>
+                          <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
+                            <a 
+                              href={`https://wa.me/55${contact.phone.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <MessageCircle className="w-3 h-3 mr-1" />
+                              WhatsApp
+                            </a>
+                          </Button>
                         )}
                         {contact.address && (
                           <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
@@ -315,32 +322,6 @@ export function TaskCard({
           </div>
         )}
 
-        {/* Botão Expandir/Recolher */}
-        {hasExpandableContent && (
-          <div className="ml-8 pt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-              className="h-8 text-xs px-4 hover:bg-accent transition-colors"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="w-3 h-3 mr-1" />
-                  Recolher
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-3 h-3 mr-1" />
-                  Ver mais
-                </>
-              )}
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
