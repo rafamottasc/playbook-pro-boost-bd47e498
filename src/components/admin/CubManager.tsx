@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calculator, TrendingUp, Calendar } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { Calculator, TrendingUp, Calendar, Info } from "lucide-react";
+import { formatCurrency, cn } from "@/lib/utils";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface CubValue {
   id: string;
@@ -17,6 +20,8 @@ interface CubValue {
   month: number;
   year: number;
   created_at: string;
+  variacao_mensal?: number | null;
+  acumulado_ano?: number | null;
 }
 
 export function CubManager() {
@@ -25,11 +30,32 @@ export function CubManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newValue, setNewValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCubData();
+    loadAvailableYears();
   }, []);
+
+  useEffect(() => {
+    loadHistoryByYear(selectedYear);
+  }, [selectedYear]);
+
+  useEffect(() => {
+    if (history.length > 0) {
+      const data = [...history]
+        .reverse()
+        .map(item => ({
+          month: `${monthName(item.month).slice(0, 3)}/${item.year}`,
+          valor: item.value,
+          variacao: item.variacao_mensal || 0
+        }));
+      setChartData(data);
+    }
+  }, [history]);
 
   const loadCubData = async () => {
     const now = new Date();
@@ -41,15 +67,29 @@ export function CubManager() {
       .maybeSingle();
 
     setCurrentCub(current);
+  };
 
-    const { data: historyData } = await supabase
+  const loadAvailableYears = async () => {
+    const { data } = await supabase
+      .from("cub_values")
+      .select("year")
+      .order("year", { ascending: false });
+    
+    if (data) {
+      const years = [...new Set(data.map(item => item.year))];
+      setAvailableYears(years);
+    }
+  };
+
+  const loadHistoryByYear = async (year: number) => {
+    const { data } = await supabase
       .from("cub_values")
       .select("*")
-      .order("year", { ascending: false })
+      .eq("year", year)
       .order("month", { ascending: false })
-      .limit(6);
-
-    setHistory(historyData || []);
+      .limit(12);
+    
+    setHistory(data || []);
   };
 
   const handleUpdateCub = async () => {
@@ -120,6 +160,27 @@ export function CubManager() {
         </p>
       </div>
 
+      {/* Banner Explicativo */}
+      <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                O que é o CUB/m² (Custo Unitário Básico de Construção)
+              </h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                O CUB/m² é um índice calculado mensalmente pelos Sindicatos da Indústria 
+                da Construção (Sinduscons), conforme a NBR 12.721/2006 da ABNT e a Lei 
+                4.591/1964. Ele indica o custo médio por metro quadrado de construção de 
+                edificações padrão e serve como referência oficial para{" "}
+                <strong>orçamentos, contratos, reajustes de obras e avaliações imobiliárias</strong>.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -132,13 +193,41 @@ export function CubManager() {
             {currentCub ? (
               <div className="space-y-4">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-primary">
+                  <span className="text-4xl md:text-5xl font-bold text-primary">
                     R$ {formatCurrency(currentCub.value)}
                   </span>
                   <span className="text-muted-foreground">
                     {monthName(currentCub.month)}/{currentCub.year}
                   </span>
                 </div>
+
+                {/* Métricas de variação */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Variação Mensal</p>
+                    <p className={cn(
+                      "text-lg font-semibold",
+                      (currentCub.variacao_mensal || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                    )}>
+                      {currentCub.variacao_mensal != null
+                        ? `${currentCub.variacao_mensal > 0 ? '+' : ''}${currentCub.variacao_mensal.toFixed(2)}%`
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Acumulado no Ano</p>
+                    <p className={cn(
+                      "text-lg font-semibold",
+                      (currentCub.acumulado_ano || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                    )}>
+                      {currentCub.acumulado_ano != null
+                        ? `${currentCub.acumulado_ano > 0 ? '+' : ''}${currentCub.acumulado_ano.toFixed(2)}%`
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
                 <p className="text-sm text-muted-foreground">
                   Última atualização: {format(new Date(currentCub.created_at), "dd/MM/yyyy 'às' HH:mm")}
                 </p>
@@ -194,40 +283,131 @@ export function CubManager() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Histórico (Últimos 6 meses)</CardTitle>
+            <CardTitle className="flex items-center justify-between flex-wrap gap-3">
+              <span>Histórico (Últimos 12 Meses)</span>
+              {availableYears.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Ano:</Label>
+                  <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableYears.map(year => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {history.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mês/Ano</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Atualizado em</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {monthName(item.month)}/{item.year}
-                      </TableCell>
-                      <TableCell>R$ {formatCurrency(item.value)}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(item.created_at), "dd/MM/yyyy")}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mês/Ano</TableHead>
+                      <TableHead className="text-right">Valor (R$/m²)</TableHead>
+                      <TableHead className="text-right">Var. Mensal</TableHead>
+                      <TableHead className="text-right">Acum. Ano</TableHead>
+                      <TableHead className="text-right">Atualizado em</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {history.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {monthName(item.month)}/{item.year}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          R$ {formatCurrency(item.value)}
+                        </TableCell>
+                        <TableCell className={cn(
+                          "text-right font-medium",
+                          (item.variacao_mensal || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        )}>
+                          {item.variacao_mensal != null
+                            ? `${item.variacao_mensal > 0 ? '+' : ''}${item.variacao_mensal.toFixed(2)}%`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className={cn(
+                          "text-right font-medium",
+                          (item.acumulado_ano || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        )}>
+                          {item.acumulado_ano != null
+                            ? `${item.acumulado_ano > 0 ? '+' : ''}${item.acumulado_ano.toFixed(2)}%`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground whitespace-nowrap">
+                          {format(new Date(item.created_at), "dd/MM/yyyy")}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
-                Nenhum histórico disponível
+                Nenhum histórico disponível para {selectedYear}
               </p>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Gráfico de Evolução */}
+      {chartData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Evolução do CUB/m² - {selectedYear}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full overflow-x-auto">
+              <ResponsiveContainer width="100%" height={300} minWidth={500}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    domain={['dataMin - 50', 'dataMax + 50']}
+                    tickFormatter={(value) => `R$ ${formatCurrency(value)}`}
+                  />
+                  <Tooltip 
+                    formatter={(value: number) => [`R$ ${formatCurrency(value)}`, 'Valor']}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="valor" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -407,27 +407,33 @@ export type Database = {
       }
       cub_values: {
         Row: {
+          acumulado_ano: number | null
           created_at: string | null
           id: string
           month: number
           updated_by: string | null
           value: number
+          variacao_mensal: number | null
           year: number
         }
         Insert: {
+          acumulado_ano?: number | null
           created_at?: string | null
           id?: string
           month: number
           updated_by?: string | null
           value: number
+          variacao_mensal?: number | null
           year: number
         }
         Update: {
+          acumulado_ano?: number | null
           created_at?: string | null
           id?: string
           month?: number
           updated_by?: string | null
           value?: number
+          variacao_mensal?: number | null
           year?: number
         }
         Relationships: []
