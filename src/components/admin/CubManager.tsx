@@ -24,6 +24,14 @@ interface CubValue {
   acumulado_ano?: number | null;
 }
 
+interface ChartDataPoint {
+  month: string;
+  monthFull: string;
+  valor: number;
+  variacao: number;
+  acumulado: number;
+}
+
 export function CubManager() {
   const [currentCub, setCurrentCub] = useState<CubValue | null>(null);
   const [history, setHistory] = useState<CubValue[]>([]);
@@ -32,7 +40,7 @@ export function CubManager() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState<number[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -253,7 +261,7 @@ export function CubManager() {
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mt-4">
+                <Button className="w-full md:w-full mt-4">
                   <Calendar className="mr-2 h-4 w-4" />
                   {currentCub ? "Atualizar CUB" : "Cadastrar CUB"}
                 </Button>
@@ -407,7 +415,7 @@ export function CubManager() {
                     <Tooltip 
                       content={({ active, payload }) => {
                         if (!active || !payload || !payload.length) return null;
-                        const data = payload[0].payload;
+                        const data = payload[0].payload as ChartDataPoint;
                         return (
                           <div className="bg-background border border-border rounded-lg shadow-lg p-3 space-y-1">
                             <p className="font-semibold text-sm">{data.monthFull}</p>
