@@ -50,8 +50,10 @@ export function CubManager() {
         .reverse()
         .map(item => ({
           month: `${monthName(item.month).slice(0, 3)}/${item.year}`,
+          monthFull: `${monthName(item.month)}/${item.year}`,
           valor: item.value,
-          variacao: item.variacao_mensal || 0
+          variacao: item.variacao_mensal || 0,
+          acumulado: item.acumulado_ano || 0
         }));
       setChartData(data);
     }
@@ -86,6 +88,7 @@ export function CubManager() {
       .from("cub_values")
       .select("*")
       .eq("year", year)
+      .order("year", { ascending: false })
       .order("month", { ascending: false })
       .limit(12);
     
@@ -189,25 +192,28 @@ export function CubManager() {
               CUB Atual
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             {currentCub ? (
-              <div className="space-y-4">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl md:text-5xl font-bold text-primary">
-                    R$ {formatCurrency(currentCub.value)}
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <span className="text-4xl md:text-5xl font-semibold leading-tight text-primary whitespace-nowrap">
+                    R$&nbsp;{formatCurrency(currentCub.value)}
                   </span>
-                  <span className="text-muted-foreground">
+                  <span className="text-sm md:text-base text-muted-foreground">
                     {monthName(currentCub.month)}/{currentCub.year}
                   </span>
                 </div>
 
-                {/* Métricas de variação */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground mb-1">Variação Mensal</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-muted/50 rounded-lg p-2.5">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                      Variação Mensal
+                    </p>
                     <p className={cn(
-                      "text-lg font-semibold",
-                      (currentCub.variacao_mensal || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      "text-base md:text-lg font-semibold tabular-nums",
+                      (currentCub.variacao_mensal || 0) >= 0 
+                        ? "text-green-600 dark:text-green-400" 
+                        : "text-red-600 dark:text-red-400"
                     )}>
                       {currentCub.variacao_mensal != null
                         ? `${currentCub.variacao_mensal > 0 ? '+' : ''}${currentCub.variacao_mensal.toFixed(2)}%`
@@ -215,11 +221,15 @@ export function CubManager() {
                     </p>
                   </div>
                   
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground mb-1">Acumulado no Ano</p>
+                  <div className="bg-muted/50 rounded-lg p-2.5">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                      Acumulado no Ano
+                    </p>
                     <p className={cn(
-                      "text-lg font-semibold",
-                      (currentCub.acumulado_ano || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      "text-base md:text-lg font-semibold tabular-nums",
+                      (currentCub.acumulado_ano || 0) >= 0 
+                        ? "text-green-600 dark:text-green-400" 
+                        : "text-red-600 dark:text-red-400"
                     )}>
                       {currentCub.acumulado_ano != null
                         ? `${currentCub.acumulado_ano > 0 ? '+' : ''}${currentCub.acumulado_ano.toFixed(2)}%`
@@ -228,7 +238,7 @@ export function CubManager() {
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground pt-1">
                   Última atualização: {format(new Date(currentCub.created_at), "dd/MM/yyyy 'às' HH:mm")}
                 </p>
               </div>
@@ -307,48 +317,54 @@ export function CubManager() {
           <CardContent>
             {history.length > 0 ? (
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Mês/Ano</TableHead>
-                      <TableHead className="text-right">Valor (R$/m²)</TableHead>
-                      <TableHead className="text-right">Var. Mensal</TableHead>
-                      <TableHead className="text-right">Acum. Ano</TableHead>
-                      <TableHead className="text-right">Atualizado em</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {history.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium whitespace-nowrap">
-                          {monthName(item.month)}/{item.year}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          R$ {formatCurrency(item.value)}
-                        </TableCell>
-                        <TableCell className={cn(
-                          "text-right font-medium",
-                          (item.variacao_mensal || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        )}>
-                          {item.variacao_mensal != null
-                            ? `${item.variacao_mensal > 0 ? '+' : ''}${item.variacao_mensal.toFixed(2)}%`
-                            : '-'}
-                        </TableCell>
-                        <TableCell className={cn(
-                          "text-right font-medium",
-                          (item.acumulado_ano || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        )}>
-                          {item.acumulado_ano != null
-                            ? `${item.acumulado_ano > 0 ? '+' : ''}${item.acumulado_ano.toFixed(2)}%`
-                            : '-'}
-                        </TableCell>
-                        <TableCell className="text-right text-muted-foreground whitespace-nowrap">
-                          {format(new Date(item.created_at), "dd/MM/yyyy")}
-                        </TableCell>
+                <div className="min-w-[720px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[140px]">Mês/Ano</TableHead>
+                        <TableHead className="text-right w-[140px]">Valor (R$/m²)</TableHead>
+                        <TableHead className="text-right w-[120px]">Var. Mensal</TableHead>
+                        <TableHead className="text-right w-[120px]">Acum. Ano</TableHead>
+                        <TableHead className="text-right w-[140px]">Atualizado em</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {history.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {monthName(item.month)}/{item.year}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap">
+                            R$&nbsp;{formatCurrency(item.value)}
+                          </TableCell>
+                          <TableCell className={cn(
+                            "text-right font-medium tabular-nums whitespace-nowrap",
+                            (item.variacao_mensal || 0) >= 0 
+                              ? "text-green-600 dark:text-green-400" 
+                              : "text-red-600 dark:text-red-400"
+                          )}>
+                            {item.variacao_mensal != null
+                              ? `${item.variacao_mensal > 0 ? '+' : ''}${item.variacao_mensal.toFixed(2)}%`
+                              : '-'}
+                          </TableCell>
+                          <TableCell className={cn(
+                            "text-right font-medium tabular-nums whitespace-nowrap",
+                            (item.acumulado_ano || 0) >= 0 
+                              ? "text-green-600 dark:text-green-400" 
+                              : "text-red-600 dark:text-red-400"
+                          )}>
+                            {item.acumulado_ano != null
+                              ? `${item.acumulado_ano > 0 ? '+' : ''}${item.acumulado_ano.toFixed(2)}%`
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground text-xs whitespace-nowrap">
+                            {format(new Date(item.created_at), "dd/MM/yy")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
@@ -368,42 +384,72 @@ export function CubManager() {
               Evolução do CUB/m² - {selectedYear}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 md:p-6">
             <div className="w-full overflow-x-auto">
-              <ResponsiveContainer width="100%" height={300} minWidth={500}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 12 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    domain={['dataMin - 50', 'dataMax + 50']}
-                    tickFormatter={(value) => `R$ ${formatCurrency(value)}`}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [`R$ ${formatCurrency(value)}`, 'Valor']}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="valor" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={3}
-                    dot={{ fill: 'hsl(var(--primary))', r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="min-w-[500px]">
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fontSize: 11 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={0}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 11 }}
+                      domain={['dataMin - 50', 'dataMax + 50']}
+                      tickFormatter={(value) => `R$\u00A0${formatCurrency(value)}`}
+                      width={85}
+                    />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-background border border-border rounded-lg shadow-lg p-3 space-y-1">
+                            <p className="font-semibold text-sm">{data.monthFull}</p>
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Valor:</span>{' '}
+                              <span className="font-semibold whitespace-nowrap">
+                                R$&nbsp;{formatCurrency(data.valor)}
+                              </span>
+                            </p>
+                            <p className={cn(
+                              "text-sm",
+                              data.variacao >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                            )}>
+                              <span className="text-muted-foreground">Var. Mensal:</span>{' '}
+                              <span className="font-semibold">
+                                {data.variacao > 0 ? '+' : ''}{data.variacao.toFixed(2)}%
+                              </span>
+                            </p>
+                            <p className={cn(
+                              "text-sm",
+                              data.acumulado >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                            )}>
+                              <span className="text-muted-foreground">Acum. Ano:</span>{' '}
+                              <span className="font-semibold">
+                                {data.acumulado > 0 ? '+' : ''}{data.acumulado.toFixed(2)}%
+                              </span>
+                            </p>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="valor" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={3}
+                      dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </CardContent>
         </Card>
