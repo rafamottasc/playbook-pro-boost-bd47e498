@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, Circle, PlayCircle, CheckCircle2, ClipboardList } from "lucide-react";
+import { Settings, Plus, Circle, PlayCircle, CheckCircle2, ClipboardList, CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -30,6 +30,9 @@ import { TaskFormDialog } from "@/components/tasks/TaskFormDialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DailyTask } from "@/hooks/useTasks";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
 
 // Componente wrapper para drag and drop
 function DraggableTaskCard({ task, ...props }: any) {
@@ -74,7 +77,8 @@ function DroppableStatus({
 }
 
 export default function DailyTasks() {
-  const [taskDate] = useState(new Date().toISOString().split('T')[0]);
+  const [taskDate, setTaskDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { tasksByStatus, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask, toggleChecklistItem } = useTasks(taskDate);
   const { getChecklistProgress } = useTaskChecklistProgress();
   const [activeStatus, setActiveStatus] = useState<'todo' | 'in_progress' | 'done'>('todo');
@@ -185,12 +189,41 @@ export default function DailyTasks() {
         <main className="container mx-auto px-4 py-6 pb-24">
           {/* Header Compacto */}
           <div className="mb-4">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ClipboardList className="w-6 h-6 text-primary" />
-              Minhas Tarefas
-            </h1>
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <ClipboardList className="w-6 h-6 text-primary" />
+                Minhas Tarefas
+              </h1>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <CalendarIcon className="w-4 h-4 mr-2" />
+                    {format(selectedDate, "dd/MM", { locale: ptBR })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        setTaskDate(format(date, 'yyyy-MM-dd'));
+                      }
+                    }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             <p className="text-sm text-muted-foreground">
-              {format(new Date(taskDate), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              {taskDate !== new Date().toISOString().split('T')[0] && (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
+                </Badge>
+              )}
             </p>
           </div>
 
@@ -204,6 +237,50 @@ export default function DailyTasks() {
               <Progress value={stats.completionRate} className="h-2" />
             </CardContent>
           </Card>
+
+          {/* Botões de Navegação */}
+          <div className="flex gap-2 mb-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const yesterday = new Date(selectedDate);
+                yesterday.setDate(yesterday.getDate() - 1);
+                setSelectedDate(yesterday);
+                setTaskDate(format(yesterday, 'yyyy-MM-dd'));
+              }}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const today = new Date();
+                setSelectedDate(today);
+                setTaskDate(format(today, 'yyyy-MM-dd'));
+              }}
+            >
+              Hoje
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const tomorrow = new Date(selectedDate);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                setSelectedDate(tomorrow);
+                setTaskDate(format(tomorrow, 'yyyy-MM-dd'));
+              }}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
 
           {/* Botão Gerenciar Categorias */}
           <Button 
@@ -291,6 +368,7 @@ export default function DailyTasks() {
           onOpenChange={setShowTaskDialog}
           task={editingTask}
           defaultStatus={defaultStatus}
+          defaultDate={taskDate}
           onSave={handleSaveTask}
         />
 
@@ -321,14 +399,45 @@ export default function DailyTasks() {
         <Card className="mb-6 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
-                  <ClipboardList className="w-8 h-8 text-primary" />
-                  Minhas Tarefas
-                </h1>
-                <p className="text-muted-foreground">
-                  {format(new Date(taskDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                </p>
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold flex items-center gap-2">
+                    <ClipboardList className="w-8 h-8 text-primary" />
+                    Minhas Tarefas
+                  </h1>
+                  <p className="text-muted-foreground">
+                    {format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    {taskDate !== new Date().toISOString().split('T')[0] && (
+                      <Badge variant="outline" className="ml-2">
+                        Visualizando: {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
+                      </Badge>
+                    )}
+                  </p>
+                </div>
+                
+                {/* Seletor de Data */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      Mudar Data
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setSelectedDate(date);
+                          setTaskDate(format(date, 'yyyy-MM-dd'));
+                        }
+                      }}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Progresso</p>
@@ -340,6 +449,46 @@ export default function DailyTasks() {
             </div>
             
             <div className="flex gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const yesterday = new Date(selectedDate);
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  setSelectedDate(yesterday);
+                  setTaskDate(format(yesterday, 'yyyy-MM-dd'));
+                }}
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Dia Anterior
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const today = new Date();
+                  setSelectedDate(today);
+                  setTaskDate(format(today, 'yyyy-MM-dd'));
+                }}
+              >
+                Hoje
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const tomorrow = new Date(selectedDate);
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  setSelectedDate(tomorrow);
+                  setTaskDate(format(tomorrow, 'yyyy-MM-dd'));
+                }}
+              >
+                Próximo Dia
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+              
               <Button variant="outline" onClick={() => setShowCategoryManager(true)}>
                 <Settings className="w-4 h-4 mr-2" />
                 Gerenciar Categorias

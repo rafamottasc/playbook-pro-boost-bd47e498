@@ -26,10 +26,11 @@ interface TaskFormDialogProps {
   onOpenChange: (open: boolean) => void;
   task?: DailyTask | null;
   defaultStatus?: 'todo' | 'in_progress' | 'done';
+  defaultDate?: string;
   onSave: (taskData: Partial<DailyTask>) => void;
 }
 
-export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave }: TaskFormDialogProps) {
+export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, defaultDate, onSave }: TaskFormDialogProps) {
   const isMobile = useIsMobile();
   const { categories } = useTaskCategories();
 
@@ -37,7 +38,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
     title: '',
     category_id: '',
     status: defaultStatus || 'todo' as 'todo' | 'in_progress' | 'done',
-    task_date: new Date().toISOString().split('T')[0],
+    task_date: defaultDate || new Date().toISOString().split('T')[0],
     scheduled_time: '',
     priority: 'normal' as 'baixa' | 'normal' | 'importante' | 'urgente',
     notes: '',
@@ -67,10 +68,17 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       setChecklistItems(task.checklist_items || []);
       setContacts(task.contacts || []);
       setAttachments(task.attachments || []);
-    } else if (defaultStatus) {
-      setFormData(prev => ({ ...prev, status: defaultStatus }));
+    } else {
+      // Ao criar nova tarefa, usar a data padrão
+      const dateToUse = defaultDate || new Date().toISOString().split('T')[0];
+      setFormData(prev => ({ 
+        ...prev, 
+        task_date: dateToUse,
+        status: defaultStatus || 'todo' 
+      }));
+      setSelectedDate(new Date(dateToUse));
     }
-  }, [task, defaultStatus]);
+  }, [task, defaultStatus, defaultDate, open]);
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
@@ -85,18 +93,19 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
     });
     onOpenChange(false);
     // Reset form
+    const dateToUse = defaultDate || new Date().toISOString().split('T')[0];
     setFormData({
       title: '',
       category_id: '',
       status: defaultStatus || 'todo',
-      task_date: new Date().toISOString().split('T')[0],
+      task_date: dateToUse,
       scheduled_time: '',
       priority: 'normal',
       notes: '',
       recurrence: 'none',
       period: 'manha', // Valor padrão para compatibilidade
     });
-    setSelectedDate(new Date());
+    setSelectedDate(new Date(dateToUse));
     setChecklistItems([]);
     setContacts([]);
     setAttachments([]);
