@@ -86,7 +86,8 @@ export function getDeadlineBadgeColor(taskDate: string, status: string): {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const deadline = new Date(taskDate);
+  // Força timezone local adicionando hora para evitar conversão UTC
+  const deadline = new Date(taskDate + 'T00:00:00');
   deadline.setHours(0, 0, 0, 0);
   
   const daysUntilDeadline = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));

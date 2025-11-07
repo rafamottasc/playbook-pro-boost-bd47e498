@@ -141,7 +141,7 @@ export function TaskCard({
           )}
           {task.task_date && (() => {
             const { variant, className } = getDeadlineBadgeColor(task.task_date, task.status);
-            const deadline = new Date(task.task_date);
+            const deadline = new Date(task.task_date + 'T00:00:00');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             deadline.setHours(0, 0, 0, 0);
@@ -150,7 +150,7 @@ export function TaskCard({
             return (
               <Badge variant={variant} className={cn("text-xs font-medium", className)}>
                 <CalendarIcon className="w-3 h-3 mr-1" />
-                {format(new Date(task.task_date), "dd MMM", { locale: ptBR })}
+                {format(new Date(task.task_date + 'T00:00:00'), "dd MMM", { locale: ptBR })}
                 {task.status !== 'done' && daysUntil < 0 && (
                   <span className="ml-1 font-semibold">ATRASADO</span>
                 )}
