@@ -77,3 +77,55 @@ export function formatCurrencyInput(value: number): string {
     maximumFractionDigits: 2,
   });
 }
+
+// Retorna a cor da badge de prazo baseada na proximidade da data
+export function getDeadlineBadgeColor(taskDate: string, status: string): {
+  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+  className: string;
+} {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const deadline = new Date(taskDate);
+  deadline.setHours(0, 0, 0, 0);
+  
+  const daysUntilDeadline = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Tarefa concluída: verde
+  if (status === 'done') {
+    return {
+      variant: 'default',
+      className: 'bg-green-500 hover:bg-green-600 text-white'
+    };
+  }
+
+  // Atrasada: vermelho
+  if (daysUntilDeadline < 0) {
+    return {
+      variant: 'destructive',
+      className: 'bg-red-500 hover:bg-red-600 text-white'
+    };
+  }
+
+  // Próximo (hoje ou amanhã): amarelo
+  if (daysUntilDeadline <= 1) {
+    return {
+      variant: 'default',
+      className: 'bg-yellow-500 hover:bg-yellow-600 text-white'
+    };
+  }
+
+  // Em breve (2-3 dias): laranja
+  if (daysUntilDeadline <= 3) {
+    return {
+      variant: 'default',
+      className: 'bg-orange-500 hover:bg-orange-600 text-white'
+    };
+  }
+
+  // Prazo distante: cinza
+  return {
+    variant: 'outline',
+    className: 'border-muted-foreground/30 text-muted-foreground'
+  };
+}

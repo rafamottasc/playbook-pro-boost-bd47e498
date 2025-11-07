@@ -26,11 +26,10 @@ interface TaskFormDialogProps {
   onOpenChange: (open: boolean) => void;
   task?: DailyTask | null;
   defaultStatus?: 'todo' | 'in_progress' | 'done';
-  defaultDate?: string;
   onSave: (taskData: Partial<DailyTask>) => void;
 }
 
-export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, defaultDate, onSave }: TaskFormDialogProps) {
+export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave }: TaskFormDialogProps) {
   const isMobile = useIsMobile();
   const { categories } = useTaskCategories();
 
@@ -38,7 +37,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, defaul
     title: '',
     category_id: '',
     status: defaultStatus || 'todo' as 'todo' | 'in_progress' | 'done',
-    task_date: defaultDate || new Date().toISOString().split('T')[0],
+    task_date: new Date().toISOString().split('T')[0],
     scheduled_time: '',
     priority: 'normal' as 'baixa' | 'normal' | 'importante' | 'urgente',
     notes: '',
@@ -69,8 +68,8 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, defaul
       setContacts(task.contacts || []);
       setAttachments(task.attachments || []);
     } else {
-      // Ao criar nova tarefa, usar a data padrão
-      const dateToUse = defaultDate || new Date().toISOString().split('T')[0];
+      // Ao criar nova tarefa, usar data atual
+      const dateToUse = new Date().toISOString().split('T')[0];
       setFormData(prev => ({ 
         ...prev, 
         task_date: dateToUse,
@@ -78,7 +77,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, defaul
       }));
       setSelectedDate(new Date(dateToUse));
     }
-  }, [task, defaultStatus, defaultDate, open]);
+  }, [task, defaultStatus, open]);
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
@@ -93,7 +92,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, defaul
     });
     onOpenChange(false);
     // Reset form
-    const dateToUse = defaultDate || new Date().toISOString().split('T')[0];
+    const dateToUse = new Date().toISOString().split('T')[0];
     setFormData({
       title: '',
       category_id: '',

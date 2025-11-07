@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Clock, MoreVertical, Edit, Copy, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat, CalendarIcon, ChevronDown, ChevronUp, MessageCircle, MapPin, ExternalLink, Download, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, getDeadlineBadgeColor } from "@/lib/utils";
 import { CategoryBadge } from "./CategoryBadge";
 import { PriorityBadge } from "./PriorityBadge";
 import type { DailyTask } from "@/hooks/useTasks";
@@ -32,8 +32,6 @@ export function TaskCard({
   checklistProgress
 }: TaskCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const today = new Date().toISOString().split('T')[0];
-  const isOtherDay = task.task_date !== today;
 
   const hasExpandableContent = 
     (task.notes && task.notes.length > 100) ||
@@ -141,12 +139,24 @@ export function TaskCard({
               {task.scheduled_time}
             </Badge>
           )}
-          {isOtherDay && (
-            <Badge variant="outline" className="text-xs">
-              <CalendarIcon className="w-3 h-3 mr-1" />
-              {format(new Date(task.task_date), "dd/MM", { locale: ptBR })}
-            </Badge>
-          )}
+          {task.task_date && (() => {
+            const { variant, className } = getDeadlineBadgeColor(task.task_date, task.status);
+            const deadline = new Date(task.task_date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            deadline.setHours(0, 0, 0, 0);
+            const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+            return (
+              <Badge variant={variant} className={cn("text-xs font-medium", className)}>
+                <CalendarIcon className="w-3 h-3 mr-1" />
+                {format(new Date(task.task_date), "dd MMM", { locale: ptBR })}
+                {task.status !== 'done' && daysUntil < 0 && (
+                  <span className="ml-1 font-semibold">ATRASADO</span>
+                )}
+              </Badge>
+            );
+          })()}
           {task.recurrence && task.recurrence !== 'none' && (
             <Badge variant="outline" className="text-xs">
               <Repeat className="w-3 h-3 mr-1" />

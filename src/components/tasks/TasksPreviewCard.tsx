@@ -11,8 +11,7 @@ import { DynamicIcon } from "@/components/admin/DynamicIcon";
 
 export function TasksPreviewCard() {
   const navigate = useNavigate();
-  const today = new Date().toISOString().split('T')[0];
-  const { tasks, stats, isLoading, toggleTask } = useTasks(today);
+  const { tasks, stats, isLoading, toggleTask } = useTasks();
 
   // Próximas 3 tarefas não concluídas com horário
   const upcomingTasks = tasks

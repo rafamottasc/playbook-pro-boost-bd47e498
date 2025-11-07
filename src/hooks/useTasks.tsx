@@ -60,14 +60,17 @@ export interface DailyTask {
   attachments?: TaskAttachment[];
 }
 
-export function useTasks(taskDate: string = new Date().toISOString().split('T')[0]) {
+export function useTasks() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch tasks with all relations
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['daily-tasks', taskDate],
+    queryKey: ['daily-tasks'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data: tasksData, error: tasksError } = await supabase
         .from('daily_tasks')
         .select(`
@@ -77,7 +80,7 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
           contacts:task_contacts(*),
           attachments:task_attachments(*)
         `)
-        .eq('task_date', taskDate)
+        .eq('user_id', user.id)
         .order('display_order');
 
       if (tasksError) throw tasksError;
@@ -128,8 +131,7 @@ export function useTasks(taskDate: string = new Date().toISOString().split('T')[
         .insert([{ 
           ...taskData, 
           period: taskData.period || 'manha', // Valor padrão para compatibilidade
-          user_id: user.id, 
-          task_date: taskDate 
+          user_id: user.id
         }])
         .select()
         .single();
