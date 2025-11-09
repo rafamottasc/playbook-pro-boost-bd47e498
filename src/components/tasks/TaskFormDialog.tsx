@@ -135,26 +135,64 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         />
       </div>
 
-      {/* Categoria */}
-      <div className="space-y-2">
-        <Label htmlFor="category">Categoria</Label>
-        <Select
-          value={formData.category_id}
-          onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-        >
-          <SelectTrigger id="category">
-            <SelectValue placeholder="Selecione uma categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map(cat => (
-              <SelectItem key={cat.id} value={cat.id}>
-                <div className="flex items-center gap-2">
-                  <CategoryBadge category={cat} size="sm" />
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Categoria, Prioridade e Recorrência */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="category">Categoria</Label>
+          <Select
+            value={formData.category_id}
+            onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+          >
+            <SelectTrigger id="category">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(cat => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  <div className="flex items-center gap-2">
+                    <CategoryBadge category={cat} size="sm" />
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="priority">Prioridade</Label>
+          <Select
+            value={formData.priority}
+            onValueChange={(value: any) => setFormData({ ...formData, priority: value })}
+          >
+            <SelectTrigger id="priority">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="baixa">Baixa</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="importante">Importante</SelectItem>
+              <SelectItem value="urgente">Urgente</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="recurrence">Recorrência</Label>
+          <Select
+            value={formData.recurrence}
+            onValueChange={(value: any) => setFormData({ ...formData, recurrence: value })}
+          >
+            <SelectTrigger id="recurrence">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Não repetir</SelectItem>
+              <SelectItem value="daily">Diário</SelectItem>
+              <SelectItem value="weekly">Semanal</SelectItem>
+              <SelectItem value="monthly">Mensal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Data e Horário */}
@@ -203,50 +241,8 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         </div>
       </div>
 
-      {/* Prioridade */}
-      <div className="space-y-2">
-        <Label htmlFor="priority">Prioridade</Label>
-        <Select
-          value={formData.priority}
-          onValueChange={(value: any) => setFormData({ ...formData, priority: value })}
-        >
-          <SelectTrigger id="priority">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="baixa">Baixa</SelectItem>
-            <SelectItem value="normal">Normal</SelectItem>
-            <SelectItem value="importante">Importante</SelectItem>
-            <SelectItem value="urgente">Urgente</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Seções Expansíveis */}
       <Accordion type="multiple" className="w-full">
-        {/* Recorrência */}
-        <AccordionItem value="recurrence">
-          <AccordionTrigger>Recorrência</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-2">
-              <Label htmlFor="recurrence">Recorrência</Label>
-              <Select
-                value={formData.recurrence}
-                onValueChange={(value: any) => setFormData({ ...formData, recurrence: value })}
-              >
-                <SelectTrigger id="recurrence">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Não repetir</SelectItem>
-                  <SelectItem value="daily">Todos os dias</SelectItem>
-                  <SelectItem value="weekly">Toda semana</SelectItem>
-                  <SelectItem value="monthly">Todo mês</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
 
         {/* Checklist */}
         <AccordionItem value="checklist">
