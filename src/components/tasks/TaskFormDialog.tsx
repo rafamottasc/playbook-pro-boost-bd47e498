@@ -63,7 +63,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         recurrence: task.recurrence || 'none',
         period: task.period || 'manha', // Adicionar period ao editar
       });
-      setSelectedDate(new Date(task.task_date || new Date()));
+      setSelectedDate(new Date((task.task_date || new Date().toISOString().split('T')[0]) + 'T00:00:00'));
       setChecklistItems(task.checklist_items || []);
       setContacts(task.contacts || []);
       setAttachments(task.attachments || []);
@@ -75,7 +75,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         task_date: dateToUse,
         status: defaultStatus || 'todo' 
       }));
-      setSelectedDate(new Date(dateToUse));
+      setSelectedDate(new Date(dateToUse + 'T00:00:00'));
     }
   }, [task, defaultStatus, open]);
 
@@ -104,7 +104,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       recurrence: 'none',
       period: 'manha', // Valor padrão para compatibilidade
     });
-    setSelectedDate(new Date(dateToUse));
+    setSelectedDate(new Date(dateToUse + 'T00:00:00'));
     setChecklistItems([]);
     setContacts([]);
     setAttachments([]);
