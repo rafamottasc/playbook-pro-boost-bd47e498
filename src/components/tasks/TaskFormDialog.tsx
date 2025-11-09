@@ -123,6 +123,18 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         />
       </div>
 
+      {/* Notas/Detalhes */}
+      <div className="space-y-2">
+        <Label htmlFor="notes">Detalhes</Label>
+        <Textarea
+          id="notes"
+          placeholder="Adicione observações..."
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          rows={3}
+        />
+      </div>
+
       {/* Categoria */}
       <div className="space-y-2">
         <Label htmlFor="category">Categoria</Label>
@@ -212,21 +224,10 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
 
       {/* Seções Expansíveis */}
       <Accordion type="multiple" className="w-full">
-        {/* Detalhes */}
-        <AccordionItem value="details">
-          <AccordionTrigger>Detalhes</AccordionTrigger>
-          <AccordionContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notas</Label>
-              <Textarea
-                id="notes"
-                placeholder="Adicione observações..."
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-              />
-            </div>
-
+        {/* Recorrência */}
+        <AccordionItem value="recurrence">
+          <AccordionTrigger>Recorrência</AccordionTrigger>
+          <AccordionContent>
             <div className="space-y-2">
               <Label htmlFor="recurrence">Recorrência</Label>
               <Select

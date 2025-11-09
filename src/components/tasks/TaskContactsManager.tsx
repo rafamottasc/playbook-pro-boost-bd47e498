@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Phone, MessageCircle, MapPin } from "lucide-react";
+import { X, Phone, MessageCircle, MapPin, Edit } from "lucide-react";
 import type { TaskContact } from "@/hooks/useTasks";
 
 interface TaskContactsManagerProps {
@@ -13,20 +13,51 @@ interface TaskContactsManagerProps {
 
 export function TaskContactsManager({ contacts, onChange, readonly = false }: TaskContactsManagerProps) {
   const [newContact, setNewContact] = useState({ name: '', phone: '', address: '' });
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleAdd = () => {
     if (!newContact.name.trim()) return;
 
-    const contact: TaskContact = {
-      id: crypto.randomUUID(),
-      task_id: '',
-      name: newContact.name.trim(),
-      phone: newContact.phone.trim() || undefined,
-      address: newContact.address.trim() || undefined,
-    };
-
-    onChange([...contacts, contact]);
+    if (editingId) {
+      // Modo edição: atualizar contato existente
+      onChange(contacts.map(c => 
+        c.id === editingId 
+          ? {
+              ...c,
+              name: newContact.name.trim(),
+              phone: newContact.phone.trim() || undefined,
+              address: newContact.address.trim() || undefined,
+            }
+          : c
+      ));
+      setEditingId(null);
+    } else {
+      // Modo criação: adicionar novo contato
+      const contact: TaskContact = {
+        id: crypto.randomUUID(),
+        task_id: '',
+        name: newContact.name.trim(),
+        phone: newContact.phone.trim() || undefined,
+        address: newContact.address.trim() || undefined,
+      };
+      onChange([...contacts, contact]);
+    }
+    
     setNewContact({ name: '', phone: '', address: '' });
+  };
+
+  const handleEdit = (contact: TaskContact) => {
+    setNewContact({
+      name: contact.name,
+      phone: contact.phone || '',
+      address: contact.address || '',
+    });
+    setEditingId(contact.id);
+  };
+
+  const handleCancelEdit = () => {
+    setNewContact({ name: '', phone: '', address: '' });
+    setEditingId(null);
   };
 
   const handleRemove = (id: string) => {
@@ -43,13 +74,22 @@ export function TaskContactsManager({ contacts, onChange, readonly = false }: Ta
               <div className="flex items-center justify-between">
                 <p className="font-medium">{contact.name}</p>
                 {!readonly && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemove(contact.id)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEdit(contact)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleRemove(contact.id)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -109,9 +149,22 @@ export function TaskContactsManager({ contacts, onChange, readonly = false }: Ta
         </div>
       )}
 
-      {/* Formulário para adicionar contato */}
+      {/* Formulário para adicionar/editar contato */}
       {!readonly && (
         <div className="space-y-3 p-3 border rounded-lg">
+          {editingId && (
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-primary">Editando contato</p>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleCancelEdit}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="contact-name">Nome *</Label>
             <Input
@@ -142,13 +195,24 @@ export function TaskContactsManager({ contacts, onChange, readonly = false }: Ta
             />
           </div>
 
-          <Button
-            onClick={handleAdd}
-            disabled={!newContact.name.trim()}
-            className="w-full"
-          >
-            Adicionar Contato
-          </Button>
+          <div className="flex gap-2">
+            {editingId && (
+              <Button
+                variant="outline"
+                onClick={handleCancelEdit}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            )}
+            <Button
+              onClick={handleAdd}
+              disabled={!newContact.name.trim()}
+              className="flex-1"
+            >
+              {editingId ? 'Salvar Alterações' : 'Adicionar Contato'}
+            </Button>
+          </div>
         </div>
       )}
 
