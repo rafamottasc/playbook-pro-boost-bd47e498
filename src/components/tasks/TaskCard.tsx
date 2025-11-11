@@ -47,7 +47,7 @@ export function TaskCard({
     )}>
       <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
         {/* Linha 1: Checkbox + Título + Botões de Ação */}
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2 md:gap-3">
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
@@ -62,7 +62,7 @@ export function TaskCard({
             
             <h3 
               className={cn(
-                "font-medium text-xs sm:text-sm lg:text-base cursor-pointer hover:text-primary transition-colors break-words line-clamp-3",
+                "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors break-words line-clamp-2 md:line-clamp-3",
                 task.done && "line-through text-muted-foreground"
               )}
               onClick={() => onEdit(task)}
@@ -71,32 +71,34 @@ export function TaskCard({
             </h3>
           </div>
 
-          {/* Expand button - visible on both mobile and desktop */}
-          {hasExpandableContent && (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-              className="h-8 w-8"
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </Button>
-          )}
-
-          {/* Menu "⋮" em desktop e mobile */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4" />
+          {/* Botões de ação - agrupados e responsivos */}
+          <div className="flex items-start gap-1 flex-shrink-0">
+            {/* Expand button - visible on both mobile and desktop */}
+            {hasExpandableContent && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="h-7 w-7 md:h-8 md:w-8"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
               </Button>
-            </DropdownMenuTrigger>
+            )}
+
+            {/* Menu "⋮" em desktop e mobile */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(task)}>
                 <Edit className="w-4 h-4 mr-2" />
@@ -115,11 +117,12 @@ export function TaskCard({
                 Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Linha 2: Badges */}
-        <div className="flex flex-wrap gap-2 ml-8">
+        <div className="flex flex-wrap gap-2 ml-7 md:ml-8">
           {task.category && <CategoryBadge category={task.category} size="sm" />}
           {task.scheduled_time && (
             <Badge variant="outline" className="text-xs">
@@ -154,7 +157,7 @@ export function TaskCard({
         </div>
 
         {/* Linha 3: Informações resumidas */}
-        <div className="ml-8 space-y-1.5">
+        <div className="ml-7 md:ml-8 space-y-1.5">
           {/* Notas - resumo */}
           {task.notes && !isExpanded && (
             <p className="text-xs text-muted-foreground flex items-start gap-2">
@@ -190,7 +193,7 @@ export function TaskCard({
 
         {/* Conteúdo Expandido */}
         {isExpanded && (
-          <div className="ml-8 space-y-3 pt-2 border-t">
+          <div className="ml-7 md:ml-8 space-y-3 pt-2 border-t">
             {/* Notas completas */}
             {task.notes && (
               <div className="space-y-1">
