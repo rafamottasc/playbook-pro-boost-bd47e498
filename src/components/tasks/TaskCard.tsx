@@ -41,7 +41,7 @@ export function TaskCard({
 
   return (
     <Card className={cn(
-      "transition-all hover:shadow-lg group",
+      "transition-all hover:shadow-lg group border-border dark:border-primary/20",
       task.done && "opacity-60 bg-muted/50",
       !task.done && "bg-card"
     )}>
@@ -51,60 +51,49 @@ export function TaskCard({
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
-            className="mt-1"
+            className="mt-1 h-5 w-5"
           />
           
-          <h3 
-            className={cn(
-              "flex-1 font-medium text-sm cursor-pointer hover:text-primary transition-colors",
-              task.done && "line-through text-muted-foreground"
-            )}
-            onClick={() => onEdit(task)}
-          >
-            {task.title}
-          </h3>
-
-          {/* Botões sempre visíveis no desktop */}
-          <div className="hidden md:flex gap-1">
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-8 w-8"
+          <div className="flex-1 min-w-0">
+            {/* Priority badge - Trello style acima do título */}
+            <div className="mb-1.5">
+              <PriorityBadge priority={task.priority} size="sm" />
+            </div>
+            
+            <h3 
+              className={cn(
+                "font-medium text-sm cursor-pointer hover:text-primary transition-colors",
+                task.done && "line-through text-muted-foreground"
+              )}
               onClick={() => onEdit(task)}
             >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-8 w-8"
-              onClick={() => onDelete(task.id)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-            {hasExpandableContent && (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(!isExpanded);
-                }}
-                className="h-8 w-8"
-              >
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </Button>
-            )}
+              {task.title}
+            </h3>
           </div>
 
-          {/* Menu "⋮" só no mobile */}
+          {/* Expand button - visible on both mobile and desktop */}
+          {hasExpandableContent && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="h-8 w-8"
+            >
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </Button>
+          )}
+
+          {/* Menu "⋮" em desktop e mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 md:hidden">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -132,7 +121,6 @@ export function TaskCard({
         {/* Linha 2: Badges */}
         <div className="flex flex-wrap gap-2 ml-8">
           {task.category && <CategoryBadge category={task.category} size="sm" />}
-          <PriorityBadge priority={task.priority} size="sm" />
           {task.scheduled_time && (
             <Badge variant="outline" className="text-xs">
               <Clock className="w-3 h-3 mr-1" />
@@ -223,11 +211,11 @@ export function TaskCard({
                 </p>
                 <div className="space-y-1">
                   {task.checklist_items.map(item => (
-                    <div key={item.id} className="flex items-center gap-2 text-xs">
+                    <div key={item.id} className="flex items-center gap-2 text-xs py-1">
                   <Checkbox 
                     checked={item.done} 
                     onCheckedChange={() => onToggleChecklistItem?.(task.id, item.id)}
-                    className="h-3 w-3" 
+                    className="h-5 w-5" 
                   />
                       <span className={cn(item.done && "line-through text-muted-foreground")}>
                         {item.text}
@@ -249,32 +237,38 @@ export function TaskCard({
                   {task.contacts.map(contact => (
                     <div key={contact.id} className="space-y-1 p-2 bg-muted/50 rounded text-xs">
                       <p className="font-medium">{contact.name}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {contact.phone && (
-                          <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
+                      
+                      {contact.phone && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="w-3 h-3 flex-shrink-0" />
+                          <span className="flex-1">{contact.phone}</span>
+                          <Button size="sm" variant="ghost" className="h-6 px-2" asChild>
                             <a 
                               href={`https://wa.me/55${contact.phone.replace(/\D/g, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <MessageCircle className="w-3 h-3 mr-1" />
-                              WhatsApp
+                              <MessageCircle className="w-3 h-3" />
                             </a>
                           </Button>
-                        )}
-                        {contact.address && (
-                          <Button size="sm" variant="outline" className="h-6 text-xs" asChild>
+                        </div>
+                      )}
+                      
+                      {contact.address && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          <span className="flex-1 line-clamp-2">{contact.address}</span>
+                          <Button size="sm" variant="ghost" className="h-6 px-2" asChild>
                             <a 
                               href={`https://maps.google.com/?q=${encodeURIComponent(contact.address)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <MapPin className="w-3 h-3 mr-1" />
-                              Mapa
+                              <MapPin className="w-3 h-3" />
                             </a>
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -290,31 +284,33 @@ export function TaskCard({
                 </p>
                 <div className="space-y-1">
                   {task.attachments.map(attachment => (
-                    <div key={attachment.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded text-xs">
+                    <div 
+                      key={attachment.id} 
+                      className="flex items-center gap-2 p-2 bg-muted/50 rounded text-xs cursor-pointer hover:bg-muted transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = attachment.attachment_type === 'file' 
+                          ? attachment.file_url 
+                          : attachment.url;
+                        if (url) window.open(url, '_blank');
+                      }}
+                    >
                       {attachment.attachment_type === 'file' ? (
                         <>
                           {attachment.file_type === 'image' && <ImageIcon className="w-3 h-3" />}
                           {attachment.file_type === 'pdf' && <FileText className="w-3 h-3" />}
                           <span className="flex-1 truncate">{attachment.title}</span>
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" asChild>
-                            <a href={attachment.file_url} target="_blank" rel="noopener noreferrer">
-                              {attachment.file_type === 'image' ? (
-                                <ExternalLink className="w-3 h-3" />
-                              ) : (
-                                <Download className="w-3 h-3" />
-                              )}
-                            </a>
-                          </Button>
+                          {attachment.file_type === 'image' ? (
+                            <ExternalLink className="w-3 h-3" />
+                          ) : (
+                            <Download className="w-3 h-3" />
+                          )}
                         </>
                       ) : (
                         <>
                           <ExternalLink className="w-3 h-3" />
                           <span className="flex-1 truncate">{attachment.title}</span>
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" asChild>
-                            <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </Button>
+                          <ExternalLink className="w-3 h-3" />
                         </>
                       )}
                     </div>

@@ -212,56 +212,69 @@ export default function DailyTasks() {
             Gerenciar Categorias
           </Button>
 
-          {/* Tabs de Status */}
-          <Tabs value={activeStatus} onValueChange={(v) => setActiveStatus(v as any)}>
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="todo" className="text-xs flex items-center gap-1">
-                <Circle className="w-3 h-3" /> Para Fazer ({tasksByStatus.todo.length})
-              </TabsTrigger>
-              <TabsTrigger value="in_progress" className="text-xs flex items-center gap-1">
-                <PlayCircle className="w-3 h-3" /> Andamento ({tasksByStatus.in_progress.length})
-              </TabsTrigger>
-              <TabsTrigger value="done" className="text-xs flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Concluído ({tasksByStatus.done.length})
-              </TabsTrigger>
-            </TabsList>
+          {/* Tabs de Status com Drag and Drop */}
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragEnd={handleDragEnd}
+          >
+            <Tabs value={activeStatus} onValueChange={(v) => setActiveStatus(v as any)}>
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="todo" className="text-xs flex items-center gap-1">
+                  <Circle className="w-3 h-3" /> Para Fazer ({tasksByStatus.todo.length})
+                </TabsTrigger>
+                <TabsTrigger value="in_progress" className="text-xs flex items-center gap-1">
+                  <PlayCircle className="w-3 h-3" /> Andamento ({tasksByStatus.in_progress.length})
+                </TabsTrigger>
+                <TabsTrigger value="done" className="text-xs flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Concluído ({tasksByStatus.done.length})
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Conteúdo de cada status */}
-            {(['todo', 'in_progress', 'done'] as const).map(status => (
-              <TabsContent key={status} value={status}>
-                {tasksByStatus[status].length === 0 ? (
-                  <div className="text-center py-12">
-                    {status === 'todo' && <Circle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
-                    {status === 'in_progress' && <PlayCircle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
-                    {status === 'done' && <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
-                    <p className="text-sm text-muted-foreground">
-                      {status === 'todo' && 'Nenhuma tarefa para fazer'}
-                      {status === 'in_progress' && 'Nenhuma tarefa em andamento'}
-                      {status === 'done' && 'Nenhuma tarefa concluída'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {tasksByStatus[status].map(task => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onToggle={toggleTask}
-                        onEdit={(t) => handleOpenTaskDialog(undefined, t)}
-                        onDelete={handleDeleteTask}
-                        onDuplicate={(id) => {
-                          const taskToDup = tasksByStatus[status].find(t => t.id === id);
-                          if (taskToDup) duplicateTask(taskToDup);
-                        }}
-                        onToggleChecklistItem={toggleChecklistItem}
-                        checklistProgress={getChecklistProgress(task.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
+              {/* Conteúdo de cada status */}
+              {(['todo', 'in_progress', 'done'] as const).map(status => (
+                <TabsContent key={status} value={status}>
+                  <DroppableStatus status={status}>
+                    {tasksByStatus[status].length === 0 ? (
+                      <div className="text-center py-12">
+                        {status === 'todo' && <Circle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+                        {status === 'in_progress' && <PlayCircle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+                        {status === 'done' && <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+                        <p className="text-sm text-muted-foreground">
+                          {status === 'todo' && 'Nenhuma tarefa para fazer'}
+                          {status === 'in_progress' && 'Nenhuma tarefa em andamento'}
+                          {status === 'done' && 'Nenhuma tarefa concluída'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <SortableContext 
+                          items={tasksByStatus[status].map(t => t.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {tasksByStatus[status].map(task => (
+                            <DraggableTaskCard
+                              key={task.id}
+                              task={task}
+                              onToggle={toggleTask}
+                              onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                              onDelete={handleDeleteTask}
+                              onDuplicate={(id: string) => {
+                                const taskToDup = tasksByStatus[status].find(t => t.id === id);
+                                if (taskToDup) duplicateTask(taskToDup);
+                              }}
+                              onToggleChecklistItem={toggleChecklistItem}
+                              checklistProgress={getChecklistProgress(task.id)}
+                            />
+                          ))}
+                        </SortableContext>
+                      </div>
+                    )}
+                  </DroppableStatus>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </DndContext>
 
           {/* FAB: Botão Flutuante "+" */}
           <Button

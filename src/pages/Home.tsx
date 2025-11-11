@@ -136,10 +136,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Coluna 3 - Sidebar de Reuniões */}
+            {/* Coluna 3 - Sidebar de Tarefas e Reuniões */}
             <div className="w-full lg:w-[380px] space-y-6">
-              <UpcomingMeetingsSidebar />
               <TasksPreviewCard />
+              <UpcomingMeetingsSidebar />
             </div>
           </div>
 

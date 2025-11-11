@@ -51,7 +51,26 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (task) {
+    if (open && !task) {
+      // Reset form when opening for a new task
+      const dateToUse = new Date().toISOString().split('T')[0];
+      setFormData({
+        title: '',
+        category_id: '',
+        status: defaultStatus || 'todo',
+        task_date: dateToUse,
+        scheduled_time: '',
+        priority: 'normal',
+        notes: '',
+        recurrence: 'none',
+        period: 'manha',
+      });
+      setSelectedDate(new Date(dateToUse + 'T00:00:00'));
+      setChecklistItems([]);
+      setContacts([]);
+      setAttachments([]);
+    } else if (task) {
+      // Populate form when editing existing task
       setFormData({
         title: task.title || '',
         category_id: task.category_id || '',
@@ -61,23 +80,14 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         priority: task.priority || 'normal',
         notes: task.notes || '',
         recurrence: task.recurrence || 'none',
-        period: task.period || 'manha', // Adicionar period ao editar
+        period: task.period || 'manha',
       });
       setSelectedDate(new Date((task.task_date || new Date().toISOString().split('T')[0]) + 'T00:00:00'));
       setChecklistItems(task.checklist_items || []);
       setContacts(task.contacts || []);
       setAttachments(task.attachments || []);
-    } else {
-      // Ao criar nova tarefa, usar data atual
-      const dateToUse = new Date().toISOString().split('T')[0];
-      setFormData(prev => ({ 
-        ...prev, 
-        task_date: dateToUse,
-        status: defaultStatus || 'todo' 
-      }));
-      setSelectedDate(new Date(dateToUse + 'T00:00:00'));
     }
-  }, [task, defaultStatus, open]);
+  }, [open, task, defaultStatus]);
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
@@ -267,17 +277,21 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         </AccordionItem>
 
         {/* Anexos */}
-        {task && (
-          <AccordionItem value="attachments">
-            <AccordionTrigger>Anexos</AccordionTrigger>
-            <AccordionContent>
+        <AccordionItem value="attachments">
+          <AccordionTrigger>Anexos</AccordionTrigger>
+          <AccordionContent>
+            {task ? (
               <TaskAttachmentsManager 
                 taskId={task.id} 
                 attachments={attachments} 
               />
-            </AccordionContent>
-          </AccordionItem>
-        )}
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Salve a tarefa primeiro para adicionar anexos.
+              </p>
+            )}
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
     </div>
   );

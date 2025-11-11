@@ -80,11 +80,11 @@ export function TasksPreviewCard() {
                   }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate flex items-center gap-1">
+                  <p className="text-sm font-medium line-clamp-2 flex items-center gap-1">
                     {task.category && (
-                      <DynamicIcon name={task.category.icon} className="w-3 h-3" />
+                      <DynamicIcon name={task.category.icon} className="w-3 h-3 flex-shrink-0" />
                     )}
-                    {task.title}
+                    <span className="line-clamp-2">{task.title}</span>
                   </p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     {task.period === 'manha' ? <Sunrise className="w-3 h-3" /> : task.period === 'tarde' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
