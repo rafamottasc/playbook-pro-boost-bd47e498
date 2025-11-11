@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Clock, MoreVertical, Edit, Copy, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat, CalendarIcon, ChevronDown, ChevronUp, MessageCircle, MapPin, ExternalLink, Download, Image as ImageIcon } from "lucide-react";
+import { Clock, MoreVertical, Edit, Copy, Trash2, Paperclip, User, CheckSquare, FileText, Phone, Repeat, CalendarIcon, ChevronDown, ChevronUp, MessageCircle, MapPin, ExternalLink, Download, Image as ImageIcon, Circle, PlayCircle, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn, getDeadlineBadgeColor } from "@/lib/utils";
@@ -20,6 +20,7 @@ interface TaskCardProps {
   onDuplicate: (taskId: string) => void;
   onToggleChecklistItem?: (taskId: string, itemId: string) => void;
   checklistProgress?: { completed: number; total: number };
+  onMoveToStatus?: (taskId: string, status: 'todo' | 'in_progress' | 'done') => void;
 }
 
 export function TaskCard({ 
@@ -29,7 +30,8 @@ export function TaskCard({
   onDelete, 
   onDuplicate,
   onToggleChecklistItem,
-  checklistProgress
+  checklistProgress,
+  onMoveToStatus
 }: TaskCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -108,6 +110,29 @@ export function TaskCard({
                 <Copy className="w-4 h-4 mr-2" />
                 Duplicar
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              
+              {task.status !== 'todo' && (
+                <DropdownMenuItem onClick={() => onMoveToStatus?.(task.id, 'todo')}>
+                  <Circle className="w-4 h-4 mr-2" />
+                  Mover para "Para Fazer"
+                </DropdownMenuItem>
+              )}
+              
+              {task.status !== 'in_progress' && (
+                <DropdownMenuItem onClick={() => onMoveToStatus?.(task.id, 'in_progress')}>
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  Mover para "Em Andamento"
+                </DropdownMenuItem>
+              )}
+              
+              {task.status !== 'done' && (
+                <DropdownMenuItem onClick={() => onMoveToStatus?.(task.id, 'done')}>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Mover para "Concluído"
+                </DropdownMenuItem>
+              )}
+              
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onDelete(task.id)}

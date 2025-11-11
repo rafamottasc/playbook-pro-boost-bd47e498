@@ -265,6 +265,7 @@ export default function DailyTasks() {
                               }}
                               onToggleChecklistItem={toggleChecklistItem}
                               checklistProgress={getChecklistProgress(task.id)}
+                              onMoveToStatus={moveTaskToStatus}
                             />
                           ))}
                         </SortableContext>
@@ -274,7 +275,7 @@ export default function DailyTasks() {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full mt-4"
+                    className="w-full mt-2"
                     onClick={() => handleOpenTaskDialog(status)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -403,6 +404,7 @@ export default function DailyTasks() {
                             }}
                             onToggleChecklistItem={toggleChecklistItem}
                             checklistProgress={getChecklistProgress(task.id)}
+                            onMoveToStatus={moveTaskToStatus}
                           />
                         ))}
                       </div>
@@ -412,7 +414,7 @@ export default function DailyTasks() {
 
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full mt-2"
                   onClick={() => handleOpenTaskDialog('todo')}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -458,6 +460,7 @@ export default function DailyTasks() {
                             }}
                             onToggleChecklistItem={toggleChecklistItem}
                             checklistProgress={getChecklistProgress(task.id)}
+                            onMoveToStatus={moveTaskToStatus}
                           />
                         ))}
                       </div>
@@ -467,7 +470,7 @@ export default function DailyTasks() {
 
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full mt-2"
                   onClick={() => handleOpenTaskDialog('in_progress')}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -513,6 +516,7 @@ export default function DailyTasks() {
                             }}
                             onToggleChecklistItem={toggleChecklistItem}
                             checklistProgress={getChecklistProgress(task.id)}
+                            onMoveToStatus={moveTaskToStatus}
                           />
                         ))}
                       </div>
@@ -522,7 +526,7 @@ export default function DailyTasks() {
 
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full mt-2"
                   onClick={() => handleOpenTaskDialog('done')}
                 >
                   <Plus className="w-4 h-4 mr-2" />
