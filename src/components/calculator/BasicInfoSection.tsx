@@ -145,12 +145,12 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           
           {/* Campo Descritivo do Imóvel */}
           <div className="mt-3">
-            <Label className="text-xs mb-1">Descritivo do Imóvel</Label>
+            <Label className="text-sm mb-2">Descritivo do Imóvel</Label>
             <Textarea
-              placeholder="Ex: Apartamento com 3 quartos sendo 1 suíte, sala de estar e jantar integradas, varanda gourmet com churrasqueira, 2 vagas de garagem cobertas..."
+              placeholder="Ex: Apartamento com 3 quartos sendo 1 suíte, sala de estar e jantar integradas, varanda gourmet..."
               value={data.descritivoImovel || ""}
               onChange={(e) => onChange("descritivoImovel", e.target.value)}
-              className="h-20 text-xs resize-none"
+              className="min-h-[40px] resize-none"
             />
           </div>
         </div>
