@@ -64,6 +64,7 @@ export interface PaymentFlowData {
   empreendimento?: string;
   unidade?: string;
   areaPrivativa?: string;
+  descritivoImovel?: string;
 }
 
 export interface CalculatedResult {

@@ -15,7 +15,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
     <Card className="animate-fade-in border-border bg-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-xl flex items-center gap-2">
-          ✨ RESUMO PROPOSTA
+          RESUMO PROPOSTA
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">

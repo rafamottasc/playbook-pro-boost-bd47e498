@@ -70,7 +70,7 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Receipt className="h-5 w-5 text-primary" />
-          Entrada
+          Entrada Parcelada
         </CardTitle>
         <CardDescription>
           Quanto o cliente vai dar de entrada?

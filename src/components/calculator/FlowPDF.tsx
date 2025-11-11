@@ -98,6 +98,10 @@ export async function generateFlowPDF(
       doc.text(`Área Privativa: ${data.areaPrivativa}m²`, 15, yPosition);
       yPosition += 5;
     }
+    if (data.descritivoImovel) {
+      doc.text(`Descritivo: ${data.descritivoImovel}`, 15, yPosition);
+      yPosition += 5;
+    }
 
     yPosition += 3;
   }

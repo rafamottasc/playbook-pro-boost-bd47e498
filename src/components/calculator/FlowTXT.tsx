@@ -38,6 +38,9 @@ export function generateFlowTXT(
   if (data.areaPrivativa) {
     txt += `Área Privativa: ${data.areaPrivativa}m²\n`;
   }
+  if (data.descritivoImovel) {
+    txt += `Descritivo: ${data.descritivoImovel}\n`;
+  }
   if (data.deliveryDate) {
     txt += `Entrega: ${deliveryDate}\n`;
   }

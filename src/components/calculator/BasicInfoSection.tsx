@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
 import { ClipboardList, Building2 } from "lucide-react";
@@ -140,6 +141,17 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
                 className="h-9"
               />
             </div>
+          </div>
+          
+          {/* Campo Descritivo do Imóvel */}
+          <div className="mt-3">
+            <Label className="text-xs mb-1">Descritivo do Imóvel</Label>
+            <Textarea
+              placeholder="Ex: Apartamento com 3 quartos sendo 1 suíte, sala de estar e jantar integradas, varanda gourmet com churrasqueira, 2 vagas de garagem cobertas..."
+              value={data.descritivoImovel || ""}
+              onChange={(e) => onChange("descritivoImovel", e.target.value)}
+              className="h-20 text-xs resize-none"
+            />
           </div>
         </div>
       </CardContent>
