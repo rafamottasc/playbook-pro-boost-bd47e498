@@ -401,8 +401,8 @@ export async function generateFlowPDF(
   // Cargo
   doc.text("Consultor de Investimentos", 105, footerY + 5, { align: "center" });
 
-  // Empresa
-  doc.text("COMARC - Negócios Imobiliários", 105, footerY + 10, { align: "center" });
+    // Empresa com CRECI
+    doc.text("COMARC - Negócios Imobiliários - Creci 7660J", 105, footerY + 10, { align: "center" });
 
   // Separador
   doc.setLineWidth(0.5);

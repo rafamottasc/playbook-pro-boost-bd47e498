@@ -184,8 +184,8 @@ export function generateFlowTXT(
   // Cargo
   txt += `Consultor de Investimentos\n`;
   
-  // Empresa
-  txt += `COMARC - Negócios Imobiliários\n\n`;
+  // Empresa com CRECI
+  txt += `COMARC - Negócios Imobiliários - Creci 7660J\n\n`;
   
   // Separador
   txt += `----------------\n`;
