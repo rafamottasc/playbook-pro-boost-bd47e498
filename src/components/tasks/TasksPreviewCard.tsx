@@ -38,7 +38,7 @@ export function TasksPreviewCard() {
   }
 
   return (
-    <Card className="shadow-comarc">
+    <Card className="border-l-4 border-l-primary shadow-comarc">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-primary" />
