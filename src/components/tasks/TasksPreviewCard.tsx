@@ -69,7 +69,7 @@ export function TasksPreviewCard() {
             {upcomingTasks.map(task => (
               <div
                 key={task.id}
-                className="flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer transition-colors group"
+                className="flex items-center gap-2 p-2 rounded cursor-pointer group"
                 onClick={() => navigate(`/tarefas?task=${task.id}`)}
               >
                 <Checkbox 
