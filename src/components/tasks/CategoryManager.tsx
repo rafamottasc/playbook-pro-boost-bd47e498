@@ -67,7 +67,7 @@ export function CategoryManager() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             <div className="space-y-2">
               <Label htmlFor="cat-icon">Ícone</Label>
               <IconPicker
