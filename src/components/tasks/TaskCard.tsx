@@ -218,7 +218,7 @@ export function TaskCard({
 
         {/* Conteúdo Expandido */}
         {isExpanded && (
-          <div className="ml-7 md:ml-8 space-y-3 pt-2 border-t">
+          <div className="ml-7 md:ml-8 space-y-2 md:space-y-2.5 lg:space-y-3 pt-2 border-t">
             {/* Notas completas */}
             {task.notes && (
               <div className="space-y-1">
@@ -237,13 +237,13 @@ export function TaskCard({
                   <CheckSquare className="w-3 h-3" />
                   Checklist
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {task.checklist_items.map(item => (
                     <div key={item.id} className="flex items-center gap-2 text-xs py-1">
                   <Checkbox 
                     checked={item.done} 
                     onCheckedChange={() => onToggleChecklistItem?.(task.id, item.id)}
-                    className="h-5 w-5" 
+                    className="h-4 w-4"
                   />
                       <span className={cn(item.done && "line-through text-muted-foreground")}>
                         {item.text}
@@ -256,45 +256,47 @@ export function TaskCard({
 
             {/* Contatos completos */}
             {task.contacts && task.contacts.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <p className="text-xs font-medium flex items-center gap-1">
                   <User className="w-3 h-3" />
                   Contatos
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {task.contacts.map(contact => (
-                    <div key={contact.id} className="space-y-1 p-2 bg-muted/50 rounded text-xs">
-                      <p className="font-medium">{contact.name}</p>
+                    <div key={contact.id} className="space-y-1.5 p-2 bg-muted/50 rounded text-xs">
+                      <p className="font-medium text-sm">{contact.name}</p>
                       
                       {contact.phone && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="w-3 h-3 flex-shrink-0" />
-                          <span className="flex-1">{contact.phone}</span>
-                          <Button size="sm" variant="ghost" className="h-6 px-2" asChild>
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <Phone className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
                             <a 
                               href={`https://wa.me/55${contact.phone.replace(/\D/g, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
+                              className="hover:text-primary transition-colors inline-flex items-center gap-1"
                             >
+                              <span>{contact.phone}</span>
                               <MessageCircle className="w-3 h-3" />
                             </a>
-                          </Button>
+                          </div>
                         </div>
                       )}
                       
                       {contact.address && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="w-3 h-3 flex-shrink-0" />
-                          <span className="flex-1 line-clamp-2">{contact.address}</span>
-                          <Button size="sm" variant="ghost" className="h-6 px-2" asChild>
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
                             <a 
                               href={`https://maps.google.com/?q=${encodeURIComponent(contact.address)}`}
                               target="_blank"
                               rel="noopener noreferrer"
+                              className="hover:text-primary transition-colors inline-flex items-start gap-1 text-left"
                             >
-                              <MapPin className="w-3 h-3" />
+                              <span className="break-words">{contact.address}</span>
+                              <ExternalLink className="w-3 h-3 mt-0.5 flex-shrink-0" />
                             </a>
-                          </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -305,16 +307,16 @@ export function TaskCard({
 
             {/* Anexos completos */}
             {task.attachments && task.attachments.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <p className="text-xs font-medium flex items-center gap-1">
                   <Paperclip className="w-3 h-3" />
                   Anexos
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {task.attachments.map(attachment => (
                     <div 
                       key={attachment.id} 
-                      className="flex items-center gap-2 p-2 bg-muted/50 rounded text-xs cursor-pointer hover:bg-muted transition-colors"
+                      className="flex items-center gap-2 p-1.5 bg-muted/50 rounded text-xs cursor-pointer hover:bg-muted transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         const url = attachment.attachment_type === 'file' 
