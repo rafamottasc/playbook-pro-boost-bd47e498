@@ -168,8 +168,8 @@ export function CubManager() {
         <h2 className="text-2xl font-bold mb-2">Gerenciar CUB/SC</h2>
       </div>
 
-      {/* Grid 1: CUB Atual (esquerda) + Banner Explicativo (direita) */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      {/* Grid: CUB Atual (esquerda, menor) + Histórico (direita, maior) */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
         {/* Card CUB Atual */}
         <Card>
           <CardHeader>
@@ -277,33 +277,26 @@ export function CubManager() {
                 </div>
               </DialogContent>
             </Dialog>
-          </CardContent>
-        </Card>
 
-        {/* Banner Explicativo */}
-        <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                  O que é o CUB/m² (Custo Unitário Básico de Construção)
-                </h3>
-                <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                  O CUB/m² é um índice calculado mensalmente pelos Sindicatos da Indústria 
-                  da Construção (Sinduscons), conforme a NBR 12.721/2006 da ABNT e a Lei 
-                  4.591/1964. Ele indica o custo médio por metro quadrado de construção de 
-                  edificações padrão e serve como referência oficial para{" "}
-                  <strong>orçamentos, contratos, reajustes de obras e avaliações imobiliárias</strong>.
-                </p>
+            {/* Texto explicativo integrado */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="flex items-start gap-2 mb-2">
+                <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <h4 className="text-xs font-semibold text-foreground">
+                  O que é o CUB/m²
+                </h4>
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Índice calculado mensalmente pelos Sinduscons (NBR 12.721/2006 e Lei 4.591/1964). 
+                Indica o custo médio por m² de construção e serve como referência oficial para{" "}
+                <strong>orçamentos, contratos e avaliações imobiliárias</strong>.
+              </p>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Card Histórico - largura total */}
-      <Card>
+        {/* Card Histórico */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-3">
               <span>Histórico (Últimos 12 Meses)</span>
@@ -385,6 +378,7 @@ export function CubManager() {
             )}
           </CardContent>
         </Card>
+      </div>
 
       {/* Gráfico de Evolução */}
       {chartData.length > 0 && (
