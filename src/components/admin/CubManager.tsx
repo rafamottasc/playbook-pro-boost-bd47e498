@@ -166,9 +166,6 @@ export function CubManager() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Gerenciar CUB/SC</h2>
-        <p className="text-muted-foreground">
-          Cadastre o valor mensal do CUB/SC para cálculos da calculadora
-        </p>
       </div>
 
       {/* Banner Explicativo */}
@@ -192,7 +189,7 @@ export function CubManager() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -201,6 +198,9 @@ export function CubManager() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground pb-2 border-b">
+              Cadastre o valor mensal do CUB/SC para cálculos da calculadora
+            </p>
             {currentCub ? (
               <div className="space-y-3">
                 <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -246,8 +246,8 @@ export function CubManager() {
                   </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground pt-1">
-                  Última atualização: {format(new Date(currentCub.created_at), "dd/MM/yyyy 'às' HH:mm")}
+                <p className="text-xs text-muted-foreground pt-1 break-words">
+                  Atualizado em: {format(new Date(currentCub.created_at), "dd/MM/yy 'às' HH:mm")}
                 </p>
               </div>
             ) : (
