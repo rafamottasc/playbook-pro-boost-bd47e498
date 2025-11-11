@@ -45,7 +45,7 @@ export function TaskCard({
       task.done && "opacity-60 bg-muted/50",
       !task.done && "bg-card"
     )}>
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
         {/* Linha 1: Checkbox + Título + Botões de Ação */}
         <div className="flex items-start gap-3">
           <Checkbox
@@ -62,7 +62,7 @@ export function TaskCard({
             
             <h3 
               className={cn(
-                "font-medium text-sm cursor-pointer hover:text-primary transition-colors",
+                "font-medium text-xs sm:text-sm lg:text-base cursor-pointer hover:text-primary transition-colors break-words line-clamp-3",
                 task.done && "line-through text-muted-foreground"
               )}
               onClick={() => onEdit(task)}

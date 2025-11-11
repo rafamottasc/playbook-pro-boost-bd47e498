@@ -271,19 +271,19 @@ export default function DailyTasks() {
                       </div>
                     )}
                   </DroppableStatus>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-4"
+                    onClick={() => handleOpenTaskDialog(status)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Tarefa
+                  </Button>
                 </TabsContent>
               ))}
             </Tabs>
           </DndContext>
-
-          {/* FAB: Botão Flutuante "+" */}
-          <Button
-            size="lg"
-            className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-40"
-            onClick={() => handleOpenTaskDialog(activeStatus)}
-          >
-            <Plus className="w-6 h-6" />
-          </Button>
         </main>
 
         {/* Dialogs */}
