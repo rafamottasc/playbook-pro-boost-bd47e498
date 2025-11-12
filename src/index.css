@@ -261,4 +261,37 @@ All colors MUST be HSL.
   .scrollbar-track-transparent {
     scrollbar-color: hsl(var(--primary) / 0.2) transparent;
   }
+
+  /* Aplicar scrollbar fina globalmente em todo o sistema */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.2) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.2);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.3);
+  }
+
+  /* Scrollbar mais visível para elementos que precisam de destaque */
+  .scrollbar-visible::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.4);
+  }
+
+  .scrollbar-visible:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.5);
+  }
 }

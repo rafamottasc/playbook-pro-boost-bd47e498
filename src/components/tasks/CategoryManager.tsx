@@ -110,7 +110,7 @@ export function CategoryManager() {
         <CardHeader>
           <CardTitle>Minhas Categorias</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5">
           {categories.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               Nenhuma categoria cadastrada
@@ -120,15 +120,16 @@ export function CategoryManager() {
               <div
                 key={cat.id}
                 className={cn(
-                  "p-3 rounded-lg flex items-center justify-between",
+                  "p-2 rounded-md flex items-center justify-between",
+                  "border border-border/50 shadow-sm",
                   cat.color
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <DynamicIcon name={cat.icon} className="w-4 h-4" />
-                  <span className="font-medium">{cat.label}</span>
+                  <DynamicIcon name={cat.icon} className="w-3.5 h-3.5" />
+                  <span className="text-sm font-normal">{cat.label}</span>
                   {cat.is_system && (
-                    <span className="text-xs opacity-60 ml-2">(Sistema)</span>
+                    <span className="text-[10px] opacity-50 ml-1">(Sistema)</span>
                   )}
                 </div>
                 {!cat.is_system && (
@@ -136,8 +137,9 @@ export function CategoryManager() {
                     size="sm"
                     variant="ghost"
                     onClick={() => deleteCategory(cat.id)}
+                    className="h-7 w-7 p-0"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 )}
               </div>
