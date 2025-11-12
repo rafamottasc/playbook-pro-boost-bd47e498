@@ -35,7 +35,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
 
   const [formData, setFormData] = useState({
     title: '',
-    category_id: '',
+    category_id: null as string | null,
     status: defaultStatus || 'todo' as 'todo' | 'in_progress' | 'done',
     task_date: new Date().toISOString().split('T')[0],
     scheduled_time: '',
@@ -56,7 +56,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       const dateToUse = new Date().toISOString().split('T')[0];
       setFormData({
         title: '',
-        category_id: '',
+        category_id: null,
         status: defaultStatus || 'todo',
         task_date: dateToUse,
         scheduled_time: '',
@@ -73,7 +73,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       // Populate form when editing existing task
       setFormData({
         title: task.title || '',
-        category_id: task.category_id || '',
+        category_id: task.category_id || null,
         status: task.status || 'todo',
         task_date: task.task_date || new Date().toISOString().split('T')[0],
         scheduled_time: task.scheduled_time || '',
@@ -92,9 +92,15 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
   const handleSave = () => {
     if (!formData.title.trim()) return;
     
+    // Converter "__none__" e strings vazias em null para category_id
+    const categoryId = formData.category_id === '__none__' || !formData.category_id 
+      ? null 
+      : formData.category_id;
+    
     // Envia apenas os campos da tabela daily_tasks + dados relacionados
     onSave({
       ...formData,
+      category_id: categoryId,
       scheduled_time: formData.scheduled_time.trim() || null, // Aceitar horário vazio
       checklist_items: checklistItems,
       contacts,
@@ -105,7 +111,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
     const dateToUse = new Date().toISOString().split('T')[0];
     setFormData({
       title: '',
-      category_id: '',
+      category_id: null,
       status: defaultStatus || 'todo',
       task_date: dateToUse,
       scheduled_time: '',
@@ -150,13 +156,14 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
         <div className="space-y-2">
           <Label htmlFor="category">Categoria</Label>
           <Select
-            value={formData.category_id}
+            value={formData.category_id || undefined}
             onValueChange={(value) => setFormData({ ...formData, category_id: value })}
           >
             <SelectTrigger id="category">
-              <SelectValue placeholder="Categoria" />
+              <SelectValue placeholder="Sem categoria" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="__none__">Sem categoria</SelectItem>
               {categories.map(cat => (
                 <SelectItem key={cat.id} value={cat.id}>
                   <div className="flex items-center gap-2">

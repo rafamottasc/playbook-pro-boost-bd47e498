@@ -64,7 +64,8 @@ export function TaskCard({
             
             <h3 
               className={cn(
-                "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors break-words line-clamp-2 md:line-clamp-3",
+                "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors",
+                "break-words whitespace-normal leading-snug min-h-[1.5rem]",
                 task.done && "line-through text-muted-foreground"
               )}
               onClick={() => onEdit(task)}
