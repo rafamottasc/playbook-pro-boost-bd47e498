@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
+import { CurrencyConfigSection } from "@/components/calculator/CurrencyConfigSection";
 import { BasicInfoSection } from "@/components/calculator/BasicInfoSection";
 import { DownPaymentSection } from "@/components/calculator/DownPaymentSection";
 import { AtoSection } from "@/components/calculator/AtoSection";
@@ -509,6 +510,7 @@ export default function Calculator() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Form Column */}
             <div className="lg:col-span-2 space-y-4">
+              <CurrencyConfigSection data={data} onChange={updateField} />
               <BasicInfoSection data={data} onChange={updateField} />
               
               {/* Seção de Entrada reorganizada */}
