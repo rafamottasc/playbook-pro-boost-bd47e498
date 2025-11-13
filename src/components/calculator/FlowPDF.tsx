@@ -375,7 +375,7 @@ export async function generateFlowPDF(
     
     if (result.pricePerSqm) {
       doc.text(
-        `Valor por m²: R$ ${formatCurrency(result.pricePerSqm)} / m²`,
+        `Valor por m²: ${formatValue(result.pricePerSqm)} / m²`,
         15,
         additionalY
       );
@@ -384,7 +384,7 @@ export async function generateFlowPDF(
     
     if (result.totalInCub && result.cubValue) {
       doc.text(
-        `Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})`,
+        `Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: ${formatValue(result.cubValue)})`,
         15,
         additionalY
       );
