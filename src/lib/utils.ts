@@ -78,6 +78,30 @@ export function formatCurrencyInput(value: number): string {
   });
 }
 
+// Formata valores monetários com conversão de moeda
+export function formatCurrencyWithExchange(
+  valueInBRL: number,
+  currencyCode: 'BRL' | 'USD' | 'EUR' | 'GBP' = 'BRL',
+  exchangeRate: number = 1,
+  showSymbol: boolean = false
+): string {
+  const convertedValue = valueInBRL / exchangeRate;
+  
+  const symbols: Record<string, string> = {
+    BRL: 'R$',
+    USD: '$',
+    EUR: '€',
+    GBP: '£'
+  };
+  
+  const formatted = convertedValue.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  
+  return showSymbol ? `${symbols[currencyCode]} ${formatted}` : formatted;
+}
+
 // Retorna a cor da badge de prazo baseada na proximidade da data
 export function getDeadlineBadgeColor(taskDate: string, status: string): {
   variant: 'default' | 'secondary' | 'destructive' | 'outline';

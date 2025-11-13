@@ -2,9 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PaymentFlowData } from "@/hooks/usePaymentFlow";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PaymentFlowData, Currency } from "@/hooks/usePaymentFlow";
 import { differenceInMonths, parseISO } from "date-fns";
-import { ClipboardList, Building2 } from "lucide-react";
+import { ClipboardList, Building2, DollarSign } from "lucide-react";
 import { parseCurrencyInput, formatCurrencyInput } from "@/lib/utils";
 
 interface BasicInfoSectionProps {
@@ -13,9 +14,32 @@ interface BasicInfoSectionProps {
 }
 
 export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
+  const currencies: Currency[] = [
+    { code: 'BRL', symbol: 'R$', rate: 1, name: 'Real Brasileiro (BRL)' },
+    { code: 'USD', symbol: '$', rate: 5.0, name: 'Dólar Americano (USD)' },
+    { code: 'EUR', symbol: '€', rate: 5.5, name: 'Euro (EUR)' },
+    { code: 'GBP', symbol: '£', rate: 6.5, name: 'Libra Esterlina (GBP)' },
+  ];
+
+  const currentCurrency = data.currency || currencies[0];
+
   const formatCurrency = (value: string) => {
     const amount = parseCurrencyInput(value);
     onChange("propertyValue", amount);
+  };
+
+  const handleCurrencyChange = (code: string) => {
+    const selectedCurrency = currencies.find(c => c.code === code);
+    if (selectedCurrency) {
+      onChange("currency", selectedCurrency);
+    }
+  };
+
+  const handleExchangeRateChange = (value: string) => {
+    const rate = parseFloat(value.replace(',', '.'));
+    if (!isNaN(rate) && rate > 0) {
+      onChange("currency", { ...currentCurrency, rate });
+    }
   };
 
   const calculateMonthsUntilDelivery = () => {
@@ -61,10 +85,57 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Linha 1: 2 campos principais */}
+        {/* Linha 1: Moeda e Cotação */}
+        <div className="p-3 bg-muted/30 rounded-lg border space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-4 w-4 text-primary" />
+            <Label className="text-sm font-semibold">Configuração de Moeda</Label>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-2 text-xs text-muted-foreground">Moeda</Label>
+              <Select value={currentCurrency.code} onValueChange={handleCurrencyChange}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map(curr => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.symbol} {curr.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {currentCurrency.code !== 'BRL' && (
+              <div>
+                <Label className="mb-2 text-xs text-muted-foreground">
+                  Cotação (1 {currentCurrency.code} = X BRL)
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Ex: 5.50"
+                  value={currentCurrency.rate.toString().replace('.', ',')}
+                  onChange={(e) => handleExchangeRateChange(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+            )}
+          </div>
+
+          {currentCurrency.code !== 'BRL' && (
+            <p className="text-xs text-muted-foreground">
+              💡 Valores serão calculados em BRL e convertidos para {currentCurrency.code} usando a cotação acima
+            </p>
+          )}
+        </div>
+
+        {/* Linha 2: Valor e Cliente */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <Label className="mb-2 text-sm">Valor Total do Imóvel</Label>
+            <Label className="mb-2 text-sm">Valor Total do Imóvel (em BRL)</Label>
             <Input
               type="text"
               placeholder="R$ 1.600.000,00"
@@ -72,6 +143,11 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
               onChange={(e) => formatCurrency(e.target.value)}
               className="h-10 font-semibold"
             />
+            {currentCurrency.code !== 'BRL' && data.propertyValue > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                ≈ {currentCurrency.symbol} {formatCurrencyInput(data.propertyValue / currentCurrency.rate)}
+              </p>
+            )}
           </div>
 
           <div>
