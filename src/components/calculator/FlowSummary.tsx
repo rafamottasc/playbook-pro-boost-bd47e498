@@ -1,13 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn, formatCurrency, formatMoney } from "@/lib/utils";
+import { cn, formatCurrency, formatMoney, formatCurrencyWithExchange } from "@/lib/utils";
 import { CalculatedResult } from "@/hooks/usePaymentFlow";
+import type { Currency } from "@/hooks/usePaymentFlow";
 
 interface FlowSummaryProps {
   result: CalculatedResult;
   propertyValue: number;
+  currency?: Currency;
 }
 
-export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
+export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProps) {
+  const currentCurrency = currency || { code: 'BRL' as const, symbol: 'R$', rate: 1, name: 'Real Brasileiro' };
+  
+  const formatValue = (value: number, showSymbol: boolean = false) => {
+    if (currentCurrency.code === 'BRL') {
+      return showSymbol ? `R$ ${formatCurrency(value)}` : formatCurrency(value);
+    }
+    return formatCurrencyWithExchange(value, currentCurrency.code, currentCurrency.rate, showSymbol);
+  };
   const isValid = Math.abs(result.totalPercentage - 100) < 5;
   const remaining = Math.max(0, 100 - result.totalPercentage);
 
@@ -21,9 +31,14 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
       <CardContent className="space-y-3 pt-0">
         {/* Total Calculado */}
         <div className="p-3 bg-card rounded-lg border border-border">
+          {currentCurrency.code !== 'BRL' && (
+            <p className="text-xs text-muted-foreground mb-1">
+              Cotação: 1 {currentCurrency.code} = R$ {currentCurrency.rate.toFixed(2)}
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">Total Calculado</p>
           <p className="text-3xl font-bold text-primary">
-            R$ {formatMoney(result.totalPaid)}
+            {currentCurrency.symbol} {formatValue(result.totalPaid)}
           </p>
           <p
             className={cn(
@@ -43,7 +58,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <>
                 <span className="text-green-600">⚠️ Pago {result.totalPercentage.toFixed(1)}%</span>
                 {" "}
-                <span className="text-red-600">🚨 Falta R$ {formatMoney((propertyValue * remaining) / 100)}</span>
+                <span className="text-red-600">🚨 Falta {currentCurrency.symbol} {formatValue((propertyValue * remaining) / 100)}</span>
               </>
             )}
           </p>
@@ -58,7 +73,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 💰 Ato (Pagamento Único)
               </div>
               <div className="text-sm font-semibold text-foreground">
-                R$ {formatMoney(result.downPayment.atoValue)} (
+                {currentCurrency.symbol} {formatValue(result.downPayment.atoValue)} (
                 {result.downPayment.atoPercentage?.toFixed(1)}%)
               </div>
             </div>
@@ -73,13 +88,13 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <div className="text-sm font-semibold text-foreground">
                 {result.downPayment.installments && result.downPayment.installments > 1 ? (
                   <>
-                    {result.downPayment.installments}x de R${" "}
-                    {formatMoney(result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue)} (
+                    {result.downPayment.installments}x de {currentCurrency.symbol}{" "}
+                    {formatValue(result.downPayment.installmentValue || result.downPayment.downPaymentParceladoValue)} (
                     {result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)
                   </>
                 ) : (
                   <>
-                    R$ {formatMoney(result.downPayment.downPaymentParceladoValue)} (
+                    {currentCurrency.symbol} {formatValue(result.downPayment.downPaymentParceladoValue)} (
                     {result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%)
                   </>
                 )}
@@ -89,8 +104,8 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
 
           {/* Entrada Normal (quando não tem Ato) */}
           {(!result.downPayment.atoValue || result.downPayment.atoValue === 0) && 
-           (!result.downPayment.downPaymentParceladoValue || result.downPayment.downPaymentParceladoValue === 0) &&
-           result.downPayment.value > 0 && (
+            (!result.downPayment.downPaymentParceladoValue || result.downPayment.downPaymentParceladoValue === 0) && 
+            result.downPayment.value > 0 && (
             <div className="py-1.5">
               <div className="text-sm text-muted-foreground mb-0.5">
                 🏁 Entrada
@@ -98,13 +113,13 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               <div className="text-sm font-semibold text-foreground">
                 {result.downPayment.installments && result.downPayment.installments > 1 ? (
                   <>
-                    {result.downPayment.installments}x de R${" "}
-                    {formatMoney(result.downPayment.installmentValue || result.downPayment.value)} (
+                    {result.downPayment.installments}x de {currentCurrency.symbol}{" "}
+                    {formatValue(result.downPayment.installmentValue || result.downPayment.value)} (
                     {result.downPayment.percentage.toFixed(1)}%)
                   </>
                 ) : (
                   <>
-                    R$ {formatMoney(result.downPayment.value)} (
+                    {currentCurrency.symbol} {formatValue(result.downPayment.value)} (
                     {result.downPayment.percentage.toFixed(1)}%)
                   </>
                 )}
@@ -112,13 +127,13 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
             </div>
           )}
 
-          {result.constructionStartPayment && result.constructionStartPayment.value > 0 && (
+          {result.constructionStartPayment && (
             <div className="py-1.5">
               <div className="text-sm text-muted-foreground mb-0.5">
                 🏗️ Início da Obra
               </div>
               <div className="text-sm font-semibold text-foreground">
-                R$ {formatMoney(result.constructionStartPayment.value)} (
+                {currentCurrency.symbol} {formatValue(result.constructionStartPayment.value)} (
                 {result.constructionStartPayment.percentage.toFixed(1)}%)
               </div>
             </div>
@@ -127,12 +142,11 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
           {result.monthly && (
             <div className="py-1.5">
               <div className="text-sm text-muted-foreground mb-0.5">
-                📆 Mensais
+                💸 Mensais
               </div>
               <div className="text-sm font-semibold text-foreground">
-                {result.monthly.count}x de R${" "}
-                {formatMoney(result.monthly.value)} (
-                {result.monthly.percentage.toFixed(1)}%)
+                {result.monthly.count}x de {" "}
+                {((result.monthly.total / result.monthly.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {currentCurrency.symbol} {formatValue(result.monthly.value)} ({result.monthly.percentage.toFixed(1)}%)
               </div>
             </div>
           )}
@@ -144,7 +158,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {result.semiannualReinforcement.count}x de {" "}
-                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {formatMoney(result.semiannualReinforcement.value)} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
+                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {currentCurrency.symbol} {formatValue(result.semiannualReinforcement.value)} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
               </div>
             </div>
           )}
@@ -156,7 +170,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {result.annualReinforcement.count}x de {" "}
-                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = R$ {formatMoney(result.annualReinforcement.value)} ({result.annualReinforcement.percentage.toFixed(1)}%)
+                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {currentCurrency.symbol} {formatValue(result.annualReinforcement.value)} ({result.annualReinforcement.percentage.toFixed(1)}%)
               </div>
             </div>
           )}
@@ -167,7 +181,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 🔑 Chaves
               </div>
               <div className="text-sm font-semibold text-foreground">
-                R$ {formatMoney(result.keysPayment.value)} (
+                {currentCurrency.symbol} {formatValue(result.keysPayment.value)} (
                 {result.keysPayment.percentage.toFixed(1)}%)
               </div>
             </div>
@@ -179,7 +193,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 📐 Valor total m²
               </div>
               <div className="text-sm font-semibold text-foreground">
-                R$ {formatCurrency(result.pricePerSqm)}
+                {currentCurrency.symbol} {formatValue(result.pricePerSqm)}
               </div>
             </div>
           )}
@@ -210,7 +224,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 Até Entrega
               </div>
               <div className="text-sm font-semibold text-foreground">
-                R$ {formatMoney(result.timeline.totalUntilDelivery)} (
+                {currentCurrency.symbol} {formatValue(result.timeline.totalUntilDelivery)} (
                 {result.timeline.percentageUntilDelivery.toFixed(1)}%)
               </div>
             </div>
@@ -219,7 +233,7 @@ export function FlowSummary({ result, propertyValue }: FlowSummaryProps) {
                 Após Entrega
               </div>
               <div className="text-sm font-semibold text-foreground">
-                R$ {formatMoney(result.timeline.totalAfterDelivery)} (
+                {currentCurrency.symbol} {formatValue(result.timeline.totalAfterDelivery)} (
                 {result.timeline.percentageAfterDelivery.toFixed(1)}%)
               </div>
             </div>

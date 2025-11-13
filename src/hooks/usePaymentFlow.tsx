@@ -2,11 +2,19 @@ import { useState, useEffect, useMemo } from "react";
 import { differenceInMonths, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface Currency {
+  code: 'BRL' | 'USD' | 'EUR' | 'GBP';
+  symbol: string;
+  rate: number;
+  name: string;
+}
+
 export interface PaymentFlowData {
   propertyValue: number;
   constructionStartDate: string;
   deliveryDate: string;
   clientName: string;
+  currency?: Currency;
   downPayment: {
     type: 'percentage' | 'value';
     percentage?: number;
@@ -133,6 +141,12 @@ export function usePaymentFlow() {
     constructionStartDate: "",
     deliveryDate: "",
     clientName: "",
+    currency: {
+      code: 'BRL',
+      symbol: 'R$',
+      rate: 1,
+      name: 'Real Brasileiro'
+    },
     downPayment: { type: 'percentage', percentage: 0, value: 0 },
     monthly: { enabled: false, autoCalculate: false },
     semiannualReinforcement: { enabled: false, percentage: 8 },

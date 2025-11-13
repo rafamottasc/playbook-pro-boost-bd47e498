@@ -1,8 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { PaymentFlowData, CalculatedResult } from "@/hooks/usePaymentFlow";
+import { PaymentFlowData, CalculatedResult, Currency } from "@/hooks/usePaymentFlow";
 import { format } from "date-fns";
-import { formatCurrency, formatMoney } from "@/lib/utils";
+import { formatCurrency, formatMoney, formatCurrencyWithExchange } from "@/lib/utils";
 
 // Helper function to load image and get its dimensions with timeout
 async function loadImageWithDimensions(url: string, timeoutMs: number = 2000): Promise<{ img: HTMLImageElement; width: number; height: number } | null> {
@@ -37,6 +37,15 @@ export async function generateFlowPDF(
   correctorCreci?: string | null
 ) {
   const doc = new jsPDF();
+  
+  const currency = data.currency || { code: 'BRL' as const, symbol: 'R$', rate: 1, name: 'Real Brasileiro' };
+  
+  const formatValue = (value: number, showSymbol: boolean = true) => {
+    if (currency.code === 'BRL') {
+      return showSymbol ? `R$ ${formatMoney(value)}` : formatMoney(value);
+    }
+    return formatCurrencyWithExchange(value, currency.code, currency.rate, showSymbol);
+  };
   
   // Adicionar logo COMARC (centralizada) - proporção automática
   const logoUrl = "/logo-comarc.png"; // Caminho relativo ao public
@@ -113,8 +122,14 @@ export async function generateFlowPDF(
     : "Não informado";
   doc.text(`Entrega: ${deliveryFormatted}`, 15, yPosition);
   yPosition += 5;
+  
+  if (currency.code !== 'BRL') {
+    doc.text(`Moeda: ${currency.name} (Cotação: 1 ${currency.code} = R$ ${currency.rate.toFixed(2)})`, 15, yPosition);
+    yPosition += 5;
+  }
+  
   doc.text(
-    `Valor Total: R$ ${formatMoney(data.propertyValue)}`,
+    `Valor Total: ${formatValue(data.propertyValue)}`,
     15,
     yPosition
   );
@@ -151,7 +166,7 @@ export async function generateFlowPDF(
     const atoRow = [
       "Ato",
       "1x",
-      `R$ ${formatMoney(result.downPayment.atoValue)}`,
+      formatValue(result.downPayment.atoValue),
       `${result.downPayment.atoPercentage?.toFixed(1)}%`,
     ];
     
@@ -320,7 +335,7 @@ export async function generateFlowPDF(
   doc.setFontSize(14);
   doc.setFont("times", "bold");
   doc.text(
-    `TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)`,
+    `TOTAL: ${formatValue(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)`,
     15,
     finalY
   );
@@ -338,12 +353,12 @@ export async function generateFlowPDF(
     body: [
       [
         "Até Entrega",
-        `R$ ${formatMoney(result.timeline.totalUntilDelivery)}`,
+        formatValue(result.timeline.totalUntilDelivery),
         `${result.timeline.percentageUntilDelivery.toFixed(1)}%`
     ],
     [
       "Após Entrega",
-        `R$ ${formatMoney(result.timeline.totalAfterDelivery)}`,
+        formatValue(result.timeline.totalAfterDelivery),
         `${result.timeline.percentageAfterDelivery.toFixed(1)}%`
       ]
     ],

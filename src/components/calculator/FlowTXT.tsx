@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { PaymentFlowData } from "@/hooks/usePaymentFlow";
-import { CalculatedResult } from "@/hooks/usePaymentFlow";
-import { formatCurrency, formatMoney } from "@/lib/utils";
+import { CalculatedResult, Currency } from "@/hooks/usePaymentFlow";
+import { formatCurrency, formatMoney, formatCurrencyWithExchange } from "@/lib/utils";
 
 export function generateFlowTXT(
   data: PaymentFlowData,
@@ -13,12 +13,26 @@ export function generateFlowTXT(
   const currentTime = format(new Date(), "HH:mm");
   const deliveryDate = data.deliveryDate ? format(new Date(data.deliveryDate), "dd/MM/yyyy") : "Não informado";
 
+  const currency = data.currency || { code: 'BRL' as const, symbol: 'R$', rate: 1, name: 'Real Brasileiro' };
+  
+  const formatValue = (value: number, showSymbol: boolean = true) => {
+    if (currency.code === 'BRL') {
+      return showSymbol ? `R$ ${formatMoney(value)}` : formatMoney(value);
+    }
+    return formatCurrencyWithExchange(value, currency.code, currency.rate, showSymbol);
+  };
+
   let txt = `PROPOSTA DE PAGAMENTO - COMARC\n`;
   txt += `----------------\n\n`;
 
   txt += `Data: ${currentDate}\n`;
   if (data.clientName) {
     txt += `Cliente: ${data.clientName}\n`;
+  }
+  
+  if (currency.code !== 'BRL') {
+    txt += `Moeda: ${currency.name} (${currency.code})\n`;
+    txt += `Cotação: 1 ${currency.code} = R$ ${currency.rate.toFixed(2)}\n`;
   }
   txt += `\n`;
 
@@ -45,7 +59,7 @@ export function generateFlowTXT(
     txt += `Entrega: ${deliveryDate}\n`;
   }
   
-  txt += `Valor Total: R$ ${formatMoney(data.propertyValue)}\n\n`;
+  txt += `Valor Total: ${formatValue(data.propertyValue)}\n\n`;
 
   txt += `----------------\n`;
   txt += `CONDICOES DE PAGAMENTO\n`;
@@ -140,14 +154,14 @@ export function generateFlowTXT(
   }
 
   txt += `----------------\n`;
-  txt += `TOTAL: R$ ${formatMoney(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)\n`;
+  txt += `TOTAL: ${formatValue(result.totalPaid)} (${result.totalPercentage.toFixed(1)}%)\n`;
   txt += `----------------\n\n`;
 
   txt += `DISTRIBUICAO TEMPORAL\n`;
   txt += `----------------\n`;
-  txt += `Ate Entrega: R$ ${formatMoney(result.timeline.totalUntilDelivery)}`;
+  txt += `Ate Entrega: ${formatValue(result.timeline.totalUntilDelivery)}`;
   txt += ` (${result.timeline.percentageUntilDelivery.toFixed(1)}%)\n`;
-  txt += `Apos Entrega: R$ ${formatMoney(result.timeline.totalAfterDelivery)}`;
+  txt += `Apos Entrega: ${formatValue(result.timeline.totalAfterDelivery)}`;
   txt += ` (${result.timeline.percentageAfterDelivery.toFixed(1)}%)\n\n`;
 
   // Valores adicionais (m2 e CUB)
