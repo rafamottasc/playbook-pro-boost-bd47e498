@@ -297,15 +297,6 @@ export default function Calculator() {
       ? (data.downPayment.percentage / 100) * data.propertyValue
       : data.downPayment.value || 0;
 
-    if (downPaymentValue <= 0) {
-      toast({
-        title: "Entrada obrigatória",
-        description: "Por favor, preencha o valor da entrada",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -387,10 +378,10 @@ export default function Calculator() {
       ? (data.downPayment.percentage / 100) * data.propertyValue
       : data.downPayment.value || 0;
 
-    if (data.propertyValue <= 0 || downPaymentValue <= 0) {
+    if (data.propertyValue <= 0) {
       toast({
-        title: "Dados incompletos",
-        description: "Preencha valor do imóvel e entrada",
+        title: "Valor do imóvel obrigatório",
+        description: "Por favor, preencha o valor do imóvel",
         variant: "destructive",
       });
       return;
