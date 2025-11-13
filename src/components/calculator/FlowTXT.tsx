@@ -171,11 +171,11 @@ export function generateFlowTXT(
     txt += `----------------\n`;
     
     if (result.pricePerSqm) {
-      txt += `Valor por m2: R$ ${formatCurrency(result.pricePerSqm)} / m2\n`;
+      txt += `Valor por m2: ${formatValue(result.pricePerSqm)} / m2\n`;
     }
     
     if (result.totalInCub && result.cubValue) {
-      txt += `Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: R$ ${formatCurrency(result.cubValue)})\n`;
+      txt += `Valor em CUB: ${result.totalInCub.toFixed(5)} (Base: ${formatValue(result.cubValue)})\n`;
       txt += `*Valor corrigido pelo CUB/SC\n`;
     }
     
