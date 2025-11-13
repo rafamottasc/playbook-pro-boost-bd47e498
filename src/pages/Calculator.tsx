@@ -378,10 +378,10 @@ export default function Calculator() {
       ? (data.downPayment.percentage / 100) * data.propertyValue
       : data.downPayment.value || 0;
 
-    if (data.propertyValue <= 0) {
+    if (!data.propertyValue || data.propertyValue <= 0) {
       toast({
         title: "Valor do imóvel obrigatório",
-        description: "Por favor, preencha o valor do imóvel",
+        description: "Por favor, preencha o valor total do imóvel",
         variant: "destructive",
       });
       return;
