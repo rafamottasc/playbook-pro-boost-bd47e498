@@ -17,7 +17,8 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   };
 
   const handlePercentageChange = (value: string) => {
-    const percentage = parseFloat(value) || 0;
+    // Se campo vazio, definir como 0
+    const percentage = value === '' ? 0 : (parseFloat(value) || 0);
     const calculatedValue = (percentage / 100) * data.propertyValue;
     onChange("downPayment", { 
       ...data.downPayment, 
@@ -27,7 +28,8 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
   };
 
   const handleValueChange = (value: string) => {
-    const amount = parseCurrencyInput(value);
+    // Se campo vazio, definir como 0
+    const amount = value === '' ? 0 : parseCurrencyInput(value);
     const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
     onChange("downPayment", { 
       ...data.downPayment, 
@@ -157,6 +159,13 @@ export function DownPaymentSection({ data, onChange }: DownPaymentSectionProps) 
           <p className="text-xs text-muted-foreground">
             {data.downPayment.installments}x de R$ {formatMoney(installmentValue)}
           </p>
+        )}
+        
+        {/* Aviso quando entrada for zerada */}
+        {displayValue === 0 && (
+          <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950 p-2 rounded">
+            ℹ️ Entrada zerada - todo o valor será pago nas demais etapas
+          </div>
         )}
       </CardContent>
     </Card>
