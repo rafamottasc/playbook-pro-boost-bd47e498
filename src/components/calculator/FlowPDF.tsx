@@ -188,7 +188,7 @@ export async function generateFlowPDF(
     const entradaRow = [
       "Entrada",
       `${downPaymentInstallments}x`,
-      `R$ ${formatMoney(downPaymentValue)}`,
+      formatValue(downPaymentValue),
       `${result.downPayment.downPaymentParceladoPercentage?.toFixed(1)}%`,
     ];
     
@@ -208,7 +208,7 @@ export async function generateFlowPDF(
     const entradaRow = [
       "Entrada",
       `${downPaymentInstallments}x`,
-      `R$ ${formatMoney(downPaymentValue)}`,
+      formatValue(downPaymentValue),
       `${result.downPayment.percentage.toFixed(1)}%`,
     ];
     
@@ -228,7 +228,7 @@ export async function generateFlowPDF(
     const obraRow = [
       "Início da Obra",
       "1x",
-      `R$ ${formatMoney(result.constructionStartPayment.value)}`,
+      formatValue(result.constructionStartPayment.value),
       `${result.constructionStartPayment.percentage.toFixed(1)}%`,
     ];
     
@@ -248,7 +248,7 @@ export async function generateFlowPDF(
     const monthlyRow = [
       "Mensais",
       `${result.monthly.count}x`,
-      `R$ ${formatMoney(result.monthly.value)}`,
+      formatValue(result.monthly.value),
       `${result.monthly.percentage.toFixed(1)}%`,
     ];
     
@@ -268,7 +268,7 @@ export async function generateFlowPDF(
     const semiRow = [
       "Reforços Semestrais",
       `${result.semiannualReinforcement.count}x`,
-      `R$ ${formatMoney(result.semiannualReinforcement.value)}`,
+      formatValue(result.semiannualReinforcement.value),
       `${result.semiannualReinforcement.percentage.toFixed(1)}%`,
     ];
     
@@ -288,7 +288,7 @@ export async function generateFlowPDF(
     const annualRow = [
       "Reforços Anuais",
       `${result.annualReinforcement.count}x`,
-      `R$ ${formatMoney(result.annualReinforcement.value)}`,
+      formatValue(result.annualReinforcement.value),
       `${result.annualReinforcement.percentage.toFixed(1)}%`,
     ];
     
@@ -310,7 +310,7 @@ export async function generateFlowPDF(
     const keysRow = [
       "Chaves",
       "1x",
-      `R$ ${formatMoney(result.keysPayment.value)}`,
+      formatValue(result.keysPayment.value),
       `${result.keysPayment.percentage.toFixed(1)}%`,
     ];
     
