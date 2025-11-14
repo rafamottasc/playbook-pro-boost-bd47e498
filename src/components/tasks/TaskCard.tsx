@@ -127,7 +127,7 @@ export function TaskCard({
           {task.scheduled_time && (
             <Badge variant="outline" className="text-xs">
               <Clock className="w-3 h-3 mr-1" />
-              {task.scheduled_time}
+              {task.scheduled_time.slice(0, 5)}
             </Badge>
           )}
           {task.task_date && (() => {
