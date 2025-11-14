@@ -47,6 +47,7 @@ export interface DailyTask {
   scheduled_time?: string;
   period: 'manha' | 'tarde' | 'noite'; // Deprecated, mantido para compatibilidade
   status: 'todo' | 'in_progress' | 'done';
+  status_id?: string; // Novo campo para status dinâmico
   priority: 'urgente' | 'importante' | 'normal' | 'baixa';
   recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
   done: boolean;
@@ -88,12 +89,26 @@ export function useTasks() {
     },
   });
 
-  // Group tasks by status (Kanban)
+  // Group tasks by status (Kanban - compatibilidade com status text)
   const tasksByStatus = useMemo(() => ({
     todo: tasks.filter(t => t.status === 'todo'),
     in_progress: tasks.filter(t => t.status === 'in_progress'),
     done: tasks.filter(t => t.status === 'done'),
   }), [tasks]);
+
+  // Group tasks by status_id (Kanban dinâmico)
+  const tasksByStatusId = useMemo(() => {
+    const grouped: Record<string, DailyTask[]> = {};
+    tasks.forEach(task => {
+      if (task.status_id) {
+        if (!grouped[task.status_id]) {
+          grouped[task.status_id] = [];
+        }
+        grouped[task.status_id].push(task);
+      }
+    });
+    return grouped;
+  }, [tasks]);
 
   // Mantém tasksByPeriod para compatibilidade temporária
   const tasksByPeriod = useMemo(() => ({
@@ -342,21 +357,41 @@ export function useTasks() {
     toast({ title: "Tarefa duplicada com sucesso!" });
   }, [queryClient, toast]);
 
-  // Move task to new status (Kanban)
-  const moveTaskToStatus = useCallback(async (taskId: string, newStatus: 'todo' | 'in_progress' | 'done') => {
-    const newDone = newStatus === 'done';
+  // Move task to new status (Kanban) - Atualizado para suportar status_id
+  const moveTaskToStatus = useCallback(async (
+    taskId: string, 
+    newStatus: 'todo' | 'in_progress' | 'done' | string
+  ) => {
+    // Se newStatus é um UUID (status_id), atualizar status_id
+    const isStatusId = newStatus.length > 20; // UUIDs têm mais de 20 chars
+    
+    if (isStatusId) {
+      // Mover para novo status dinâmico (status_id)
+      const { error } = await (supabase as any)
+        .from('daily_tasks')
+        .update({ status_id: newStatus })
+        .eq('id', taskId);
 
-    const { error } = await supabase
-      .from('daily_tasks')
-      .update({ 
-        status: newStatus,
-        done: newDone 
-      })
-      .eq('id', taskId);
+      if (error) {
+        toast({ title: "Erro ao mover tarefa", variant: "destructive" });
+        return;
+      }
+    } else {
+      // Mover para status fixo (compatibilidade)
+      const newDone = newStatus === 'done';
 
-    if (error) {
-      toast({ title: "Erro ao mover tarefa", variant: "destructive" });
-      return;
+      const { error } = await supabase
+        .from('daily_tasks')
+        .update({ 
+          status: newStatus as 'todo' | 'in_progress' | 'done',
+          done: newDone 
+        })
+        .eq('id', taskId);
+
+      if (error) {
+        toast({ title: "Erro ao mover tarefa", variant: "destructive" });
+        return;
+      }
     }
 
     queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
@@ -394,6 +429,7 @@ export function useTasks() {
   return {
     tasks,
     tasksByStatus,
+    tasksByStatusId, // Novo: agrupamento por status_id dinâmico
     tasksByPeriod, // Deprecated, mantido para compatibilidade
     stats,
     isLoading,
