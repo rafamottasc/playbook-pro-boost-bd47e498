@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Settings, Plus, ClipboardList, Trash2 } from "lucide-react";
+import { Settings, Plus, ClipboardList } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -83,7 +83,6 @@ export default function DailyTasks() {
   const { toast } = useToast();
   
   const [showCategoryManager, setShowCategoryManager] = useState(false);
-  const [showStatusManager, setShowStatusManager] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<DailyTask | null>(null);
   const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
@@ -239,14 +238,6 @@ export default function DailyTasks() {
                 <Settings className="w-4 h-4 mr-2" />
                 Gerenciar Categorias
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowStatusManager(true)}
-                className={cn(isMobile && "w-full")}
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Gerenciar Etapas
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -343,113 +334,6 @@ export default function DailyTasks() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showStatusManager} onOpenChange={setShowStatusManager}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto mx-4">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Etapas</DialogTitle>
-            <p className="text-sm text-muted-foreground mt-2">
-              Gerencie as etapas do seu quadro Kanban. Máximo {maxStatuses} etapas.
-            </p>
-          </DialogHeader>
-          <div className="space-y-3 mt-4">
-            {statuses
-              .sort((a, b) => a.display_order - b.display_order)
-              .map((status) => (
-                <div 
-                  key={status.id}
-                  className="flex items-center justify-between p-3 border rounded-lg bg-card"
-                >
-                  <div className="flex items-center gap-3 flex-1">
-                    <div 
-                      className="w-4 h-4 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: status.color }}
-                    />
-                    <span className="font-medium">{status.name}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setColorPickerStatus({ id: status.id, name: status.name, color: status.color })}
-                    >
-                      Cor
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteStatus(status.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog Gerenciar Etapas */}
-      <Dialog open={showStatusManager} onOpenChange={setShowStatusManager}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Etapas</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Lista de etapas existentes */}
-            <div className="space-y-2">
-              {statuses.map(status => {
-                const tasksCount = (tasksByStatusId[status.id] || []).length;
-                return (
-                  <div key={status.id} className="flex items-center gap-2 p-3 border rounded-lg">
-                    <div 
-                      className="w-4 h-4 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: status.color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{status.name}</p>
-                      <p className="text-xs text-muted-foreground">{tasksCount} tarefa(s)</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setColorPickerStatus({ id: status.id, name: status.name, color: status.color })}
-                      >
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                      {tasksCount === 0 && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteStatus(status.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Botão criar nova etapa */}
-            {canCreateMore && (
-              <CreateStatusButton
-                onCreateStatus={(name) => createStatus({ name })}
-                canCreate={canCreateMore}
-                maxStatuses={maxStatuses}
-                currentCount={statuses.length}
-              />
-            )}
-
-            {!canCreateMore && (
-              <p className="text-xs text-muted-foreground text-center">
-                Limite de {maxStatuses} etapas atingido
-              </p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <TaskFormDialog
         open={showTaskDialog}
