@@ -43,6 +43,7 @@ function DraggableTaskCard({ task, ...props }: any) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    touchAction: 'none' as const,
   };
 
   return (
@@ -98,8 +99,8 @@ export default function DailyTasks() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200,
-        tolerance: 5,
+        delay: 100,
+        tolerance: 8,
       },
     })
   );
