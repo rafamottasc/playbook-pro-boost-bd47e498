@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 interface PriorityBadgeProps {
   priority: 'urgente' | 'importante' | 'normal' | 'baixa';
   size?: 'default' | 'sm';
+  className?: string;
 }
 
 const priorityConfig = {
@@ -25,7 +26,7 @@ const priorityConfig = {
   },
 };
 
-export function PriorityBadge({ priority, size = 'default' }: PriorityBadgeProps) {
+export function PriorityBadge({ priority, size = 'default', className }: PriorityBadgeProps) {
   const config = priorityConfig[priority];
 
   return (
@@ -34,7 +35,8 @@ export function PriorityBadge({ priority, size = 'default' }: PriorityBadgeProps
       className={cn(
         config.className,
         size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-xs px-2.5 py-0.5',
-        'font-medium rounded'
+        'font-medium rounded',
+        className
       )}
     >
       {config.label}
