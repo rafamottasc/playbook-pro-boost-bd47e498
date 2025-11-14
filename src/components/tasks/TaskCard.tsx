@@ -113,27 +113,6 @@ export function TaskCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               
-              {task.status !== 'todo' && (
-                <DropdownMenuItem onClick={() => onMoveToStatus?.(task.id, 'todo')}>
-                  <Circle className="w-4 h-4 mr-2" />
-                  Mover para "Para Fazer"
-                </DropdownMenuItem>
-              )}
-              
-              {task.status !== 'in_progress' && (
-                <DropdownMenuItem onClick={() => onMoveToStatus?.(task.id, 'in_progress')}>
-                  <PlayCircle className="w-4 h-4 mr-2" />
-                  Mover para "Em Andamento"
-                </DropdownMenuItem>
-              )}
-              
-              {task.status !== 'done' && (
-                <DropdownMenuItem onClick={() => onMoveToStatus?.(task.id, 'done')}>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Mover para "Concluído"
-                </DropdownMenuItem>
-              )}
-              
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onDelete(task.id)}
@@ -157,7 +136,7 @@ export function TaskCard({
             </Badge>
           )}
           {task.task_date && (() => {
-            const { variant, className } = getDeadlineBadgeColor(task.task_date, task.status);
+            const { variant, className } = getDeadlineBadgeColor(task.task_date, task.done ? 'done' : 'todo');
             const deadline = new Date(task.task_date + 'T00:00:00');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -168,7 +147,7 @@ export function TaskCard({
               <Badge variant={variant} className={cn("text-xs font-medium", className)}>
                 <CalendarIcon className="w-3 h-3 mr-1" />
                 {format(new Date(task.task_date + 'T00:00:00'), "dd MMM", { locale: ptBR })}
-                {task.status !== 'done' && daysUntil < 0 && (
+                {!task.done && daysUntil < 0 && (
                   <span className="ml-1 font-semibold">ATRASADO</span>
                 )}
               </Badge>
