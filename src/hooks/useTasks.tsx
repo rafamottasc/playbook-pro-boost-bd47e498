@@ -84,7 +84,8 @@ export function useTasks() {
         .order('display_order');
 
       if (tasksError) throw tasksError;
-      return (tasksData || []) as DailyTask[];
+      // Note: Type assertion needed because Supabase types may not be regenerated yet after migration
+      return (tasksData || []) as unknown as DailyTask[];
     },
   });
 
@@ -145,6 +146,11 @@ export function useTasks() {
 
       // 1. Criar tarefa principal (apenas campos da tabela daily_tasks)
       // Garantir que period sempre tenha um valor padrão para compatibilidade
+      // Garantir que status_id é obrigatório
+      if (!taskData.status_id) {
+        throw new Error('status_id é obrigatório para criar uma tarefa');
+      }
+      
       const { data: task, error } = await supabase
         .from('daily_tasks')
         .insert([{ 
@@ -194,21 +200,13 @@ export function useTasks() {
     },
   });
 
-  // Toggle task done - agora alterna status
+  // Toggle task done
   const toggleTask = useCallback(async (taskId: string, currentDone: boolean) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    // Alterna entre in_progress e done
-    const newStatus = task.status === 'done' ? 'in_progress' : 'done';
-    const newDone = newStatus === 'done';
+    const newDone = !currentDone;
 
     const { error } = await supabase
       .from('daily_tasks')
-      .update({ 
-        done: newDone,
-        status: newStatus 
-      })
+      .update({ done: newDone })
       .eq('id', taskId);
 
     if (error) {
@@ -221,8 +219,8 @@ export function useTasks() {
     }
 
     queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-    toast({ title: newDone ? "Tarefa concluída! ✓" : "Tarefa em andamento" });
-  }, [tasks, queryClient, toast]);
+    toast({ title: newDone ? "Tarefa concluída! ✓" : "Tarefa reaberta" });
+  }, [queryClient, toast]);
 
   // Update task mutation
   const updateTaskMutation = useMutation({
@@ -316,6 +314,7 @@ export function useTasks() {
       .insert([{
         user_id: user.id,
         category_id: task.category_id,
+        status_id: task.status_id,
         title: `${task.title} (cópia)`,
         notes: task.notes,
         task_date: task.task_date,
