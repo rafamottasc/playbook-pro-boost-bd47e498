@@ -47,7 +47,7 @@ export function TaskCard({
       task.done && "opacity-60 bg-muted/50",
       !task.done && "bg-card"
     )}>
-      <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3 relative">
+      <CardContent className="px-2 py-3 md:px-2 md:py-4 space-y-2 md:space-y-3 relative">
         {/* Botões de ação - posicionamento absoluto no canto superior direito */}
         <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-start gap-1 z-10">
           {/* Expand button - visible on both mobile and desktop */}
@@ -98,7 +98,7 @@ export function TaskCard({
         </div>
 
         {/* Linha 1: Checkbox + Título (com padding para não sobrepor os botões) */}
-        <div className="flex items-start gap-2 md:gap-3 pr-6 md:pr-8">
+        <div className="flex items-start gap-2 md:gap-3 pr-4 md:pr-6">
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
