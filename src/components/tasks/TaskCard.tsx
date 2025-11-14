@@ -98,7 +98,7 @@ export function TaskCard({
         </div>
 
         {/* Linha 1: Checkbox + Título (com padding para não sobrepor os botões) */}
-        <div className="flex items-start gap-2 md:gap-3 pr-8 md:pr-10">
+        <div className="flex items-start gap-2 md:gap-3 pr-6 md:pr-8">
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
