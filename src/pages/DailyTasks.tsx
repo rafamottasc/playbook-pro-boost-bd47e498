@@ -43,11 +43,16 @@ function DraggableTaskCard({ task, ...props }: any) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    touchAction: 'none' as const,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners} 
+      className="cursor-grab active:cursor-grabbing touch-none"
+    >
       <TaskCard task={task} {...props} />
     </div>
   );
@@ -99,8 +104,8 @@ export default function DailyTasks() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100,
-        tolerance: 8,
+        delay: 50,
+        tolerance: 10,
       },
     })
   );
