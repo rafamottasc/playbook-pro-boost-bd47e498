@@ -5,12 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, Circle, PlayCircle, CheckCircle2, ClipboardList } from "lucide-react";
+import { Settings, Plus, Circle, PlayCircle, CheckCircle2, ClipboardList, Trash2 } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
   closestCorners,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -85,6 +86,7 @@ export default function DailyTasks() {
   const [activeMobileStatusId, setActiveMobileStatusId] = useState<string | undefined>();
   
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showStatusManager, setShowStatusManager] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<DailyTask | null>(null);
   const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
@@ -98,6 +100,12 @@ export default function DailyTasks() {
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
       },
     })
   );
@@ -216,11 +224,21 @@ export default function DailyTasks() {
           {/* Botão Gerenciar Categorias */}
           <Button 
             variant="outline" 
-            className="w-full mb-4"
+            className="w-full mb-2"
             onClick={() => setShowCategoryManager(true)}
           >
             <Settings className="w-4 h-4 mr-2" />
             Gerenciar Categorias
+          </Button>
+
+          {/* Botão Gerenciar Etapas */}
+          <Button 
+            variant="outline" 
+            className="w-full mb-4"
+            onClick={() => setShowStatusManager(true)}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Gerenciar Etapas
           </Button>
 
           {/* Tabs de Status Dinâmicas com Drag and Drop */}
@@ -464,6 +482,69 @@ export default function DailyTasks() {
             <DialogTitle>Gerenciar Categorias</DialogTitle>
           </DialogHeader>
           <CategoryManager />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Gerenciar Etapas */}
+      <Dialog open={showStatusManager} onOpenChange={setShowStatusManager}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Etapas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Lista de etapas existentes */}
+            <div className="space-y-2">
+              {statuses.map(status => {
+                const tasksCount = (tasksByStatusId[status.id] || []).length;
+                return (
+                  <div key={status.id} className="flex items-center gap-2 p-3 border rounded-lg">
+                    <div 
+                      className="w-4 h-4 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: status.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{status.name}</p>
+                      <p className="text-xs text-muted-foreground">{tasksCount} tarefa(s)</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setColorPickerStatus({ id: status.id, name: status.name, color: status.color })}
+                      >
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                      {tasksCount === 0 && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteStatus(status.id)}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Botão criar nova etapa */}
+            {canCreateMore && (
+              <CreateStatusButton
+                onCreateStatus={(name) => createStatus({ name })}
+                canCreate={canCreateMore}
+                maxStatuses={maxStatuses}
+                currentCount={statuses.length}
+              />
+            )}
+
+            {!canCreateMore && (
+              <p className="text-xs text-muted-foreground text-center">
+                Limite de {maxStatuses} etapas atingido
+              </p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
