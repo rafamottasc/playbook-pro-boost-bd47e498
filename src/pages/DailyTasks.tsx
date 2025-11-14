@@ -104,8 +104,8 @@ export default function DailyTasks() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 1000,
-        tolerance: 10,
+        delay: 2000,
+        tolerance: 5,
       },
     })
   );
