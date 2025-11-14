@@ -47,9 +47,58 @@ export function TaskCard({
       task.done && "opacity-60 bg-muted/50",
       !task.done && "bg-card"
     )}>
-      <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
-        {/* Linha 1: Checkbox + Título + Botões de Ação */}
-        <div className="flex items-start gap-2 md:gap-3">
+      <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3 relative">
+        {/* Botões de ação - posicionamento absoluto no canto superior direito */}
+        <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-start gap-1 z-10">
+          {/* Expand button - visible on both mobile and desktop */}
+          {hasExpandableContent && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="h-7 w-7 md:h-8 md:w-8"
+            >
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </Button>
+          )}
+
+          {/* Menu "⋮" em desktop e mobile */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(task)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDuplicate(task.id)}>
+                <Copy className="mr-2 h-4 w-4" />
+                Duplicar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onDelete(task.id)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Linha 1: Checkbox + Título (com padding para não sobrepor os botões) */}
+        <div className="flex items-start gap-2 md:gap-3 pr-16 md:pr-20">
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
@@ -70,57 +119,6 @@ export function TaskCard({
             >
               {task.title}
             </h3>
-          </div>
-
-          {/* Botões de ação - agrupados e responsivos */}
-          <div className="flex items-start gap-1 flex-shrink-0">
-            {/* Expand button - visible on both mobile and desktop */}
-            {hasExpandableContent && (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(!isExpanded);
-                }}
-                className="h-7 w-7 md:h-8 md:w-8"
-              >
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </Button>
-            )}
-
-            {/* Menu "⋮" em desktop e mobile */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(task)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(task.id)}>
-                <Copy className="w-4 h-4 mr-2" />
-                Duplicar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onDelete(task.id)}
-                className="text-destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
 
