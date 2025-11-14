@@ -4,8 +4,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, Circle, PlayCircle, CheckCircle2, ClipboardList, Trash2 } from "lucide-react";
+import { Settings, Plus, ClipboardList, Trash2 } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -80,10 +79,8 @@ export default function DailyTasks() {
   const { tasksByStatusId, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask, toggleChecklistItem } = useTasks();
   const { statuses, createStatus, updateStatus, deleteStatus, canCreateMore, maxStatuses } = useTaskStatuses();
   const { getChecklistProgress } = useTaskChecklistProgress();
-  
-  // Para mobile: usar os 3 primeiros status como tabs
-  const mobileStatuses = statuses.slice(0, 3);
-  const [activeMobileStatusId, setActiveMobileStatusId] = useState<string | undefined>();
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
   
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showStatusManager, setShowStatusManager] = useState(false);
@@ -93,8 +90,6 @@ export default function DailyTasks() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [colorPickerStatus, setColorPickerStatus] = useState<{ id: string; name: string; color: string } | null>(null);
-  const isMobile = useIsMobile();
-  const { toast } = useToast();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -159,11 +154,11 @@ export default function DailyTasks() {
     let targetStatus: string | undefined;
     
     // Checar se foi solto sobre um status id válido
-    if (mobileStatuses.some(s => s.id === over.id)) {
+    if (statuses.some(s => s.id === over.id)) {
       targetStatus = over.id as string;
     } else {
       // Se foi solto sobre uma tarefa, encontrar o status dessa tarefa
-      for (const statusId of mobileStatuses.map(s => s.id)) {
+      for (const statusId of statuses.map(s => s.id)) {
         if (tasksByStatusId[statusId]?.some(t => t.id === over.id)) {
           targetStatus = statusId;
           break;
@@ -175,13 +170,25 @@ export default function DailyTasks() {
 
     // Encontra a tarefa arrastada
     let taskToMove: DailyTask | undefined;
-    for (const statusId of mobileStatuses.map(s => s.id)) {
+    for (const statusId of statuses.map(s => s.id)) {
       taskToMove = tasksByStatusId[statusId]?.find(t => t.id === taskId);
       if (taskToMove) break;
     }
 
     if (taskToMove && taskToMove.status_id !== targetStatus) {
       moveTaskToStatus(taskId, targetStatus);
+    }
+  };
+
+  const handleCreateStatus = async (name: string) => {
+    try {
+      await createStatus({ name });
+      toast({
+        title: "Etapa criada",
+        description: `A etapa "${name}" foi criada com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Erro ao criar etapa:', error);
     }
   };
 
@@ -193,214 +200,65 @@ export default function DailyTasks() {
     );
   }
 
-  // Mobile Layout - Tabs
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-6 pb-24">
-          {/* Header Compacto */}
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ClipboardList className="w-6 h-6 text-primary" />
-              Minhas Tarefas
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Organize suas tarefas diárias
-            </p>
-          </div>
-
-          {/* Progresso */}
-          <Card className="mb-4">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Progresso</span>
-                <span className="font-semibold">{stats.completed}/{stats.total}</span>
-              </div>
-              <Progress value={stats.completionRate} className="h-2" />
-            </CardContent>
-          </Card>
-
-          {/* Botão Gerenciar Categorias */}
-          <Button 
-            variant="outline" 
-            className="w-full mb-2"
-            onClick={() => setShowCategoryManager(true)}
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Gerenciar Categorias
-          </Button>
-
-          {/* Botão Gerenciar Etapas */}
-          <Button 
-            variant="outline" 
-            className="w-full mb-4"
-            onClick={() => setShowStatusManager(true)}
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Gerenciar Etapas
-          </Button>
-
-          {/* Tabs de Status Dinâmicas com Drag and Drop */}
-          <DndContext 
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragEnd={handleDragEnd}
-          >
-            {mobileStatuses.length > 0 && (
-              <Tabs 
-                value={activeMobileStatusId || mobileStatuses[0]?.id} 
-                onValueChange={setActiveMobileStatusId}
-              >
-                <TabsList className="grid w-full mb-4" style={{ gridTemplateColumns: `repeat(${mobileStatuses.length}, 1fr)` }}>
-                  {mobileStatuses.map(status => {
-                    const statusTasks = tasksByStatusId[status.id] || [];
-                    return (
-                      <TabsTrigger key={status.id} value={status.id} className="text-xs flex items-center gap-1">
-                        {status.name} ({statusTasks.length})
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
-
-                {/* Conteúdo de cada status */}
-                {mobileStatuses.map(status => {
-                  const statusTasks = tasksByStatusId[status.id] || [];
-                  
-                  return (
-                    <TabsContent key={status.id} value={status.id}>
-                      <DroppableStatus status={status.id}>
-                        {statusTasks.length === 0 ? (
-                          <div className="text-center py-12">
-                            <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
-                            <p className="text-sm text-muted-foreground">
-                              Nenhuma tarefa em "{status.name}"
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            <SortableContext 
-                              items={statusTasks.map(t => t.id)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              {statusTasks.map(task => (
-                                <DraggableTaskCard
-                                  key={task.id}
-                                  task={task}
-                                  onToggle={toggleTask}
-                                  onEdit={(t: DailyTask) => handleOpenTaskDialog(t)}
-                                  onDelete={handleDeleteTask}
-                                  onDuplicate={(id: string) => {
-                                    const taskToDup = statusTasks.find(t => t.id === id);
-                                    if (taskToDup) duplicateTask(taskToDup);
-                                  }}
-                                  onToggleChecklistItem={toggleChecklistItem}
-                                  checklistProgress={getChecklistProgress(task.id)}
-                                  onMoveToStatus={moveTaskToStatus}
-                                />
-                              ))}
-                            </SortableContext>
-                          </div>
-                        )}
-                      </DroppableStatus>
-                      
-                      <Button 
-                        variant="outline" 
-                        className="w-full mt-2"
-                        onClick={() => handleOpenTaskDialog(undefined, status.id)}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Nova Tarefa
-                      </Button>
-                    </TabsContent>
-                  );
-                })}
-              </Tabs>
-            )}
-          </DndContext>
-        </main>
-
-        {/* Dialogs */}
-        <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Gerenciar Categorias</DialogTitle>
-            </DialogHeader>
-            <CategoryManager />
-          </DialogContent>
-        </Dialog>
-
-      <TaskFormDialog
-        open={showTaskDialog}
-        onOpenChange={setShowTaskDialog}
-        task={editingTask}
-        defaultStatusId={defaultStatusId}
-        onSave={handleSaveTask}
-      />
-
-        <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta ação não pode ser desfeita. A tarefa será excluída permanentemente.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    );
-  }
-
-  // Desktop Layout - 3 Colunas
+  // Layout único - Kanban responsivo para mobile e desktop
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        {/* Header Desktop */}
-        <Card className="mb-6 shadow-sm">
-          <CardContent className="p-6">
+      <main className="container mx-auto px-2 md:px-4 py-4 md:py-8">
+        {/* Header Responsivo */}
+        <Card className="mb-4 md:mb-6 shadow-sm">
+          <CardContent className={cn("p-4", !isMobile && "md:p-6")}>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
-                  <ClipboardList className="w-8 h-8 text-primary" />
+                <h1 className={cn(
+                  "font-bold flex items-center gap-2",
+                  isMobile ? "text-2xl" : "text-3xl"
+                )}>
+                  <ClipboardList className={cn(isMobile ? "w-6 h-6" : "w-8 h-8", "text-primary")} />
                   Minhas Tarefas
                 </h1>
-                <p className="text-muted-foreground">
-                  Organize suas tarefas e projetos
+                <p className="text-sm text-muted-foreground">
+                  {isMobile ? "Organize suas tarefas" : "Organize suas tarefas e projetos"}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Progresso</p>
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-xs md:text-sm text-muted-foreground">Progresso</p>
+                <p className={cn("font-bold text-primary", isMobile ? "text-lg" : "text-2xl")}>
                   {stats.completed}/{stats.total}
                 </p>
-                <Progress value={stats.completionRate} className="w-32 h-2 mt-2" />
+                <Progress value={stats.completionRate} className={cn("h-2 mt-2", isMobile ? "w-20" : "w-32")} />
               </div>
             </div>
             
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" onClick={() => setShowCategoryManager(true)}>
+            <div className={cn("flex gap-2 mt-4", isMobile && "flex-col")}>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCategoryManager(true)}
+                className={cn(isMobile && "w-full")}
+              >
                 <Settings className="w-4 h-4 mr-2" />
                 Gerenciar Categorias
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowStatusManager(true)}
+                className={cn(isMobile && "w-full")}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Gerenciar Etapas
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Colunas Kanban Dinâmicas com Drag and Drop - Horizontal Scroll */}
+        {/* Kanban Board - Mobile e Desktop */}
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragEnd={handleDragEnd}
           onDragStart={(event) => setActiveId(event.active.id as string)}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {/* Renderizar colunas dinâmicas ordenadas */}
+          <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4">
             {statuses
               .sort((a, b) => a.display_order - b.display_order)
               .map(status => {
@@ -477,11 +335,56 @@ export default function DailyTasks() {
 
       {/* Dialogs */}
       <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>Gerenciar Categorias</DialogTitle>
           </DialogHeader>
           <CategoryManager />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showStatusManager} onOpenChange={setShowStatusManager}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto mx-4">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Etapas</DialogTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              Gerencie as etapas do seu quadro Kanban. Máximo {maxStatuses} etapas.
+            </p>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {statuses
+              .sort((a, b) => a.display_order - b.display_order)
+              .map((status) => (
+                <div 
+                  key={status.id}
+                  className="flex items-center justify-between p-3 border rounded-lg bg-card"
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <div 
+                      className="w-4 h-4 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: status.color }}
+                    />
+                    <span className="font-medium">{status.name}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setColorPickerStatus({ id: status.id, name: status.name, color: status.color })}
+                    >
+                      Cor
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteStatus(status.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -571,7 +474,7 @@ export default function DailyTasks() {
       )}
 
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="mx-4">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -584,6 +487,19 @@ export default function DailyTasks() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {colorPickerStatus && (
+        <StatusColorPicker
+          open={!!colorPickerStatus}
+          onOpenChange={(open) => !open && setColorPickerStatus(null)}
+          statusName={colorPickerStatus.name}
+          currentColor={colorPickerStatus.color}
+          onSelectColor={(color) => {
+            updateStatus({ id: colorPickerStatus.id, color });
+            setColorPickerStatus(null);
+          }}
+        />
+      )}
     </div>
   );
 }
