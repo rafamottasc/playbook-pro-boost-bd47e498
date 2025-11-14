@@ -317,14 +317,14 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSa
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent className="max-h-[85vh]">
           <DrawerHeader>
             <DrawerTitle>{task ? 'Editar Tarefa' : 'Nova Tarefa'}</DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 overflow-y-auto">
+          <div className="px-4 pb-4 overflow-y-auto flex-1">
             {FormContent}
           </div>
-          <DrawerFooter className="flex-row gap-2">
+          <DrawerFooter className="flex-row gap-2 pb-safe">
             {FooterButtons}
           </DrawerFooter>
         </DrawerContent>
