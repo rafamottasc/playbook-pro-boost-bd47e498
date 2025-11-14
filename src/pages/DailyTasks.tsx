@@ -104,8 +104,8 @@ export default function DailyTasks() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 2000,
-        tolerance: 5,
+        delay: 250,
+        tolerance: 8,
       },
     })
   );
@@ -155,10 +155,24 @@ export default function DailyTasks() {
 
     const taskId = active.id as string;
     
+    // Encontra a tarefa arrastada e seu status atual
+    let taskToMove: DailyTask | undefined;
+    let currentStatusId: string | undefined;
+    
+    for (const statusId of statuses.map(s => s.id)) {
+      taskToMove = tasksByStatusId[statusId]?.find(t => t.id === taskId);
+      if (taskToMove) {
+        currentStatusId = statusId;
+        break;
+      }
+    }
+
+    if (!taskToMove) return;
+    
     // Verificar se foi solto sobre um status
     let targetStatus: string | undefined;
     
-    // Checar se foi solto sobre um status id válido
+    // Checar se foi solto diretamente sobre um status (área droppable)
     if (statuses.some(s => s.id === over.id)) {
       targetStatus = over.id as string;
     } else {
@@ -171,16 +185,13 @@ export default function DailyTasks() {
       }
     }
 
-    if (!targetStatus) return;
-
-    // Encontra a tarefa arrastada
-    let taskToMove: DailyTask | undefined;
-    for (const statusId of statuses.map(s => s.id)) {
-      taskToMove = tasksByStatusId[statusId]?.find(t => t.id === taskId);
-      if (taskToMove) break;
+    // Se não encontrou targetStatus, manter no status atual
+    if (!targetStatus) {
+      targetStatus = currentStatusId;
     }
 
-    if (taskToMove && taskToMove.status_id !== targetStatus) {
+    // Só mover se o status de destino for diferente do atual
+    if (targetStatus && targetStatus !== currentStatusId) {
       moveTaskToStatus(taskId, targetStatus);
     }
   };
