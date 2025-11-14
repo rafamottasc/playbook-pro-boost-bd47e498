@@ -47,7 +47,7 @@ export function TaskCard({
       task.done && "opacity-60 bg-muted/50",
       !task.done && "bg-card"
     )}>
-      <CardContent className="px-2 py-3 md:px-2 md:py-4 space-y-2 md:space-y-3 relative">
+      <CardContent className="px-3 py-3 md:px-3 md:py-4 space-y-2 md:space-y-3 relative">
         {/* Botões de ação - posicionamento absoluto no canto superior direito */}
         <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-start gap-1 z-10">
           {/* Expand button - visible on both mobile and desktop */}
@@ -97,33 +97,32 @@ export function TaskCard({
           </DropdownMenu>
         </div>
 
-        {/* Linha 1: Checkbox + Título (com padding para não sobrepor os botões) */}
-        <div className="flex items-start gap-2 md:gap-3 pr-4 md:pr-6">
+        {/* Linha 1: Checkbox + PriorityBadge */}
+        <div className="flex items-center gap-2 md:gap-3">
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
-            className="mt-1 h-5 w-5"
+            className="h-5 w-5"
           />
-          
-          <div className="flex-1 min-w-0">
-            <div className="mb-1.5">
-              <PriorityBadge priority={task.priority} size="sm" />
-            </div>
-            <h3 
-              className={cn(
-                "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors",
-                "break-words whitespace-normal leading-snug",
-                task.done && "line-through text-muted-foreground"
-              )}
-              onClick={() => onEdit(task)}
-            >
-              {task.title}
-            </h3>
-          </div>
+          <PriorityBadge priority={task.priority} size="sm" />
         </div>
 
-        {/* Linha 2: Badges */}
-        <div className="flex flex-wrap gap-2 ml-7 md:ml-8">
+        {/* Linha 2: Título ocupando toda largura */}
+        <div className="pr-4 md:pr-6">
+          <h3 
+            className={cn(
+              "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors",
+              "break-words whitespace-normal leading-snug",
+              task.done && "line-through text-muted-foreground"
+            )}
+            onClick={() => onEdit(task)}
+          >
+            {task.title}
+          </h3>
+        </div>
+
+        {/* Linha 3: Badges */}
+        <div className="flex flex-wrap gap-2">
           {task.category && <CategoryBadge category={task.category} size="sm" />}
           {task.scheduled_time && (
             <Badge variant="outline" className="text-xs">
@@ -157,8 +156,8 @@ export function TaskCard({
           )}
         </div>
 
-        {/* Linha 3: Informações resumidas */}
-        <div className="ml-7 md:ml-8 space-y-1.5">
+        {/* Linha 4: Informações resumidas */}
+        <div className="space-y-1.5">
           {/* Notas - resumo */}
           {task.notes && !isExpanded && (
             <p className="text-xs text-muted-foreground flex items-start gap-2">
@@ -194,7 +193,7 @@ export function TaskCard({
 
         {/* Conteúdo Expandido */}
         {isExpanded && (
-          <div className="ml-7 md:ml-8 space-y-2 md:space-y-2.5 lg:space-y-3 pt-2 border-t">
+          <div className="space-y-2 md:space-y-2.5 lg:space-y-3 pt-2 border-t">
             {/* Notas completas */}
             {task.notes && (
               <div className="space-y-1">
