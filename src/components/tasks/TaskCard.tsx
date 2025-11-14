@@ -47,7 +47,7 @@ export function TaskCard({
       task.done && "opacity-60 bg-muted/50",
       !task.done && "bg-card"
     )}>
-      <CardContent className="px-3 py-3 md:px-3 md:py-4 space-y-2 md:space-y-3 relative">
+      <CardContent className="px-4 py-3 md:px-4 md:py-4 space-y-2 md:space-y-3 relative">
         {/* Botões de ação - posicionamento absoluto no canto superior direito */}
         <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-start gap-1 z-10">
           {/* Expand button - visible on both mobile and desktop */}
