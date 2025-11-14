@@ -76,14 +76,17 @@ function DroppableStatus({
 }
 
 export default function DailyTasks() {
-  const { tasksByStatus, tasksByStatusId, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask, toggleChecklistItem } = useTasks();
+  const { tasksByStatusId, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask, toggleChecklistItem } = useTasks();
   const { statuses, createStatus, updateStatus, deleteStatus, canCreateMore, maxStatuses } = useTaskStatuses();
   const { getChecklistProgress } = useTaskChecklistProgress();
-  const [activeStatus, setActiveStatus] = useState<'todo' | 'in_progress' | 'done'>('todo');
+  
+  // Para mobile: usar os 3 primeiros status como tabs
+  const mobileStatuses = statuses.slice(0, 3);
+  const [activeMobileStatusId, setActiveMobileStatusId] = useState<string | undefined>();
+  
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<DailyTask | null>(null);
-  const [defaultStatus, setDefaultStatus] = useState<'todo' | 'in_progress' | 'done' | undefined>();
   const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -99,8 +102,7 @@ export default function DailyTasks() {
     })
   );
 
-  const handleOpenTaskDialog = (status?: 'todo' | 'in_progress' | 'done', task?: DailyTask, statusId?: string) => {
-    setDefaultStatus(status);
+  const handleOpenTaskDialog = (task?: DailyTask, statusId?: string) => {
     setDefaultStatusId(statusId);
     setEditingTask(task || null);
     setShowTaskDialog(true);
@@ -111,17 +113,15 @@ export default function DailyTasks() {
       if (editingTask) {
         await updateTask({ id: editingTask.id, ...taskData });
       } else {
-        // Criar com status ou status_id definido
+        // Criar com status_id definido
         await createTask({ 
           ...taskData, 
-          status: taskData.status || defaultStatus || 'todo',
-          status_id: defaultStatusId,
-          done: (taskData.status || defaultStatus) === 'done'
+          status_id: defaultStatusId || statuses[0]?.id, // Usa primeiro status como padrão
+          done: false
         } as any);
       }
       setShowTaskDialog(false);
       setEditingTask(null);
-      setDefaultStatus(undefined);
       setDefaultStatusId(undefined);
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
@@ -222,78 +222,82 @@ export default function DailyTasks() {
             Gerenciar Categorias
           </Button>
 
-          {/* Tabs de Status com Drag and Drop */}
+          {/* Tabs de Status Dinâmicas com Drag and Drop */}
           <DndContext 
             sensors={sensors}
             collisionDetection={closestCorners}
-            onDragEnd={handleDragEnd}
+            onDragEnd={handleDragEndMobile}
           >
-            <Tabs value={activeStatus} onValueChange={(v) => setActiveStatus(v as any)}>
-              <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="todo" className="text-xs flex items-center gap-1">
-                  <Circle className="w-3 h-3" /> Para Fazer ({tasksByStatus.todo.length})
-                </TabsTrigger>
-                <TabsTrigger value="in_progress" className="text-xs flex items-center gap-1">
-                  <PlayCircle className="w-3 h-3" /> Andamento ({tasksByStatus.in_progress.length})
-                </TabsTrigger>
-                <TabsTrigger value="done" className="text-xs flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Concluído ({tasksByStatus.done.length})
-                </TabsTrigger>
-              </TabsList>
+            {mobileStatuses.length > 0 && (
+              <Tabs 
+                value={activeMobileStatusId || mobileStatuses[0]?.id} 
+                onValueChange={setActiveMobileStatusId}
+              >
+                <TabsList className="grid w-full mb-4" style={{ gridTemplateColumns: `repeat(${mobileStatuses.length}, 1fr)` }}>
+                  {mobileStatuses.map(status => {
+                    const statusTasks = tasksByStatusId[status.id] || [];
+                    return (
+                      <TabsTrigger key={status.id} value={status.id} className="text-xs flex items-center gap-1">
+                        {status.name} ({statusTasks.length})
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
 
-              {/* Conteúdo de cada status */}
-              {(['todo', 'in_progress', 'done'] as const).map(status => (
-                <TabsContent key={status} value={status}>
-                  <DroppableStatus status={status}>
-                    {tasksByStatus[status].length === 0 ? (
-                      <div className="text-center py-12">
-                        {status === 'todo' && <Circle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
-                        {status === 'in_progress' && <PlayCircle className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
-                        {status === 'done' && <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
-                        <p className="text-sm text-muted-foreground">
-                          {status === 'todo' && 'Nenhuma tarefa para fazer'}
-                          {status === 'in_progress' && 'Nenhuma tarefa em andamento'}
-                          {status === 'done' && 'Nenhuma tarefa concluída'}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <SortableContext 
-                          items={tasksByStatus[status].map(t => t.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {tasksByStatus[status].map(task => (
-                            <DraggableTaskCard
-                              key={task.id}
-                              task={task}
-                              onToggle={toggleTask}
-                              onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
-                              onDelete={handleDeleteTask}
-                              onDuplicate={(id: string) => {
-                                const taskToDup = tasksByStatus[status].find(t => t.id === id);
-                                if (taskToDup) duplicateTask(taskToDup);
-                              }}
-                              onToggleChecklistItem={toggleChecklistItem}
-                              checklistProgress={getChecklistProgress(task.id)}
-                              onMoveToStatus={moveTaskToStatus}
-                            />
-                          ))}
-                        </SortableContext>
-                      </div>
-                    )}
-                  </DroppableStatus>
+                {/* Conteúdo de cada status */}
+                {mobileStatuses.map(status => {
+                  const statusTasks = tasksByStatusId[status.id] || [];
                   
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-2"
-                    onClick={() => handleOpenTaskDialog(status)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Tarefa
-                  </Button>
-                </TabsContent>
-              ))}
-            </Tabs>
+                  return (
+                    <TabsContent key={status.id} value={status.id}>
+                      <DroppableStatus status={status.id}>
+                        {statusTasks.length === 0 ? (
+                          <div className="text-center py-12">
+                            <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">
+                              Nenhuma tarefa em "{status.name}"
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <SortableContext 
+                              items={statusTasks.map(t => t.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {statusTasks.map(task => (
+                                <DraggableTaskCard
+                                  key={task.id}
+                                  task={task}
+                                  onToggle={toggleTask}
+                                  onEdit={(t: DailyTask) => handleOpenTaskDialog(t)}
+                                  onDelete={handleDeleteTask}
+                                  onDuplicate={(id: string) => {
+                                    const taskToDup = statusTasks.find(t => t.id === id);
+                                    if (taskToDup) duplicateTask(taskToDup);
+                                  }}
+                                  onToggleChecklistItem={toggleChecklistItem}
+                                  checklistProgress={getChecklistProgress(task.id)}
+                                  onMoveToStatus={moveTaskToStatus}
+                                />
+                              ))}
+                            </SortableContext>
+                          </div>
+                        )}
+                      </DroppableStatus>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-2"
+                        onClick={() => handleOpenTaskDialog(undefined, status.id)}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Tarefa
+                      </Button>
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            )}
           </DndContext>
         </main>
 
@@ -311,7 +315,7 @@ export default function DailyTasks() {
         open={showTaskDialog}
         onOpenChange={setShowTaskDialog}
         task={editingTask}
-        defaultStatus={defaultStatus}
+        defaultStatus={defaultStatusId}
         onSave={handleSaveTask}
       />
 
@@ -431,7 +435,7 @@ export default function DailyTasks() {
                       <Button 
                         variant="outline" 
                         className="w-full mt-3"
-                        onClick={() => handleOpenTaskDialog(undefined, undefined, status.id)}
+                        onClick={() => handleOpenTaskDialog(undefined, status.id)}
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Nova Tarefa
@@ -466,7 +470,7 @@ export default function DailyTasks() {
         open={showTaskDialog}
         onOpenChange={setShowTaskDialog}
         task={editingTask}
-        defaultStatus={defaultStatus}
+        defaultStatus={defaultStatusId}
         onSave={handleSaveTask}
       />
 
