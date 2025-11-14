@@ -148,15 +148,16 @@ export default function DailyTasks() {
     const taskId = active.id as string;
     
     // Verificar se foi solto sobre um status
-    let targetStatus: 'todo' | 'in_progress' | 'done' | undefined;
+    let targetStatus: string | undefined;
     
-    if (['todo', 'in_progress', 'done'].includes(over.id as string)) {
-      targetStatus = over.id as 'todo' | 'in_progress' | 'done';
+    // Checar se foi solto sobre um status id válido
+    if (mobileStatuses.some(s => s.id === over.id)) {
+      targetStatus = over.id as string;
     } else {
       // Se foi solto sobre uma tarefa, encontrar o status dessa tarefa
-      for (const status of ['todo', 'in_progress', 'done'] as const) {
-        if (tasksByStatus[status].some(t => t.id === over.id)) {
-          targetStatus = status;
+      for (const statusId of mobileStatuses.map(s => s.id)) {
+        if (tasksByStatusId[statusId]?.some(t => t.id === over.id)) {
+          targetStatus = statusId;
           break;
         }
       }
@@ -166,12 +167,12 @@ export default function DailyTasks() {
 
     // Encontra a tarefa arrastada
     let taskToMove: DailyTask | undefined;
-    for (const status of ['todo', 'in_progress', 'done'] as const) {
-      taskToMove = tasksByStatus[status].find(t => t.id === taskId);
+    for (const statusId of mobileStatuses.map(s => s.id)) {
+      taskToMove = tasksByStatusId[statusId]?.find(t => t.id === taskId);
       if (taskToMove) break;
     }
 
-    if (taskToMove && taskToMove.status !== targetStatus) {
+    if (taskToMove && taskToMove.status_id !== targetStatus) {
       moveTaskToStatus(taskId, targetStatus);
     }
   };
@@ -226,7 +227,7 @@ export default function DailyTasks() {
           <DndContext 
             sensors={sensors}
             collisionDetection={closestCorners}
-            onDragEnd={handleDragEndMobile}
+            onDragEnd={handleDragEnd}
           >
             {mobileStatuses.length > 0 && (
               <Tabs 
@@ -315,7 +316,7 @@ export default function DailyTasks() {
         open={showTaskDialog}
         onOpenChange={setShowTaskDialog}
         task={editingTask}
-        defaultStatus={defaultStatusId}
+        defaultStatusId={defaultStatusId}
         onSave={handleSaveTask}
       />
 
@@ -416,7 +417,7 @@ export default function DailyTasks() {
                                   key={task.id}
                                   task={task}
                                   onToggle={toggleTask}
-                                  onEdit={(t: DailyTask) => handleOpenTaskDialog(undefined, t)}
+                                  onEdit={handleOpenTaskDialog}
                                   onDelete={handleDeleteTask}
                                   onDuplicate={(id: string) => {
                                     const taskToDup = statusTasks.find(t => t.id === id);
@@ -470,7 +471,7 @@ export default function DailyTasks() {
         open={showTaskDialog}
         onOpenChange={setShowTaskDialog}
         task={editingTask}
-        defaultStatus={defaultStatusId}
+        defaultStatusId={defaultStatusId}
         onSave={handleSaveTask}
       />
 

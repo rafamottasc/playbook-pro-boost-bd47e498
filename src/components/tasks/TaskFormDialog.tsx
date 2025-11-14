@@ -25,18 +25,18 @@ interface TaskFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   task?: DailyTask | null;
-  defaultStatus?: 'todo' | 'in_progress' | 'done';
+  defaultStatusId?: string;
   onSave: (taskData: Partial<DailyTask>) => void;
 }
 
-export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave }: TaskFormDialogProps) {
+export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSave }: TaskFormDialogProps) {
   const isMobile = useIsMobile();
   const { categories } = useTaskCategories();
 
   const [formData, setFormData] = useState({
     title: '',
     category_id: null as string | null,
-    status: defaultStatus || 'todo' as 'todo' | 'in_progress' | 'done',
+    status_id: defaultStatusId || '',
     task_date: new Date().toISOString().split('T')[0],
     scheduled_time: '',
     priority: 'normal' as 'baixa' | 'normal' | 'importante' | 'urgente',
@@ -57,7 +57,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       setFormData({
         title: '',
         category_id: null,
-        status: defaultStatus || 'todo',
+        status_id: defaultStatusId || '',
         task_date: dateToUse,
         scheduled_time: '',
         priority: 'normal',
@@ -74,7 +74,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       setFormData({
         title: task.title || '',
         category_id: task.category_id || null,
-        status: task.status || 'todo',
+        status_id: task.status_id || defaultStatusId || '',
         task_date: task.task_date || new Date().toISOString().split('T')[0],
         scheduled_time: task.scheduled_time || '',
         priority: task.priority || 'normal',
@@ -87,7 +87,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
       setContacts(task.contacts || []);
       setAttachments(task.attachments || []);
     }
-  }, [open, task, defaultStatus]);
+  }, [open, task, defaultStatusId]);
 
   const handleSave = () => {
     if (!formData.title.trim()) return;
@@ -112,7 +112,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatus, onSave
     setFormData({
       title: '',
       category_id: null,
-      status: defaultStatus || 'todo',
+      status_id: defaultStatusId || '',
       task_date: dateToUse,
       scheduled_time: '',
       priority: 'normal',
