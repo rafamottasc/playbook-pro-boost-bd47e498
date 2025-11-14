@@ -56,11 +56,11 @@ export function TaskCard({
             className="mt-1 h-5 w-5"
           />
           
-          <div className="flex-1 min-w-0 flex items-start gap-2">
+          <div className="flex-1 min-w-0">
             <h3 
               className={cn(
                 "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors",
-                "break-words whitespace-normal leading-snug flex-1",
+                "break-words whitespace-normal leading-snug mb-1.5",
                 task.done && "line-through text-muted-foreground"
               )}
               onClick={() => onEdit(task)}
@@ -68,7 +68,7 @@ export function TaskCard({
               {task.title}
             </h3>
             
-            <PriorityBadge priority={task.priority} size="sm" className="flex-shrink-0" />
+            <PriorityBadge priority={task.priority} size="sm" />
           </div>
 
           {/* Botões de ação - agrupados e responsivos */}

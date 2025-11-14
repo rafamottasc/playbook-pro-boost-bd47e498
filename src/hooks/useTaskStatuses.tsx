@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export interface TaskStatus {
   id: string;
@@ -202,6 +203,50 @@ export function useTaskStatuses() {
       });
     },
   });
+
+  // Auto-criar etapas padrão para novos usuários
+  useEffect(() => {
+    const initializeDefaultStatuses = async () => {
+      // Só inicializar se não está carregando e não tem nenhuma etapa
+      if (isLoading || statuses.length > 0) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const defaultStatuses = [
+        { name: 'A Fazer', color: '#3b82f6', display_order: 0 },
+        { name: 'Em Andamento', color: '#f59e0b', display_order: 1 },
+        { name: 'Concluída', color: '#10b981', display_order: 2 },
+      ];
+
+      try {
+        for (const status of defaultStatuses) {
+          const slug = status.name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '');
+
+          await (supabase as any)
+            .from('task_statuses')
+            .insert({
+              user_id: user.id,
+              name: status.name,
+              slug,
+              color: status.color,
+              display_order: status.display_order,
+            });
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['task-statuses'] });
+      } catch (error) {
+        console.error('Erro ao criar etapas padrão:', error);
+      }
+    };
+
+    initializeDefaultStatuses();
+  }, [isLoading, statuses.length, queryClient]);
 
   return {
     statuses,
