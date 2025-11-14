@@ -56,22 +56,19 @@ export function TaskCard({
             className="mt-1 h-5 w-5"
           />
           
-          <div className="flex-1 min-w-0">
-            {/* Priority badge - Trello style acima do título */}
-            <div className="mb-1.5">
-              <PriorityBadge priority={task.priority} size="sm" />
-            </div>
-            
+          <div className="flex-1 min-w-0 flex items-start gap-2">
             <h3 
               className={cn(
                 "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors",
-                "break-words whitespace-normal leading-snug min-h-[1.5rem]",
+                "break-words whitespace-normal leading-snug flex-1",
                 task.done && "line-through text-muted-foreground"
               )}
               onClick={() => onEdit(task)}
             >
               {task.title}
             </h3>
+            
+            <PriorityBadge priority={task.priority} size="sm" className="flex-shrink-0" />
           </div>
 
           {/* Botões de ação - agrupados e responsivos */}
