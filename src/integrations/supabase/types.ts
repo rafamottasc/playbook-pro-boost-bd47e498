@@ -493,7 +493,7 @@ export type Database = {
           priority: string
           recurrence: string | null
           scheduled_time: string | null
-          status: string
+          status_id: string
           task_date: string
           title: string
           updated_at: string
@@ -511,7 +511,7 @@ export type Database = {
           priority?: string
           recurrence?: string | null
           scheduled_time?: string | null
-          status?: string
+          status_id: string
           task_date?: string
           title: string
           updated_at?: string
@@ -529,7 +529,7 @@ export type Database = {
           priority?: string
           recurrence?: string | null
           scheduled_time?: string | null
-          status?: string
+          status_id?: string
           task_date?: string
           title?: string
           updated_at?: string
@@ -541,6 +541,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_tasks_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "task_statuses"
             referencedColumns: ["id"]
           },
         ]
@@ -1897,6 +1904,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_statuses: {
+        Row: {
+          color: string
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       teams: {
         Row: {

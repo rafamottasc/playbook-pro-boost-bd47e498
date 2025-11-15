@@ -133,8 +133,9 @@ export function useTasks() {
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: async (newTask: Omit<Partial<DailyTask>, 'title'> & { 
+    mutationFn: async (newTask: Omit<Partial<DailyTask>, 'title' | 'status_id'> & { 
       title: string;
+      status_id: string; // status_id é obrigatório
       checklist_items?: ChecklistItem[];
       contacts?: TaskContact[];
     }) => {
