@@ -97,22 +97,18 @@ export function TaskCard({
           </DropdownMenu>
         </div>
 
-        {/* Linha 1: Checkbox + PriorityBadge */}
-        <div className="flex items-center gap-2 md:gap-3">
+        {/* Header: Checkbox, Prioridade e Título */}
+        <div className="flex items-start gap-2">
           <Checkbox
             checked={task.done}
             onCheckedChange={() => onToggle(task.id, task.done)}
-            className="h-5 w-5"
+            className="h-5 w-5 flex-shrink-0 mt-0.5"
           />
-          <PriorityBadge priority={task.priority} size="sm" />
-        </div>
-
-        {/* Linha 2: Título ocupando toda largura */}
-        <div className="pr-4 md:pr-6">
+          <PriorityBadge priority={task.priority} size="sm" className="flex-shrink-0" />
           <h3 
             className={cn(
-              "font-medium text-sm md:text-base cursor-pointer hover:text-primary transition-colors",
-              "break-words whitespace-normal leading-snug",
+              "font-medium cursor-pointer hover:text-primary transition-colors flex-1 pr-16 md:pr-20",
+              "break-words whitespace-normal leading-snug text-[0.95rem]",
               task.done && "line-through text-muted-foreground"
             )}
             onClick={() => onEdit(task)}
@@ -132,19 +128,11 @@ export function TaskCard({
           )}
           {task.task_date && (() => {
             const { variant, className } = getDeadlineBadgeColor(task.task_date, task.done ? 'done' : 'todo');
-            const deadline = new Date(task.task_date + 'T00:00:00');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            deadline.setHours(0, 0, 0, 0);
-            const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
+            
             return (
               <Badge variant={variant} className={cn("text-xs font-medium", className)}>
                 <CalendarIcon className="w-3 h-3 mr-1" />
                 {format(new Date(task.task_date + 'T00:00:00'), "dd MMM", { locale: ptBR })}
-                {!task.done && daysUntil < 0 && (
-                  <span className="ml-1 font-semibold">ATRASADO</span>
-                )}
               </Badge>
             );
           })()}
