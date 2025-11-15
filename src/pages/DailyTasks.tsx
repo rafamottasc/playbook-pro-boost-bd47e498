@@ -10,7 +10,6 @@ import {
   DragOverlay,
   closestCorners,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -98,15 +97,14 @@ export default function DailyTasks() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 8,
-      },
+      activationConstraint: isMobile
+        ? {
+            delay: 2000,      // Aguarda 2 segundos com dedo parado
+            tolerance: 5,     // Permite micro movimentos (5px)
+          }
+        : {
+            distance: 8,      // Desktop: arrasta após mover 8px
+          }
     })
   );
 
