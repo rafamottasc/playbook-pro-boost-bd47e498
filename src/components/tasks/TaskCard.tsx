@@ -97,17 +97,23 @@ export function TaskCard({
           </DropdownMenu>
         </div>
 
-        {/* Header: Checkbox, Prioridade e Título */}
-        <div className="flex items-start gap-2">
-          <Checkbox
-            checked={task.done}
-            onCheckedChange={() => onToggle(task.id, task.done)}
-            className="h-5 w-5 flex-shrink-0 mt-0.5"
-          />
-          <PriorityBadge priority={task.priority} size="sm" className="flex-shrink-0" />
+        {/* Header: Reorganizado em duas linhas */}
+        <div className="flex flex-col gap-2">
+          {/* Linha 1: Checkbox + Tag de Prioridade */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={task.done}
+              onCheckedChange={() => onToggle(task.id, task.done)}
+              className="h-5 w-5 flex-shrink-0"
+            />
+            <PriorityBadge priority={task.priority} size="sm" className="flex-shrink-0" />
+          </div>
+
+          {/* Linha 2: Título ocupando toda a largura */}
           <h3 
             className={cn(
-              "font-medium cursor-pointer hover:text-primary transition-colors flex-1 pr-16 md:pr-20",
+              "font-medium cursor-pointer hover:text-primary transition-colors",
+              "w-full pr-16 md:pr-20",
               "break-words whitespace-normal leading-snug text-[0.95rem]",
               task.done && "line-through text-muted-foreground"
             )}
