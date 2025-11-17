@@ -113,7 +113,7 @@ export function TaskCard({
           <h3 
             className={cn(
               "font-medium cursor-pointer hover:text-primary transition-colors",
-              "w-full pr-16",
+              "w-full",
               "break-words whitespace-normal leading-snug text-[0.95rem]",
               task.done && "line-through text-muted-foreground"
             )}
@@ -154,7 +154,7 @@ export function TaskCard({
         <div className="space-y-1.5">
           {/* Notas - resumo */}
           {task.notes && !isExpanded && (
-            <p className="text-xs text-muted-foreground flex items-start gap-2 pr-16">
+            <p className="text-xs text-muted-foreground flex items-start gap-2">
               <FileText className="w-3 h-3 mt-0.5 flex-shrink-0" />
               <span className="line-clamp-2">{task.notes}</span>
             </p>
