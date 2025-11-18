@@ -99,7 +99,7 @@ export default function DailyTasks() {
     useSensor(PointerSensor, {
       activationConstraint: isMobile
         ? {
-            delay: 2000,      // Aguarda 2 segundos com dedo parado
+            delay: 250,       // Aguarda 250ms com dedo parado
             tolerance: 5,     // Permite micro movimentos (5px)
           }
         : {
