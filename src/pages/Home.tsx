@@ -47,38 +47,38 @@ export default function Home() {
 
   const navigationCards: NavCard[] = [
     {
+      title: "Calculadora de Fluxo",
+      description: "Simule e gere propostas",
+      icon: <Calculator className="w-12 h-12" />,
+      route: "/calculator",
+    },
+    {
       title: "Playbooks de Atendimento",
-      description: "Acesse mensagens prontas e abordagens estratégicas para suas conversas",
+      description: "Mensagens e abordagens prontas",
       icon: <MessageSquare className="w-12 h-12" />,
       route: "/playbooks",
     },
     {
       title: "Treinamentos Gerais",
-      description: "Treinamentos completos e materiais de capacitação profissional",
+      description: "Conteúdos completos de capacitação",
       icon: <GraduationCap className="w-12 h-12" />,
       route: "/academy/modules",
     },
     {
       title: "Central de Recursos",
-      description: "Materiais de apoio, guias, PDFs e documentos úteis",
+      description: "Guias, PDFs e documentos úteis",
       icon: <FolderOpen className="w-12 h-12" />,
       route: "/resources",
     },
     {
       title: "Construtoras Parceiras",
-      description: "Informações e materiais das construtoras parceiras",
+      description: "Informações essenciais das construtoras",
       icon: <Building2 className="w-12 h-12" />,
       route: "/campaigns/partners",
     },
     {
-      title: "Calculadora de Fluxo",
-      description: "Simule condições de pagamento e gere propostas profissionais",
-      icon: <Calculator className="w-12 h-12" />,
-      route: "/calculator",
-    },
-    {
       title: "Campanhas Ativas",
-      description: "Acompanhe campanhas e resultados de construtoras",
+      description: "Acompanhe campanhas de anúncio",
       icon: <TrendingUp className="w-12 h-12" />,
       route: "/campaigns",
     },
@@ -93,13 +93,10 @@ export default function Home() {
         <main className="container mx-auto px-4 py-8">
           {/* Welcome Section */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold mb-2 text-foreground flex items-center justify-center gap-2">
+          <h1 className="text-4xl font-bold mb-2 text-foreground flex items-center justify-center gap-2">
               {greeting}, {firstName}!
               <Hand className="h-8 w-8 text-primary" />
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Selecione uma seção para começar
-            </p>
           </div>
 
           {/* Announcement Banner */}
