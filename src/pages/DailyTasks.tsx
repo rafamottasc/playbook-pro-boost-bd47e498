@@ -97,14 +97,9 @@ export default function DailyTasks() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: isMobile
-        ? {
-            delay: 250,       // Aguarda 250ms com dedo parado
-            tolerance: 5,     // Permite micro movimentos (5px)
-          }
-        : {
-            distance: 8,      // Desktop: arrasta após mover 8px
-          }
+      activationConstraint: {
+        distance: 10,  // Arrasta após mover 10px (mobile e desktop)
+      }
     })
   );
 
