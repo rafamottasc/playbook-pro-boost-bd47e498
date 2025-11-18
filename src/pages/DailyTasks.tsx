@@ -222,38 +222,59 @@ export default function DailyTasks() {
         {/* Header Responsivo */}
         <Card className="mb-4 md:mb-6 shadow-sm">
           <CardContent className={cn("p-4", !isMobile && "md:p-6")}>
-            <div className="flex items-center justify-between">
-              <div>
+            {/* Header compacto em uma linha */}
+            <div className="flex items-center justify-between gap-4">
+              {/* Título */}
+              <div className="flex items-center gap-2">
+                <ClipboardList className={cn(isMobile ? "w-6 h-6" : "w-7 h-7", "text-primary")} />
                 <h1 className={cn(
-                  "font-bold flex items-center gap-2",
-                  isMobile ? "text-2xl" : "text-3xl"
+                  "font-bold",
+                  isMobile ? "text-xl" : "text-2xl md:text-3xl"
                 )}>
-                  <ClipboardList className={cn(isMobile ? "w-6 h-6" : "w-8 h-8", "text-primary")} />
                   Minhas Tarefas
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {isMobile ? "Organize suas tarefas" : "Organize suas tarefas e projetos"}
-                </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs md:text-sm text-muted-foreground">Progresso</p>
-                <p className={cn("font-bold text-primary", isMobile ? "text-lg" : "text-2xl")}>
-                  {stats.completed}/{stats.total}
-                </p>
-                <Progress value={stats.completionRate} className={cn("h-2 mt-2", isMobile ? "w-20" : "w-32")} />
+              
+              {/* Botão Gerenciar Categorias - apenas desktop */}
+              {!isMobile && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCategoryManager(true)}
+                  className="flex items-center gap-2 shrink-0"
+                >
+                  <Settings className="w-4 h-4" />
+                  Gerenciar Categorias
+                </Button>
+              )}
+              
+              {/* Progresso */}
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Progresso</p>
+                  <p className={cn("font-bold text-primary", isMobile ? "text-lg" : "text-lg md:text-xl")}>
+                    {stats.completed}/{stats.total}
+                  </p>
+                </div>
+                <Progress 
+                  value={stats.completionRate} 
+                  className={cn("h-2", isMobile ? "w-16" : "w-20 md:w-24")} 
+                />
               </div>
             </div>
             
-            <div className={cn("flex gap-2 mt-4", isMobile && "flex-col")}>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowCategoryManager(true)}
-                className={cn(isMobile && "w-full")}
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Gerenciar Categorias
-              </Button>
-            </div>
+            {/* Botão mobile - linha separada */}
+            {isMobile && (
+              <div className="mt-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCategoryManager(true)}
+                  className="w-full"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Gerenciar Categorias
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
