@@ -342,21 +342,21 @@ export default function Profile() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="team">Equipe</Label>
+                  <Label htmlFor="team">Departamento</Label>
                   <Select
                     value={profile.team || "none"}
                     onValueChange={(value) => setProfile({ ...profile, team: value === "none" ? "" : value })}
                     disabled={loading || teamsLoading}
                   >
                     <SelectTrigger id="team">
-                      <SelectValue placeholder="Selecione sua equipe" />
+                      <SelectValue placeholder="Selecione seu departamento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Nenhuma equipe</SelectItem>
+                      <SelectItem value="none">Nenhum departamento</SelectItem>
                       {teams.length === 0 && !teamsLoading ? (
                         <div className="p-2 text-sm text-muted-foreground text-center">
-                          Nenhuma equipe disponível.<br />
-                          Peça ao administrador para criar equipes.
+                          Nenhum departamento disponível.<br />
+                          Peça ao administrador para criar departamentos.
                         </div>
               ) : (
                 teams.map((team) => (
@@ -368,15 +368,15 @@ export default function Profile() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Identifica sua equipe dentro da imobiliária
+                    Identifica seu departamento dentro da imobiliária
                   </p>
                   
                   {profile.team && !teams.some(t => t.name === profile.team) && profile.team !== "" && (
                     <div className="flex items-start gap-2 p-2 bg-muted rounded-md text-xs">
                       <AlertCircle className="h-3 w-3 text-muted-foreground mt-0.5" />
                       <span className="text-muted-foreground">
-                        Sua equipe atual <strong>"{profile.team}"</strong> foi desativada. 
-                        Você pode continuar com ela ou escolher outra.
+                        Seu departamento atual <strong>"{profile.team}"</strong> foi desativado. 
+                        Você pode continuar com ele ou escolher outro.
                       </span>
                     </div>
                   )}

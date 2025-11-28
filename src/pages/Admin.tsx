@@ -186,7 +186,7 @@ export default function Admin() {
                 </TabsTrigger>
                 <TabsTrigger value="teams" className="gap-2">
                   <Users2 className="h-4 w-4" />
-                  Equipes
+                  Departamentos
                 </TabsTrigger>
                 <TabsTrigger value="rooms" className="gap-2">
                   <DoorOpen className="h-4 w-4" />
