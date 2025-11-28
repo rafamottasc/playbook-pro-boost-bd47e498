@@ -253,11 +253,11 @@ const MoodMetricsOptimized = React.memo(() => {
         {summary.teamMoods && summary.teamMoods.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Comparação por Time</CardTitle>
+              <CardTitle>Comparação por Departamento</CardTitle>
             </CardHeader>
             <CardContent>
               {(() => {
-                // Calcular total de votos de todas as equipes
+                // Calcular total de votos de todos os departamentos
                 const totalVotes = summary.teamMoods.reduce((acc: number, team: any) => acc + (team.voteCount || 0), 0);
                 
                 return (
@@ -318,9 +318,9 @@ const MoodMetricsOptimized = React.memo(() => {
               </Select>
             </div>
 
-            {/* Filtro por Equipe */}
+            {/* Filtro por Departamento */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Equipe:</span>
+              <span className="text-sm text-muted-foreground">Departamento:</span>
               <Select
                 value={selectedTeam || "all"}
                 onValueChange={(value) => {
@@ -329,10 +329,10 @@ const MoodMetricsOptimized = React.memo(() => {
                 }}
               >
                 <SelectTrigger className="w-[180px] text-foreground">
-                  <SelectValue placeholder="Todas" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as equipes</SelectItem>
+                  <SelectItem value="all">Todos os departamentos</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team} value={team}>
                       {team}
@@ -372,7 +372,7 @@ const MoodMetricsOptimized = React.memo(() => {
               <TableRow>
                 <TableHead>Usuário</TableHead>
                 <TableHead>Clima</TableHead>
-                <TableHead>Time</TableHead>
+                <TableHead>Departamento</TableHead>
                 <TableHead>Data</TableHead>
               </TableRow>
             </TableHeader>

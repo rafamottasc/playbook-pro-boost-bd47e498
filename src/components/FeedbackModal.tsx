@@ -152,7 +152,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               htmlFor="includeTeam"
               className="text-sm cursor-pointer leading-none"
             >
-              Incluir minha equipe (opcional, para contexto)
+              Incluir meu departamento (opcional, para contexto)
             </Label>
           </div>
 

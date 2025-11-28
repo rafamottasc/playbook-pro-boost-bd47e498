@@ -37,7 +37,7 @@ export function TeamsManager() {
 
     if (error) {
       toast({
-        title: "Erro ao carregar equipes",
+        title: "Erro ao carregar departamentos",
         description: error.message,
         variant: "destructive",
       });
@@ -51,7 +51,7 @@ export function TeamsManager() {
     if (!newTeamName.trim()) {
       toast({
         title: "Nome obrigatório",
-        description: "Insira um nome para a equipe",
+        description: "Insira um nome para o departamento",
         variant: "destructive",
       });
       return;
@@ -68,14 +68,14 @@ export function TeamsManager() {
 
     if (error) {
       toast({
-        title: "Erro ao criar equipe",
+        title: "Erro ao criar departamento",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Equipe criada!",
-        description: `${newTeamName} foi adicionada com sucesso.`,
+        title: "Departamento criado!",
+        description: `${newTeamName} foi adicionado com sucesso.`,
       });
       setNewTeamName("");
       loadTeams();
@@ -92,16 +92,16 @@ export function TeamsManager() {
 
     if (error) {
       toast({
-        title: "Erro ao atualizar equipe",
+        title: "Erro ao atualizar departamento",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: currentActive ? "Equipe desativada" : "Equipe ativada",
+        title: currentActive ? "Departamento desativado" : "Departamento ativado",
         description: currentActive 
-          ? "A equipe não aparecerá mais na seleção, mas usuários vinculados mantêm seus dados."
-          : "A equipe está ativa novamente.",
+          ? "O departamento não aparecerá mais na seleção, mas usuários vinculados mantêm seus dados."
+          : "O departamento está ativo novamente.",
       });
       loadTeams();
     }
@@ -109,7 +109,7 @@ export function TeamsManager() {
 
   const handleDeleteTeam = async (teamId: string, teamName: string) => {
     try {
-      console.log('Tentando excluir equipe:', teamId);
+      console.log('Tentando excluir departamento:', teamId);
       
       const { error, data } = await supabase
         .from("teams")
@@ -122,7 +122,7 @@ export function TeamsManager() {
       if (error) {
         console.error('Erro ao excluir:', error);
         toast({
-          title: "Erro ao excluir equipe",
+          title: "Erro ao excluir departamento",
           description: error.message,
           variant: "destructive",
         });
@@ -130,15 +130,15 @@ export function TeamsManager() {
       }
 
       toast({
-        title: "Equipe excluída",
-        description: `${teamName} foi removida permanentemente.`,
+        title: "Departamento excluído",
+        description: `${teamName} foi removido permanentemente.`,
       });
       
       await loadTeams();
     } catch (err) {
       console.error('Erro inesperado:', err);
       toast({
-        title: "Erro ao excluir equipe",
+        title: "Erro ao excluir departamento",
         description: "Ocorreu um erro inesperado. Verifique o console.",
         variant: "destructive",
       });
@@ -150,16 +150,16 @@ export function TeamsManager() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users2 className="h-5 w-5" />
-          Gerenciar Equipes
+          Gerenciar Departamentos
         </CardTitle>
         <CardDescription>
-          Crie ou gerencie as equipes (ou áreas) da sua empresa. Os usuários poderão escolher entre elas em seus perfis.
+          Crie ou gerencie os departamentos da sua empresa. Os usuários poderão escolher entre eles em seus perfis.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
-            placeholder="Nome da nova equipe"
+            placeholder="Nome do novo departamento"
             value={newTeamName}
             onChange={(e) => setNewTeamName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddTeam()}
@@ -180,11 +180,11 @@ export function TeamsManager() {
 
         {loading ? (
           <div className="text-center py-8 text-muted-foreground">
-            Carregando equipes...
+            Carregando departamentos...
           </div>
         ) : teams.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            Nenhuma equipe cadastrada ainda
+            Nenhum departamento cadastrado ainda
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -198,7 +198,7 @@ export function TeamsManager() {
                     <p className="font-medium">{team.name}</p>
                     {!team.active && (
                       <Badge variant="secondary" className="text-xs">
-                        Desativada
+                        Desativado
                       </Badge>
                     )}
                   </div>
@@ -221,7 +221,7 @@ export function TeamsManager() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir equipe?</AlertDialogTitle>
+                        <AlertDialogTitle>Excluir departamento?</AlertDialogTitle>
                         <AlertDialogDescription>
                           <div className="space-y-2">
                             <p>Tem certeza que deseja excluir <strong>{team.name}</strong>?</p>
@@ -258,10 +258,10 @@ export function TeamsManager() {
         <div className="p-4 bg-muted/50 rounded-lg space-y-2 text-sm">
           <p className="font-medium">ℹ️ Como funciona:</p>
           <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-            <li>Equipes ativas aparecem na seleção de perfil dos usuários</li>
-            <li>Desativar uma equipe a esconde, mas mantém vínculos existentes</li>
-            <li>Usuários vinculados a equipes desativadas verão "Equipe desativada" no perfil</li>
-            <li>Você pode reativar equipes a qualquer momento</li>
+            <li>Departamentos ativos aparecem na seleção de perfil dos usuários</li>
+            <li>Desativar um departamento o esconde, mas mantém vínculos existentes</li>
+            <li>Usuários vinculados a departamentos desativados verão "Departamento desativado" no perfil</li>
+            <li>Você pode reativar departamentos a qualquer momento</li>
           </ul>
         </div>
       </CardContent>

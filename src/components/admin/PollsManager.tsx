@@ -372,7 +372,7 @@ export function PollsManager() {
                     <div className="flex gap-2 flex-wrap">
                       <Badge variant={status.color as any}>{status.label}</Badge>
                       <Badge variant="outline">
-                        {poll.target_audience === 'all' ? 'Todos' : poll.target_audience.replace('team:', 'Equipe: ')}
+                        {poll.target_audience === 'all' ? 'Todos' : poll.target_audience.replace('team:', 'Departamento: ')}
                       </Badge>
                       <Badge variant="outline">
                         {poll.allow_multiple ? 'Múltiplas respostas' : 'Resposta única'}
