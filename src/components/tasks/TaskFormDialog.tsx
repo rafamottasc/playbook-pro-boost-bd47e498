@@ -21,6 +21,11 @@ import { TaskAttachmentsManager } from "./TaskAttachmentsManager";
 import { CategoryBadge } from "./CategoryBadge";
 import type { DailyTask, ChecklistItem, TaskContact, TaskAttachment } from "@/hooks/useTasks";
 
+// Constantes de validação
+const TITLE_MIN_LENGTH = 3;
+const TITLE_MAX_LENGTH = 200;
+const NOTES_MAX_LENGTH = 2000;
+
 interface TaskFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,6 +54,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSa
   const [contacts, setContacts] = useState<TaskContact[]>([]);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [errors, setErrors] = useState({ title: '', notes: '' });
 
   useEffect(() => {
     if (open && !task) {
@@ -90,7 +96,29 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSa
   }, [open, task, defaultStatusId]);
 
   const handleSave = () => {
-    if (!formData.title.trim()) return;
+    const trimmedTitle = formData.title.trim();
+    const newErrors = { title: '', notes: '' };
+    
+    // Validar título
+    if (trimmedTitle.length < TITLE_MIN_LENGTH) {
+      newErrors.title = `O título deve ter pelo menos ${TITLE_MIN_LENGTH} caracteres`;
+    } else if (trimmedTitle.length > TITLE_MAX_LENGTH) {
+      newErrors.title = `O título deve ter no máximo ${TITLE_MAX_LENGTH} caracteres`;
+    }
+    
+    // Validar notas
+    if (formData.notes && formData.notes.length > NOTES_MAX_LENGTH) {
+      newErrors.notes = `As notas devem ter no máximo ${NOTES_MAX_LENGTH} caracteres`;
+    }
+    
+    // Se houver erros, não salvar
+    if (newErrors.title || newErrors.notes) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    // Limpar erros
+    setErrors({ title: '', notes: '' });
     
     // Converter "__none__" e strings vazias em null para category_id
     const categoryId = formData.category_id === '__none__' || !formData.category_id 
@@ -135,8 +163,21 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSa
           id="title"
           placeholder="Ex: Ligar para o cliente"
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, title: e.target.value });
+            if (errors.title) setErrors(prev => ({ ...prev, title: '' }));
+          }}
+          className={errors.title ? "border-destructive" : ""}
+          maxLength={TITLE_MAX_LENGTH}
         />
+        <div className="flex justify-between text-xs">
+          {errors.title ? (
+            <span className="text-destructive">{errors.title}</span>
+          ) : (
+            <span className="text-muted-foreground">Mínimo {TITLE_MIN_LENGTH} caracteres</span>
+          )}
+          <span className="text-muted-foreground">{formData.title.length}/{TITLE_MAX_LENGTH}</span>
+        </div>
       </div>
 
       {/* Notas/Detalhes */}
@@ -146,9 +187,18 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSa
           id="notes"
           placeholder="Adicione observações..."
           value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, notes: e.target.value });
+            if (errors.notes) setErrors(prev => ({ ...prev, notes: '' }));
+          }}
           rows={3}
+          className={errors.notes ? "border-destructive" : ""}
+          maxLength={NOTES_MAX_LENGTH}
         />
+        <div className="flex justify-between text-xs">
+          {errors.notes && <span className="text-destructive">{errors.notes}</span>}
+          <span className="text-muted-foreground ml-auto">{formData.notes.length}/{NOTES_MAX_LENGTH}</span>
+        </div>
       </div>
 
       {/* Categoria, Prioridade e Recorrência */}
@@ -308,7 +358,7 @@ export function TaskFormDialog({ open, onOpenChange, task, defaultStatusId, onSa
       <Button variant="outline" onClick={() => onOpenChange(false)}>
         Cancelar
       </Button>
-      <Button onClick={handleSave} disabled={!formData.title.trim()}>
+      <Button onClick={handleSave} disabled={formData.title.trim().length < TITLE_MIN_LENGTH}>
         {task ? 'Salvar' : 'Criar Tarefa'}
       </Button>
     </>
