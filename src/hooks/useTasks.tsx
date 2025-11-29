@@ -60,6 +60,27 @@ export interface DailyTask {
   attachments?: TaskAttachment[];
 }
 
+// Função para traduzir erros do banco de dados para português
+const translateDatabaseError = (errorMessage: string): string => {
+  const errorMap: Record<string, string> = {
+    'daily_tasks_title_check': 'O título deve ter entre 3 e 200 caracteres',
+    'daily_tasks_notes_check': 'As notas devem ter no máximo 2000 caracteres',
+    'daily_tasks_period_check': 'Período inválido. Use: manha, tarde ou noite',
+    'daily_tasks_priority_check': 'Prioridade inválida. Use: baixa, normal, importante ou urgente',
+    'daily_tasks_recurrence_check': 'Recorrência inválida',
+    'violates row-level security': 'Você não tem permissão para realizar esta ação',
+    'duplicate key': 'Este registro já existe',
+  };
+  
+  for (const [key, translation] of Object.entries(errorMap)) {
+    if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
+      return translation;
+    }
+  }
+  
+  return errorMessage;
+};
+
 export function useTasks() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -195,7 +216,7 @@ export function useTasks() {
     onError: (error) => {
       toast({ 
         title: "Erro ao criar tarefa", 
-        description: error.message,
+        description: translateDatabaseError(error.message),
         variant: "destructive"
       });
     },
@@ -275,7 +296,7 @@ export function useTasks() {
     onError: (error) => {
       toast({ 
         title: "Erro ao atualizar", 
-        description: error.message,
+        description: translateDatabaseError(error.message),
         variant: "destructive" 
       });
     },
@@ -298,7 +319,7 @@ export function useTasks() {
     onError: (error) => {
       toast({ 
         title: "Erro ao excluir", 
-        description: error.message,
+        description: translateDatabaseError(error.message),
         variant: "destructive" 
       });
     },
