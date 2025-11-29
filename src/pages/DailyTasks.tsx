@@ -15,11 +15,11 @@ import {
   DragEndEvent,
   useDroppable,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, horizontalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useTasks } from "@/hooks/useTasks";
-import { useTaskStatuses } from "@/hooks/useTaskStatuses";
+import { useTaskStatuses, TaskStatus } from "@/hooks/useTaskStatuses";
 import { useTaskChecklistProgress } from "@/hooks/useTaskChecklistProgress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryManager } from "@/components/tasks/CategoryManager";
@@ -80,9 +80,35 @@ function DroppableStatus({
   );
 }
 
+// Componente wrapper para colunas de status sortáveis
+function SortableStatusColumn({ 
+  status, 
+  children 
+}: { 
+  status: TaskStatus;
+  children: (dragHandleListeners: any) => React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `column-${status.id}`,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 'auto' as any,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {children(listeners)}
+    </div>
+  );
+}
+
 export default function DailyTasks() {
   const { tasksByStatusId, stats, isLoading, toggleTask, deleteTask, duplicateTask, moveTaskToStatus, createTask, updateTask, toggleChecklistItem } = useTasks();
-  const { statuses, createStatus, updateStatus, deleteStatus, canCreateMore, maxStatuses } = useTaskStatuses();
+  const { statuses, createStatus, updateStatus, deleteStatus, reorderStatuses, canCreateMore, maxStatuses } = useTaskStatuses();
   const { getChecklistProgress } = useTaskChecklistProgress();
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -146,7 +172,29 @@ export default function DailyTasks() {
 
     if (!over) return;
 
-    const taskId = active.id as string;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    // Verificar se é uma coluna sendo arrastada (começa com "column-")
+    if (activeId.startsWith('column-') && overId.startsWith('column-')) {
+      const activeStatusId = activeId.replace('column-', '');
+      const overStatusId = overId.replace('column-', '');
+      
+      if (activeStatusId !== overStatusId) {
+        const sortedStatuses = [...statuses].sort((a, b) => a.display_order - b.display_order);
+        const oldIndex = sortedStatuses.findIndex(s => s.id === activeStatusId);
+        const newIndex = sortedStatuses.findIndex(s => s.id === overStatusId);
+        
+        const reordered = arrayMove(sortedStatuses, oldIndex, newIndex);
+        const updates = reordered.map((s, i) => ({ id: s.id, display_order: i }));
+        
+        reorderStatuses(updates);
+      }
+      return;
+    }
+
+    // Lógica existente para mover tarefas
+    const taskId = activeId;
     
     // Encontra a tarefa arrastada e seu status atual
     let taskToMove: DailyTask | undefined;
@@ -280,78 +328,88 @@ export default function DailyTasks() {
           onDragEnd={handleDragEnd}
           onDragStart={(event) => setActiveId(event.active.id as string)}
         >
-          <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4">
-            {statuses
-              .sort((a, b) => a.display_order - b.display_order)
-              .map(status => {
-                const statusTasks = tasksByStatusId[status.id] || [];
-                
-                return (
-                  <Card key={status.id} className="min-w-[320px] max-w-[320px] shadow-sm flex flex-col">
-                    <StatusColumnHeader
-                      status={status}
-                      taskCount={statusTasks.length}
-                      onEditName={(newName) => updateStatus({ id: status.id, name: newName })}
-                      onEditColor={() => setColorPickerStatus({ id: status.id, name: status.name, color: status.color })}
-                      onDelete={() => deleteStatus(status.id)}
-                      canDelete={statusTasks.length === 0}
-                    />
-                    
-                    <CardContent className="p-4 flex-1 flex flex-col">
-                      <DroppableStatus status={status.id}>
-                        <SortableContext 
-                          items={statusTasks.map(t => t.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {statusTasks.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground">
-                              <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                              <p className="text-sm">Nenhuma tarefa</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              {statusTasks.map(task => (
-                                <DraggableTaskCard
-                                  key={task.id}
-                                  task={task}
-                                  onToggle={toggleTask}
-                                  onEdit={handleOpenTaskDialog}
-                                  onDelete={handleDeleteTask}
-                                  onDuplicate={(id: string) => {
-                                    const taskToDup = statusTasks.find(t => t.id === id);
-                                    if (taskToDup) duplicateTask(taskToDup);
-                                  }}
-                                  onToggleChecklistItem={toggleChecklistItem}
-                                  checklistProgress={getChecklistProgress(task.id)}
-                                  onMoveToStatus={moveTaskToStatus}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </SortableContext>
-                      </DroppableStatus>
+          <SortableContext 
+            items={statuses.sort((a, b) => a.display_order - b.display_order).map(s => `column-${s.id}`)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4">
+              {statuses
+                .sort((a, b) => a.display_order - b.display_order)
+                .map(status => {
+                  const statusTasks = tasksByStatusId[status.id] || [];
+                  
+                  return (
+                    <SortableStatusColumn key={status.id} status={status}>
+                      {(dragHandleListeners) => (
+                        <Card className="min-w-[320px] max-w-[320px] shadow-sm flex flex-col">
+                          <StatusColumnHeader
+                            status={status}
+                            taskCount={statusTasks.length}
+                            onEditName={(newName) => updateStatus({ id: status.id, name: newName })}
+                            onEditColor={() => setColorPickerStatus({ id: status.id, name: status.name, color: status.color })}
+                            onDelete={() => deleteStatus(status.id)}
+                            canDelete={statusTasks.length === 0}
+                            dragHandleListeners={dragHandleListeners}
+                          />
+                          
+                          <CardContent className="p-4 flex-1 flex flex-col">
+                            <DroppableStatus status={status.id}>
+                              <SortableContext 
+                                items={statusTasks.map(t => t.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {statusTasks.length === 0 ? (
+                                  <div className="text-center py-12 text-muted-foreground">
+                                    <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                                    <p className="text-sm">Nenhuma tarefa</p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {statusTasks.map(task => (
+                                      <DraggableTaskCard
+                                        key={task.id}
+                                        task={task}
+                                        onToggle={toggleTask}
+                                        onEdit={handleOpenTaskDialog}
+                                        onDelete={handleDeleteTask}
+                                        onDuplicate={(id: string) => {
+                                          const taskToDup = statusTasks.find(t => t.id === id);
+                                          if (taskToDup) duplicateTask(taskToDup);
+                                        }}
+                                        onToggleChecklistItem={toggleChecklistItem}
+                                        checklistProgress={getChecklistProgress(task.id)}
+                                        onMoveToStatus={moveTaskToStatus}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </SortableContext>
+                            </DroppableStatus>
 
-                      <Button 
-                        variant="outline" 
-                        className="w-full mt-3"
-                        onClick={() => handleOpenTaskDialog(undefined, status.id)}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Nova Tarefa
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                            <Button 
+                              variant="outline" 
+                              className="w-full mt-3"
+                              onClick={() => handleOpenTaskDialog(undefined, status.id)}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Nova Tarefa
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </SortableStatusColumn>
+                  );
+                })}
             
-            {/* Botão criar nova lista */}
-            <CreateStatusButton 
-              onCreateStatus={(name) => createStatus({ name })}
+              {/* Botão criar nova lista */}
+              <CreateStatusButton 
+                onCreateStatus={(name) => createStatus({ name })}
               canCreate={canCreateMore}
               maxStatuses={maxStatuses}
-              currentCount={statuses.length}
-            />
-          </div>
+                currentCount={statuses.length}
+              />
+            </div>
+          </SortableContext>
         </DndContext>
       </main>
 
