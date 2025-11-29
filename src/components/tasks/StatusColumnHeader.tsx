@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ interface StatusColumnHeaderProps {
   onEditColor: () => void;
   onDelete: () => void;
   canDelete: boolean;
+  dragHandleListeners?: any;
 }
 
 export function StatusColumnHeader({
@@ -27,6 +28,7 @@ export function StatusColumnHeader({
   onEditColor,
   onDelete,
   canDelete,
+  dragHandleListeners,
 }: StatusColumnHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(status.name);
@@ -56,13 +58,22 @@ export function StatusColumnHeader({
         borderTopWidth: '3px',
       }}
     >
+      {/* Drag Handle */}
+      <div 
+        {...dragHandleListeners}
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted/50 rounded touch-none"
+        title="Arraste para reordenar"
+      >
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+
       {isEditing ? (
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
-          className="h-8 text-sm font-semibold"
+          className="h-8 text-sm font-semibold flex-1"
           autoFocus
           maxLength={30}
         />
