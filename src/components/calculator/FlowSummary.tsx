@@ -20,6 +20,7 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
   };
   const isValid = Math.abs(result.totalPercentage - 100) < 5;
   const remaining = Math.max(0, 100 - result.totalPercentage);
+  const exceedsLimit = result.exceedsLimit;
 
   return (
     <Card className="animate-fade-in border-border bg-card">
@@ -29,15 +30,40 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
+        {/* Alerta de Limite Excedido */}
+        {exceedsLimit && (
+          <div className="p-3 bg-destructive/10 border-2 border-destructive rounded-lg animate-pulse">
+            <div className="flex items-center gap-2 text-destructive font-bold">
+              <span className="text-lg">🚨</span>
+              <span>LIMITE EXCEDIDO!</span>
+            </div>
+            <p className="text-sm text-destructive mt-1">
+              O total ultrapassa o valor do imóvel em{" "}
+              <strong>{currentCurrency.symbol} {formatValue(result.exceededAmount)}</strong>
+            </p>
+            <p className="text-xs text-destructive/80 mt-1">
+              Reduza os valores para não ultrapassar 100% do imóvel.
+            </p>
+          </div>
+        )}
+
         {/* Total Calculado */}
-        <div className="p-3 bg-card rounded-lg border border-border">
+        <div className={cn(
+          "p-3 rounded-lg border",
+          exceedsLimit 
+            ? "bg-destructive/5 border-destructive" 
+            : "bg-card border-border"
+        )}>
           {currentCurrency.code !== 'BRL' && (
             <p className="text-xs text-muted-foreground mb-1">
               Cotação: 1 {currentCurrency.code} = R$ {currentCurrency.rate.toFixed(2)}
             </p>
           )}
           <p className="text-sm text-muted-foreground">Total Calculado</p>
-          <p className="text-3xl font-bold text-primary">
+          <p className={cn(
+            "text-3xl font-bold",
+            exceedsLimit ? "text-destructive" : "text-primary"
+          )}>
             {currentCurrency.symbol} {formatValue(result.totalPaid)}
           </p>
           <p
@@ -45,20 +71,24 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
               "text-sm font-medium",
               result.totalPercentage >= 99 && result.totalPercentage <= 101
                 ? "text-green-600"
-                : result.totalPercentage > 101
-                ? "text-red-600"
+                : result.totalPercentage > 100.5
+                ? "text-destructive"
                 : "text-yellow-600"
             )}
           >
-            {result.totalPercentage >= 99 && result.totalPercentage <= 101 ? (
+            {result.totalPercentage >= 99 && result.totalPercentage <= 100.5 ? (
               <span className="text-green-600">✅ Valores fecham 100%</span>
-            ) : result.totalPercentage > 101 ? (
-              <span className="text-red-600">⚠️ {result.totalPercentage.toFixed(1)}% 🚨 Acima de 100%</span>
+            ) : result.totalPercentage > 100.5 ? (
+              <span className="text-destructive font-bold">
+                ❌ {result.totalPercentage.toFixed(1)}% - Excede o valor do imóvel!
+              </span>
             ) : (
               <>
-                <span className="text-green-600">⚠️ Pago {result.totalPercentage.toFixed(1)}%</span>
+                <span className="text-yellow-600">⚠️ Pago {result.totalPercentage.toFixed(1)}%</span>
                 {" "}
-                <span className="text-red-600">🚨 Falta {currentCurrency.symbol} {formatValue((propertyValue * remaining) / 100)}</span>
+                <span className="text-muted-foreground">
+                  Disponível: {currentCurrency.symbol} {formatValue(result.availableAmount)}
+                </span>
               </>
             )}
           </p>

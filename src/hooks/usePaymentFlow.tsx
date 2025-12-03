@@ -133,6 +133,10 @@ export interface CalculatedResult {
   cubWarning?: string;
   isValid: boolean;
   warnings: string[];
+  // Novas propriedades para validação de limite
+  exceedsLimit: boolean;
+  exceededAmount: number;
+  availableAmount: number;
 }
 
 export function usePaymentFlow() {
@@ -359,6 +363,11 @@ export function usePaymentFlow() {
       const percentageUntilDelivery = data.propertyValue > 0 ? (totalUntilDelivery / data.propertyValue) * 100 : 0;
       const percentageAfterDelivery = data.propertyValue > 0 ? (totalAfterDelivery / data.propertyValue) * 100 : 0;
 
+      // Calcular se excede o limite de 100%
+      const exceedsLimit = totalPercentage > 100.5; // Tolerância de 0.5% para arredondamentos
+      const exceededAmount = exceedsLimit ? totalPaid - data.propertyValue : 0;
+      const availableAmount = Math.max(0, data.propertyValue - totalPaid);
+
       // 9. Montar resultado
       const result: CalculatedResult = {
         downPayment: {
@@ -382,6 +391,9 @@ export function usePaymentFlow() {
         totalPercentage,
         warnings: [],
         isValid: true,
+        exceedsLimit,
+        exceededAmount,
+        availableAmount,
       };
 
       // Adicionar parcelas mensais ao resultado
