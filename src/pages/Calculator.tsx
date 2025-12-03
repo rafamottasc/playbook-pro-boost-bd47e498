@@ -293,6 +293,16 @@ export default function Calculator() {
       return;
     }
 
+    // Validar se não excede o valor do imóvel
+    if (result.exceedsLimit) {
+      toast({
+        title: "Valores excedem o limite!",
+        description: `O total calculado ultrapassa o valor do imóvel. Ajuste os valores antes de gerar o PDF.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const downPaymentValue = data.downPayment.type === 'percentage' && data.downPayment.percentage
       ? (data.downPayment.percentage / 100) * data.propertyValue
       : data.downPayment.value || 0;
@@ -340,6 +350,16 @@ export default function Calculator() {
       return;
     }
 
+    // Validar se não excede o valor do imóvel
+    if (result.exceedsLimit) {
+      toast({
+        title: "Valores excedem o limite!",
+        description: `O total calculado ultrapassa o valor do imóvel. Ajuste os valores antes de gerar o TXT.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -374,14 +394,20 @@ export default function Calculator() {
       return;
     }
 
-    const downPaymentValue = data.downPayment.type === 'percentage' && data.downPayment.percentage
-      ? (data.downPayment.percentage / 100) * data.propertyValue
-      : data.downPayment.value || 0;
-
     if (!data.propertyValue || data.propertyValue <= 0) {
       toast({
         title: "Valor do imóvel obrigatório",
         description: "Por favor, preencha o valor total do imóvel",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar se não excede o valor do imóvel
+    if (result.exceedsLimit) {
+      toast({
+        title: "Valores excedem o limite!",
+        description: `O total calculado ultrapassa o valor do imóvel em R$ ${(result.exceededAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}. Ajuste os valores antes de salvar.`,
         variant: "destructive",
       });
       return;
@@ -773,12 +799,29 @@ export default function Calculator() {
               <div className="sticky top-20 space-y-4">
                 <FlowSummary result={result} propertyValue={data.propertyValue} currency={data.currency} />
                 <div className="space-y-3">
+                  {result.exceedsLimit && (
+                    <p className="text-xs text-destructive text-center font-medium">
+                      ⚠️ Ajuste os valores antes de salvar ou baixar
+                    </p>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                    <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
+                    <Button 
+                      onClick={handleDownloadPDF} 
+                      className="w-full" 
+                      size="lg" 
+                      variant="outline"
+                      disabled={result.exceedsLimit}
+                    >
                       <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       <span className="text-sm sm:text-base">Baixar PDF</span>
                     </Button>
-                    <Button onClick={handleDownloadTXT} className="w-full" size="lg" variant="outline">
+                    <Button 
+                      onClick={handleDownloadTXT} 
+                      className="w-full" 
+                      size="lg" 
+                      variant="outline"
+                      disabled={result.exceedsLimit}
+                    >
                       <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       <span className="text-sm sm:text-base">Baixar TXT</span>
                     </Button>
@@ -787,7 +830,7 @@ export default function Calculator() {
                     onClick={handleSaveProposal}
                     className="w-full"
                     size="lg"
-                    disabled={isSaving}
+                    disabled={isSaving || result.exceedsLimit}
                   >
                     <Save className="mr-2 h-5 w-5" />
                     {isSaving ? "Salvando..." : "Salvar Proposta"}
@@ -800,12 +843,29 @@ export default function Calculator() {
             <div className="lg:hidden space-y-4">
               <FlowSummary result={result} propertyValue={data.propertyValue} currency={data.currency} />
               <div className="space-y-3">
+                {result.exceedsLimit && (
+                  <p className="text-xs text-destructive text-center font-medium">
+                    ⚠️ Ajuste os valores antes de salvar ou baixar
+                  </p>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  <Button onClick={handleDownloadPDF} className="w-full" size="lg" variant="outline">
+                  <Button 
+                    onClick={handleDownloadPDF} 
+                    className="w-full" 
+                    size="lg" 
+                    variant="outline"
+                    disabled={result.exceedsLimit}
+                  >
                     <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="text-sm sm:text-base">Baixar PDF</span>
                   </Button>
-                  <Button onClick={handleDownloadTXT} className="w-full" size="lg" variant="outline">
+                  <Button 
+                    onClick={handleDownloadTXT} 
+                    className="w-full" 
+                    size="lg" 
+                    variant="outline"
+                    disabled={result.exceedsLimit}
+                  >
                     <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="text-sm sm:text-base">Baixar TXT</span>
                   </Button>
@@ -814,7 +874,7 @@ export default function Calculator() {
                   onClick={handleSaveProposal}
                   className="w-full"
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || result.exceedsLimit}
                 >
                   <Save className="mr-2 h-5 w-5" />
                   {isSaving ? "Salvando..." : "Salvar Proposta"}
