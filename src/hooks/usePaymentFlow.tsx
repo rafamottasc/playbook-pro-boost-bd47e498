@@ -153,8 +153,8 @@ export function usePaymentFlow() {
     },
     downPayment: { type: 'percentage', percentage: 0, value: 0 },
     monthly: { enabled: false, autoCalculate: false },
-    semiannualReinforcement: { enabled: false, percentage: 8 },
-    annualReinforcement: { enabled: false, percentage: 8 },
+    semiannualReinforcement: { enabled: false },
+    annualReinforcement: { enabled: false },
     keysPayment: { type: 'percentage', percentage: 0, value: 0 },
   });
 
@@ -270,9 +270,10 @@ export function usePaymentFlow() {
       let totalSemiannual = 0;
       let semiannualValue = 0;
       if (data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count) {
-        if (data.semiannualReinforcement.value) {
+        // Só calcula se valor OU porcentagem foram explicitamente definidos (> 0)
+        if (data.semiannualReinforcement.value && data.semiannualReinforcement.value > 0) {
           semiannualValue = data.semiannualReinforcement.value;
-        } else if (data.semiannualReinforcement.percentage) {
+        } else if (data.semiannualReinforcement.percentage && data.semiannualReinforcement.percentage > 0) {
           semiannualValue = (data.semiannualReinforcement.percentage / 100) * data.propertyValue;
         }
         totalSemiannual = semiannualValue * data.semiannualReinforcement.count;
@@ -281,9 +282,10 @@ export function usePaymentFlow() {
       let totalAnnual = 0;
       let annualValue = 0;
       if (data.annualReinforcement?.enabled && data.annualReinforcement.count) {
-        if (data.annualReinforcement.value) {
+        // Só calcula se valor OU porcentagem foram explicitamente definidos (> 0)
+        if (data.annualReinforcement.value && data.annualReinforcement.value > 0) {
           annualValue = data.annualReinforcement.value;
-        } else if (data.annualReinforcement.percentage) {
+        } else if (data.annualReinforcement.percentage && data.annualReinforcement.percentage > 0) {
           annualValue = (data.annualReinforcement.percentage / 100) * data.propertyValue;
         }
         totalAnnual = annualValue * data.annualReinforcement.count;
