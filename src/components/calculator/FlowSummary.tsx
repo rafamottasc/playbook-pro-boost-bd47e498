@@ -30,22 +30,6 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
-        {/* Alerta de Limite Excedido */}
-        {exceedsLimit && (
-          <div className="p-3 bg-destructive/10 border-2 border-destructive rounded-lg animate-pulse">
-            <div className="flex items-center gap-2 text-destructive font-bold">
-              <span className="text-lg">🚨</span>
-              <span>LIMITE EXCEDIDO!</span>
-            </div>
-            <p className="text-sm text-destructive mt-1">
-              O total ultrapassa o valor do imóvel em{" "}
-              <strong>{currentCurrency.symbol} {formatValue(result.exceededAmount)}</strong>
-            </p>
-            <p className="text-xs text-destructive/80 mt-1">
-              Reduza os valores para não ultrapassar 100% do imóvel.
-            </p>
-          </div>
-        )}
 
         {/* Total Calculado */}
         <div className={cn(
