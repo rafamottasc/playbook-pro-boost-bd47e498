@@ -41,6 +41,23 @@ export function AtoSection({ data, onChange }: AtoSectionProps) {
 
   const handlePercentageChange = (value: string) => {
     const percentage = parseFloat(value) || 0;
+    
+    // Auto-switch: se valor > 100, converter para R$ (ninguém dá mais de 100% de entrada)
+    if (percentage > 100) {
+      const amount = percentage; // O número digitado é o valor em R$
+      const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+      onChange("downPayment", { 
+        ...data.downPayment, 
+        ato: {
+          ...data.downPayment.ato,
+          type: 'value',
+          value: amount,
+          percentage: calculatedPercentage
+        }
+      });
+      return;
+    }
+    
     const calculatedValue = (percentage / 100) * data.propertyValue;
     onChange("downPayment", { 
       ...data.downPayment, 

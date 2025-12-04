@@ -81,6 +81,21 @@ export function PaymentBlock({ type, data, onChange, calculatedValue }: PaymentB
 
   const handlePercentageChange = (value: string) => {
     const percentage = parseFloat(value) || 0;
+    
+    // Auto-switch: se valor > 100, converter para R$ (ninguém define mais de 100%)
+    if (percentage > 100) {
+      const amount = percentage; // O número digitado é o valor em R$
+      const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+      onChange(fieldName, { 
+        ...paymentData, 
+        type: 'value',
+        value: amount,
+        percentage: calculatedPercentage,
+        autoCalculate: false
+      });
+      return;
+    }
+    
     const calculatedValue = (percentage / 100) * data.propertyValue;
     onChange(fieldName, { 
       ...paymentData, 

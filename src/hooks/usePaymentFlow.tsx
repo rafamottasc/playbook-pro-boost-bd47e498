@@ -365,8 +365,8 @@ export function usePaymentFlow() {
       const percentageUntilDelivery = data.propertyValue > 0 ? (totalUntilDelivery / data.propertyValue) * 100 : 0;
       const percentageAfterDelivery = data.propertyValue > 0 ? (totalAfterDelivery / data.propertyValue) * 100 : 0;
 
-      // Calcular se excede o limite de 100%
-      const exceedsLimit = totalPercentage > 100.5; // Tolerância de 0.5% para arredondamentos
+      // Calcular se excede o limite de 100% (tolerância mínima de 0.01% para arredondamentos)
+      const exceedsLimit = totalPercentage > 100.01;
       const exceededAmount = exceedsLimit ? totalPaid - data.propertyValue : 0;
       const availableAmount = Math.max(0, data.propertyValue - totalPaid);
 
