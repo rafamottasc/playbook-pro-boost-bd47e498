@@ -259,7 +259,8 @@ export function usePaymentFlow() {
       // 2.5 Calcular início da obra
       let constructionStartValue = 0;
       if (data.constructionStartPayment) {
-        if (data.constructionStartPayment.type === 'percentage' && data.constructionStartPayment.percentage) {
+        // Se tipo é 'percentage' OU não definido (default), usa porcentagem
+        if ((data.constructionStartPayment.type === 'percentage' || !data.constructionStartPayment.type) && data.constructionStartPayment.percentage) {
           constructionStartValue = (data.constructionStartPayment.percentage / 100) * data.propertyValue;
         } else if (data.constructionStartPayment.type === 'value' && data.constructionStartPayment.value) {
           constructionStartValue = data.constructionStartPayment.value;

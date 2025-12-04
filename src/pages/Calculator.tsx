@@ -569,7 +569,7 @@ export default function Calculator() {
                       <Button 
                         type="button"
                         size="sm"
-                        variant={data.constructionStartPayment?.type === 'percentage' ? 'default' : 'outline'}
+                        variant={(data.constructionStartPayment?.type === 'percentage' || !data.constructionStartPayment?.type) ? 'default' : 'outline'}
                         onClick={() => {
                           const current = data.constructionStartPayment || { type: 'percentage' };
                           if (current.value) {
@@ -619,7 +619,7 @@ export default function Calculator() {
       {/* Campo Valor: 5 colunas */}
       <div className="md:col-span-5">
         <Label className="text-xs mb-1">Valor</Label>
-        {data.constructionStartPayment?.type === 'percentage' ? (
+        {(data.constructionStartPayment?.type === 'percentage' || !data.constructionStartPayment?.type) ? (
           <Input
             type="number"
             step="0.1"
