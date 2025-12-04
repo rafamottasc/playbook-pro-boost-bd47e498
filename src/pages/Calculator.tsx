@@ -483,6 +483,21 @@ export default function Calculator() {
 
   const handleKeysPercentageChange = (value: string) => {
     const percentage = parseFloat(value) || 0;
+    
+    // Auto-switch: se valor > 100, converter para R$ (ninguém dá mais de 100%)
+    if (percentage > 100) {
+      const amount = percentage; // O número digitado é o valor em R$
+      const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+      updateField("keysPayment", { 
+        ...data.keysPayment, 
+        type: 'value',
+        value: amount,
+        percentage: calculatedPercentage,
+        isSaldoMode: false
+      });
+      return;
+    }
+    
     const calculatedValue = (percentage / 100) * data.propertyValue;
     updateField("keysPayment", { 
       ...data.keysPayment, 
@@ -612,6 +627,20 @@ export default function Calculator() {
             value={data.constructionStartPayment.percentage || ""}
             onChange={(e) => {
               const percentage = parseFloat(e.target.value) || 0;
+              
+              // Auto-switch: se valor > 100, converter para R$ (ninguém dá mais de 100%)
+              if (percentage > 100) {
+                const amount = percentage; // O número digitado é o valor em R$
+                const calculatedPercentage = data.propertyValue > 0 ? (amount / data.propertyValue) * 100 : 0;
+                updateField("constructionStartPayment", { 
+                  ...data.constructionStartPayment, 
+                  type: 'value',
+                  value: amount,
+                  percentage: calculatedPercentage
+                });
+                return;
+              }
+              
               const calculatedValue = (percentage / 100) * data.propertyValue;
               updateField("constructionStartPayment", { 
                 ...data.constructionStartPayment, 
