@@ -24,17 +24,29 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // Se tinha erro e os children mudaram, reseta o estado
+    if (this.state.hasError && this.props.children !== prevProps.children) {
+      this.setState({ hasError: false, error: undefined });
+    }
+  }
+
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
     
-    logger.error("React Error Boundary caught error", {
-      action: "error_boundary",
-      metadata: {
-        error: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-      },
-    });
+    // Logger resiliente - não deixar falhar
+    try {
+      logger.error("React Error Boundary caught error", {
+        action: "error_boundary",
+        metadata: {
+          error: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+        },
+      });
+    } catch {
+      // Ignorar erros do logger
+    }
   }
 
   render() {
@@ -52,15 +64,25 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="mb-4">
                 Ocorreu um erro ao carregar esta página. Por favor, tente novamente.
               </p>
-              <Button
-                onClick={() => {
-                  this.setState({ hasError: false, error: undefined });
-                  window.location.href = "/";
-                }}
-                variant="outline"
-              >
-                Voltar para o início
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    this.setState({ hasError: false, error: undefined });
+                  }}
+                  variant="default"
+                >
+                  Tentar novamente
+                </Button>
+                <Button
+                  onClick={() => {
+                    this.setState({ hasError: false, error: undefined });
+                    window.location.href = "/";
+                  }}
+                  variant="outline"
+                >
+                  Voltar para o início
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         </div>

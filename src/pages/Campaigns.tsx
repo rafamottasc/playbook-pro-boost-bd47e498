@@ -342,7 +342,7 @@ export default function Campaigns() {
 
       resetForm();
       setIsDialogOpen(false);
-      fetchCampaigns();
+      await fetchCampaigns();
     } catch (error) {
       console.error("Error saving campaign:", error);
       toast({
@@ -374,7 +374,7 @@ export default function Campaigns() {
         description: "A campanha foi excluída com sucesso.",
       });
 
-      fetchCampaigns();
+      await fetchCampaigns();
     } catch (error) {
       console.error("Error deleting campaign:", error);
       toast({
