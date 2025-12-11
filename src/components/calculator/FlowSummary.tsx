@@ -160,7 +160,9 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {result.monthly.count}x de {" "}
-                {((result.monthly.total / result.monthly.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {currentCurrency.symbol} {formatValue(result.monthly.value)} ({result.monthly.percentage.toFixed(1)}%)
+                {result.monthly.count > 0 && result.totalPaid > 0 
+                  ? ((result.monthly.total / result.monthly.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1) 
+                  : "0.0"}% = {currentCurrency.symbol} {formatValue(result.monthly.value)} ({result.monthly.percentage.toFixed(1)}%)
               </div>
             </div>
           )}
@@ -172,7 +174,9 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {result.semiannualReinforcement.count}x de {" "}
-                {((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {currentCurrency.symbol} {formatValue(result.semiannualReinforcement.value)} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
+                {result.semiannualReinforcement.count > 0 && result.totalPaid > 0 
+                  ? ((result.semiannualReinforcement.total / result.semiannualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1) 
+                  : "0.0"}% = {currentCurrency.symbol} {formatValue(result.semiannualReinforcement.value)} ({result.semiannualReinforcement.percentage.toFixed(1)}%)
               </div>
             </div>
           )}
@@ -184,7 +188,9 @@ export function FlowSummary({ result, propertyValue, currency }: FlowSummaryProp
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {result.annualReinforcement.count}x de {" "}
-                {((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1)}% = {currentCurrency.symbol} {formatValue(result.annualReinforcement.value)} ({result.annualReinforcement.percentage.toFixed(1)}%)
+                {result.annualReinforcement.count > 0 && result.totalPaid > 0 
+                  ? ((result.annualReinforcement.total / result.annualReinforcement.count / result.totalPaid * 100) * (result.totalPercentage / 100)).toFixed(1) 
+                  : "0.0"}% = {currentCurrency.symbol} {formatValue(result.annualReinforcement.value)} ({result.annualReinforcement.percentage.toFixed(1)}%)
               </div>
             </div>
           )}
