@@ -624,7 +624,7 @@ export default function Calculator() {
             type="number"
             step="0.1"
             placeholder="5"
-            value={data.constructionStartPayment.percentage || ""}
+            value={data.constructionStartPayment?.percentage || ""}
             onChange={(e) => {
               const percentage = parseFloat(e.target.value) || 0;
               
