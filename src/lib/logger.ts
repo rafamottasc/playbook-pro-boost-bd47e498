@@ -36,12 +36,23 @@ class Logger {
       console[consoleMethod](`[${level.toUpperCase()}]`, message, context || '');
     }
 
-    // Em produção E desenvolvimento: salvar no Supabase
+    // Em produção E desenvolvimento: salvar no Supabase (de forma resiliente)
     try {
+      // Verificar se há sessão válida antes de tentar inserir
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        // Sem sessão válida, apenas log no console em desenvolvimento
+        if (this.isDevelopment) {
+          console.warn('Logger: No session, skipping database log');
+        }
+        return;
+      }
+      
       const { error } = await supabase.from('application_logs').insert({
         level,
         message,
-        user_id: context?.userId || null,
+        user_id: context?.userId || session.user.id,
         action: context?.action || null,
         metadata: context?.metadata || null,
         url,
@@ -52,7 +63,7 @@ class Logger {
         console.error('Failed to save log to Supabase:', error);
       }
     } catch (err) {
-      // Falha silenciosa em produção para não interromper fluxo
+      // Falha COMPLETAMENTE silenciosa - nunca propagar erros do logger
       if (this.isDevelopment) {
         console.error('Logger error:', err);
       }
