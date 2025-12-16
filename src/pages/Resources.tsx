@@ -53,6 +53,7 @@ export default function Resources() {
   const getIcon = (type: string) => {
     switch (type) {
       case "pdf": return FileText;
+      case "word": return FileText;
       case "link": return LinkIcon;
       case "video": return Video;
       default: return FileText;
@@ -123,7 +124,7 @@ export default function Resources() {
                               {resource.resource_type === "link" ? "Abrir" : "Visualizar"}
                               <ExternalLink className="h-3 w-3" />
                             </a>
-                            {(resource.resource_type === "pdf" || resource.resource_type === "image") && (
+                            {(resource.resource_type === "pdf" || resource.resource_type === "image" || resource.resource_type === "word") && (
                               <a
                                 href={`${resource.url}?download`}
                                 className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium"

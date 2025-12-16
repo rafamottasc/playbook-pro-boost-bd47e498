@@ -65,6 +65,7 @@ interface ResourceCategory {
 
 const RESOURCE_TYPES = [
   { id: "pdf", name: "PDF", icon: FileText },
+  { id: "word", name: "Word", icon: FileText },
   { id: "link", name: "Link", icon: Link },
   { id: "video", name: "Vídeo", icon: Video },
   { id: "image", name: "Imagem", icon: Image },
@@ -289,7 +290,7 @@ export function ResourcesManager() {
         .eq("id", resourceToDelete)
         .single();
 
-      if (resource && ['pdf', 'image'].includes(resource.resource_type)) {
+      if (resource && ['pdf', 'word', 'image'].includes(resource.resource_type)) {
         const filePath = resource.url.split('/resources/')[1];
         if (filePath) {
           await supabase.storage.from('resources').remove([filePath]);
@@ -449,7 +450,7 @@ export function ResourcesManager() {
   };
 
   const requiresFileUpload = () => {
-    return formData.resource_type === "pdf" || formData.resource_type === "image";
+    return ["pdf", "word", "image"].includes(formData.resource_type);
   };
 
   const getResourceIcon = (type: string) => {
@@ -635,7 +636,7 @@ export function ResourcesManager() {
                     <Input
                       id="file"
                       type="file"
-                      accept={formData.resource_type === "pdf" ? ".pdf" : "image/*"}
+                      accept={formData.resource_type === "pdf" ? ".pdf" : formData.resource_type === "word" ? ".doc,.docx" : "image/*"}
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                       className="pl-10"
                     />
