@@ -753,20 +753,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "meeting_audit_logs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meeting_audit_logs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users_with_roles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "meeting_audit_logs_performed_by_fkey"
             columns: ["performed_by"]
             isOneToOne: false
