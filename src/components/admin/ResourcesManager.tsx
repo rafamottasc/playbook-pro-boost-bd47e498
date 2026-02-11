@@ -721,7 +721,7 @@ export function ResourcesManager() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {categories.map((category) => (
-              <Card key={category.id} className="p-4 hover:shadow-md transition-shadow">
+              <Card key={category.id} className="p-4 hover:shadow-md transition-shadow border-l-4 border-l-primary bg-primary/5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
