@@ -36,7 +36,7 @@ export default function Calculator() {
   const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data, updateField, calculate, setData } = usePaymentFlow();
+  const { data, updateField, calculate, setData, cubWarning } = usePaymentFlow();
   const [isSaving, setIsSaving] = useState(false);
 
   const result = calculate();
@@ -539,6 +539,12 @@ export default function Calculator() {
               Histórico
             </Button>
           </div>
+          {cubWarning && (
+            <div className="flex items-center gap-2 text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-200 dark:border-yellow-800 rounded-lg px-3 py-2 mb-4">
+              <span>{cubWarning}</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Form Column */}
             <div className="lg:col-span-2 space-y-4">

@@ -497,5 +497,5 @@ export function usePaymentFlow() {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
-  return { data, setData, updateField, calculate };
+  return { data, setData, updateField, calculate, cubWarning };
 }
