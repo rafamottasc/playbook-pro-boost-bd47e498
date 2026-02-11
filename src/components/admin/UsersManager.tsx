@@ -83,11 +83,14 @@ export function UsersManager() {
     loadUsers();
   }, []);
 
+  // Filter out the first admin (principal) from the list
+  const filteredUsers = users.filter(u => !u.isFirstAdmin);
+
   // Pagination calculations
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedUsers = users.slice(startIndex, endIndex);
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   const handleExpand = async (isOpen: boolean, userId: string) => {
     if (isOpen) {
@@ -152,7 +155,7 @@ export function UsersManager() {
         {/* Pagination Controls */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">
-            Total: {users.length} usuários
+            Total: {filteredUsers.length} usuários
           </p>
           <div className="flex items-center gap-2">
             <span className="text-sm">Mostrar:</span>
