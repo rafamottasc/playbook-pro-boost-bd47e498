@@ -658,25 +658,27 @@ export default function Campaigns() {
                     )}
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Corretores Participantes</Label>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs h-7"
-                          onClick={() => {
-                            if (selectedParticipants.length === profiles.length) {
-                              setSelectedParticipants([]);
-                            } else {
-                              setSelectedParticipants(profiles.map(p => p.id));
-                            }
-                          }}
-                        >
-                          {selectedParticipants.length === profiles.length ? "Desmarcar todos" : "Selecionar todos"}
-                        </Button>
-                      </div>
+                      <Label>Corretores Participantes</Label>
                       <div className="border rounded-md p-4 space-y-2 max-h-60 overflow-y-auto">
+                        <div className="flex items-center space-x-2 pb-2 mb-2 border-b">
+                          <Checkbox
+                            id="select-all-participants"
+                            checked={profiles.length > 0 && selectedParticipants.length === profiles.length}
+                            onCheckedChange={() => {
+                              if (selectedParticipants.length === profiles.length) {
+                                setSelectedParticipants([]);
+                              } else {
+                                setSelectedParticipants(profiles.map(p => p.id));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor="select-all-participants"
+                            className="text-sm font-semibold leading-none cursor-pointer"
+                          >
+                            Selecionar todos ({profiles.length})
+                          </label>
+                        </div>
                         {profiles.map((profile) => (
                           <div key={profile.id} className="flex items-center space-x-2">
                             <Checkbox
