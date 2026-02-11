@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Link as LinkIcon, Video, ExternalLink, Upload } from "lucide-react";
+import { FileText, Link as LinkIcon, Video, ExternalLink, Upload, Sheet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -54,6 +54,7 @@ export default function Resources() {
     switch (type) {
       case "pdf": return FileText;
       case "word": return FileText;
+      case "excel": return Sheet;
       case "link": return LinkIcon;
       case "video": return Video;
       default: return FileText;
@@ -124,7 +125,7 @@ export default function Resources() {
                               {resource.resource_type === "link" ? "Abrir" : "Visualizar"}
                               <ExternalLink className="h-3 w-3" />
                             </a>
-                            {(resource.resource_type === "pdf" || resource.resource_type === "image" || resource.resource_type === "word") && (
+                            {(resource.resource_type === "pdf" || resource.resource_type === "image" || resource.resource_type === "word" || resource.resource_type === "excel") && (
                               <a
                                 href={`${resource.url}?download`}
                                 className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium"

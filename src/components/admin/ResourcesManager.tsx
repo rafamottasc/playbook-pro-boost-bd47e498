@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload, FolderOpen, Image } from "lucide-react";
+import { Pencil, Trash2, Plus, ExternalLink, FileText, Video, Link, Upload, FolderOpen, Image, Sheet } from "lucide-react";
 import {
   Dialog,
   DraggableDialogContent,
@@ -66,6 +66,7 @@ interface ResourceCategory {
 const RESOURCE_TYPES = [
   { id: "pdf", name: "PDF", icon: FileText },
   { id: "word", name: "Word", icon: FileText },
+  { id: "excel", name: "Excel", icon: Sheet },
   { id: "link", name: "Link", icon: Link },
   { id: "video", name: "Vídeo", icon: Video },
   { id: "image", name: "Imagem", icon: Image },
@@ -290,7 +291,7 @@ export function ResourcesManager() {
         .eq("id", resourceToDelete)
         .single();
 
-      if (resource && ['pdf', 'word', 'image'].includes(resource.resource_type)) {
+      if (resource && ['pdf', 'word', 'excel', 'image'].includes(resource.resource_type)) {
         const filePath = resource.url.split('/resources/')[1];
         if (filePath) {
           await supabase.storage.from('resources').remove([filePath]);
@@ -450,7 +451,7 @@ export function ResourcesManager() {
   };
 
   const requiresFileUpload = () => {
-    return ["pdf", "word", "image"].includes(formData.resource_type);
+    return ["pdf", "word", "excel", "image"].includes(formData.resource_type);
   };
 
   const getResourceIcon = (type: string) => {
@@ -636,7 +637,7 @@ export function ResourcesManager() {
                     <Input
                       id="file"
                       type="file"
-                      accept={formData.resource_type === "pdf" ? ".pdf" : formData.resource_type === "word" ? ".doc,.docx" : "image/*"}
+                      accept={formData.resource_type === "pdf" ? ".pdf" : formData.resource_type === "word" ? ".doc,.docx" : formData.resource_type === "excel" ? ".xls,.xlsx,.csv" : "image/*"}
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                       className="pl-10"
                     />
