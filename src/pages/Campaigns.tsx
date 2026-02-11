@@ -210,7 +210,13 @@ export default function Campaigns() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase.rpc("get_public_profiles");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("approved", true)
+        .eq("team", "Corretor")
+        .or("blocked.is.null,blocked.eq.false")
+        .order("full_name");
 
       if (error) throw error;
       setProfiles(data || []);
