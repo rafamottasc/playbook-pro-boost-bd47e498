@@ -1,20 +1,42 @@
 
 
-# Corrigir erro ao excluir usuario
+# Corrigir exclusao de usuarios bloqueada por foreign keys
 
 ## Problema
-A edge function `delete-user` tem `verify_jwt = true` no arquivo de configuracao. Com o sistema de signing-keys do Lovable Cloud, essa verificacao automatica nao funciona corretamente e bloqueia a requisicao antes mesmo do codigo da funcao ser executado. Isso causa o erro "edge function returned a non-2xx status code".
+A funcao de exclusao esta funcionando corretamente (o fix anterior do JWT resolveu o acesso). Porem, o banco de dados retorna "Database error deleting user" porque existem 4 foreign keys que referenciam a tabela `profiles` **sem ON DELETE CASCADE ou SET NULL**, bloqueando a exclusao em cadeia.
+
+Foreign keys problematicas:
+- `announcements.created_by` -> profiles(id) -- sem regra de delete
+- `lesson_questions.answered_by` -> profiles(id) -- sem regra de delete  
+- `meetings.cancelled_by` -> profiles(id) -- sem regra de delete
+- `partner_files.uploaded_by` -> profiles(id) -- sem regra de delete
 
 ## Solucao
-A funcao ja faz validacao de autenticacao manualmente no codigo (linhas 27-52 de `index.ts`). Basta alterar `verify_jwt` para `false` no `config.toml` e atualizar os CORS headers para incluir os headers necessarios do cliente.
+Alterar essas 4 foreign keys para usar `ON DELETE SET NULL`, preservando os registros historicos (anuncios, perguntas respondidas, reunioes canceladas, arquivos) mas removendo a referencia ao usuario deletado.
 
-## Alteracoes
+## Detalhes tecnicos
 
-### 1. `supabase/config.toml`
-Alterar `verify_jwt = true` para `verify_jwt = false` na secao `[functions.delete-user]`.
+**Migracao SQL:**
+```sql
+-- 1. announcements.created_by
+ALTER TABLE public.announcements DROP CONSTRAINT announcements_created_by_fkey;
+ALTER TABLE public.announcements ADD CONSTRAINT announcements_created_by_fkey 
+  FOREIGN KEY (created_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
 
-### 2. `supabase/functions/delete-user/index.ts`
-- Atualizar os CORS headers para incluir os headers adicionais do cliente (x-client-info, x-supabase-client-platform, etc.)
-- Usar `getClaims()` em vez de `getUser()` para validacao do token (mais eficiente e compativel com signing-keys)
+-- 2. lesson_questions.answered_by
+ALTER TABLE public.lesson_questions DROP CONSTRAINT lesson_questions_answered_by_fkey;
+ALTER TABLE public.lesson_questions ADD CONSTRAINT lesson_questions_answered_by_fkey 
+  FOREIGN KEY (answered_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
 
-Nenhuma outra alteracao necessaria. A funcao ja tem toda a logica de autorizacao (verificacao de admin, protecao do primeiro admin, etc.).
+-- 3. meetings.cancelled_by
+ALTER TABLE public.meetings DROP CONSTRAINT meetings_cancelled_by_fkey;
+ALTER TABLE public.meetings ADD CONSTRAINT meetings_cancelled_by_fkey 
+  FOREIGN KEY (cancelled_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+-- 4. partner_files.uploaded_by
+ALTER TABLE public.partner_files DROP CONSTRAINT partner_files_uploaded_by_fkey;
+ALTER TABLE public.partner_files ADD CONSTRAINT partner_files_uploaded_by_fkey 
+  FOREIGN KEY (uploaded_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+```
+
+Nenhuma alteracao de codigo e necessaria. Apos a migracao, a exclusao dos usuarios Nadia e Mariana deve funcionar normalmente.
