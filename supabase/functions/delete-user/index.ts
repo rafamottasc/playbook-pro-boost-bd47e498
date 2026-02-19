@@ -89,53 +89,30 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Deletar TODOS os objetos do storage do usuário via Storage API
-    // O trigger protect_objects_delete bloqueia DELETE direto via SQL,
-    // então precisamos usar a Storage API antes de deletar o usuário
-    const buckets = ['avatars', 'resources', 'academy-covers', 'partner-files', 'lesson-materials', 'task-attachments']
-    
-    for (const bucket of buckets) {
-      try {
-        // Listar objetos do usuário no bucket
-        const { data: objects } = await supabaseClient.storage
-          .from(bucket)
-          .list(userId, { limit: 1000 })
-        
-        if (objects && objects.length > 0) {
-          const filePaths = objects.map(obj => `${userId}/${obj.name}`)
-          console.log(`Deleting ${filePaths.length} objects from bucket ${bucket}`)
-          await supabaseClient.storage.from(bucket).remove(filePaths)
-        }
+    // Buscar avatar_url antes de limpar
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single()
 
-        // Também tentar listar na raiz (alguns arquivos podem não estar em pasta do userId)
-        const { data: allObjects } = await supabaseClient.storage
-          .from(bucket)
-          .list('', { limit: 1000 })
-        
-        if (allObjects) {
-          // Filtrar por owner_id não é possível via Storage API,
-          // então vamos apenas limpar a pasta do userId
-        }
-      } catch (e) {
-        console.log(`No objects or error in bucket ${bucket}:`, e)
+    // Deletar avatar via Storage API (antes de deletar perfil)
+    if (profile?.avatar_url) {
+      const avatarPath = profile.avatar_url.split('/avatars/').pop()
+      if (avatarPath) {
+        console.log(`Deleting avatar: ${avatarPath}`)
+        await supabaseClient.storage.from('avatars').remove([avatarPath])
       }
     }
 
-    // Deletar o perfil manualmente primeiro para evitar cascade issues
-    const { error: profileDeleteError } = await supabaseClient
+    // Limpar avatar_url para evitar que o trigger delete_profile_avatar_from_storage
+    // tente fazer DELETE direto em storage.objects (bloqueado pelo protect_objects_delete)
+    await supabaseClient
       .from('profiles')
-      .delete()
+      .update({ avatar_url: null })
       .eq('id', userId)
 
-    if (profileDeleteError) {
-      console.error('Error deleting profile:', profileDeleteError)
-      return new Response(
-        JSON.stringify({ error: `Erro ao deletar perfil: ${profileDeleteError.message}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    console.log(`Profile deleted, now deleting auth user: ${userId}`)
+    console.log(`Avatar cleaned, now deleting auth user: ${userId}`)
 
     // Deletar o usuário usando Admin API
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
