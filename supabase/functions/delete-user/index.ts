@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,36 +22,25 @@ Deno.serve(async (req) => {
       }
     )
 
-    // Verificar autenticação do usuário que está fazendo a requisição
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      console.error('No authorization header')
       return new Response(
         JSON.stringify({ error: 'Não autorizado' }),
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Verificar se o usuário atual é admin
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
       authHeader.replace('Bearer ', '')
     )
 
     if (userError || !user) {
-      console.error('User verification failed:', userError)
       return new Response(
         JSON.stringify({ error: 'Não autorizado' }),
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Verificar se é admin
     const { data: roleData } = await supabaseClient
       .from('user_roles')
       .select('role')
@@ -61,27 +49,18 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (!roleData) {
-      console.error('User is not admin')
       return new Response(
         JSON.stringify({ error: 'Apenas administradores podem deletar usuários' }),
-        { 
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Obter o userId da requisição
     const { userId } = await req.json()
 
     if (!userId) {
-      console.error('No userId provided')
       return new Response(
         JSON.stringify({ error: 'userId é obrigatório' }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -104,56 +83,76 @@ Deno.serve(async (req) => {
     )?.id
 
     if (userId === firstAdminId) {
-      console.error('Cannot delete first admin')
       return new Response(
         JSON.stringify({ error: 'O administrador principal não pode ser deletado' }),
-        { 
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Deletar avatar do storage antes de deletar usuário
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', userId)
-      .single()
+    // Deletar TODOS os objetos do storage do usuário via Storage API
+    // O trigger protect_objects_delete bloqueia DELETE direto via SQL,
+    // então precisamos usar a Storage API antes de deletar o usuário
+    const buckets = ['avatars', 'resources', 'academy-covers', 'partner-files', 'lesson-materials', 'task-attachments']
+    
+    for (const bucket of buckets) {
+      try {
+        // Listar objetos do usuário no bucket
+        const { data: objects } = await supabaseClient.storage
+          .from(bucket)
+          .list(userId, { limit: 1000 })
+        
+        if (objects && objects.length > 0) {
+          const filePaths = objects.map(obj => `${userId}/${obj.name}`)
+          console.log(`Deleting ${filePaths.length} objects from bucket ${bucket}`)
+          await supabaseClient.storage.from(bucket).remove(filePaths)
+        }
 
-    if (profile?.avatar_url) {
-      const avatarPath = profile.avatar_url.split('/avatars/')[1]
-      if (avatarPath) {
-        await supabaseClient.storage.from('avatars').remove([avatarPath])
+        // Também tentar listar na raiz (alguns arquivos podem não estar em pasta do userId)
+        const { data: allObjects } = await supabaseClient.storage
+          .from(bucket)
+          .list('', { limit: 1000 })
+        
+        if (allObjects) {
+          // Filtrar por owner_id não é possível via Storage API,
+          // então vamos apenas limpar a pasta do userId
+        }
+      } catch (e) {
+        console.log(`No objects or error in bucket ${bucket}:`, e)
       }
     }
 
+    // Deletar o perfil manualmente primeiro para evitar cascade issues
+    const { error: profileDeleteError } = await supabaseClient
+      .from('profiles')
+      .delete()
+      .eq('id', userId)
+
+    if (profileDeleteError) {
+      console.error('Error deleting profile:', profileDeleteError)
+      return new Response(
+        JSON.stringify({ error: `Erro ao deletar perfil: ${profileDeleteError.message}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log(`Profile deleted, now deleting auth user: ${userId}`)
+
     // Deletar o usuário usando Admin API
-    // Isso vai automaticamente deletar o perfil em cascata (ON DELETE CASCADE)
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
 
     if (deleteError) {
       console.error('Error deleting user:', deleteError)
       return new Response(
         JSON.stringify({ error: `Erro ao deletar usuário: ${deleteError.message}` }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     console.log(`User deleted successfully: ${userId}`)
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: 'Usuário deletado com sucesso' 
-      }),
-      { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ success: true, message: 'Usuário deletado com sucesso' }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
@@ -161,10 +160,7 @@ Deno.serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor'
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
