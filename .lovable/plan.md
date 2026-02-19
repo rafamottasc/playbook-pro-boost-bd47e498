@@ -1,21 +1,20 @@
 
 
-# Corrigir constraint do tipo de recurso no banco de dados
+# Corrigir erro ao excluir usuario
 
 ## Problema
-O banco de dados possui uma constraint (`resources_resource_type_check`) que limita os valores aceitos na coluna `resource_type` a apenas: `pdf`, `link`, `video`, `image`. Os tipos `word` e `excel` foram adicionados na interface mas nunca foram incluidos na constraint do banco.
+A edge function `delete-user` tem `verify_jwt = true` no arquivo de configuracao. Com o sistema de signing-keys do Lovable Cloud, essa verificacao automatica nao funciona corretamente e bloqueia a requisicao antes mesmo do codigo da funcao ser executado. Isso causa o erro "edge function returned a non-2xx status code".
 
 ## Solucao
-Executar uma migracao para atualizar a constraint, adicionando os tipos `word` e `excel` aos valores permitidos.
+A funcao ja faz validacao de autenticacao manualmente no codigo (linhas 27-52 de `index.ts`). Basta alterar `verify_jwt` para `false` no `config.toml` e atualizar os CORS headers para incluir os headers necessarios do cliente.
 
-## Detalhes tecnicos
+## Alteracoes
 
-**Migracao SQL:**
-```sql
-ALTER TABLE public.resources DROP CONSTRAINT resources_resource_type_check;
-ALTER TABLE public.resources ADD CONSTRAINT resources_resource_type_check 
-  CHECK (resource_type = ANY (ARRAY['pdf', 'link', 'video', 'image', 'word', 'excel']));
-```
+### 1. `supabase/config.toml`
+Alterar `verify_jwt = true` para `verify_jwt = false` na secao `[functions.delete-user]`.
 
-Nenhuma alteracao de codigo e necessaria -- a interface ja suporta os dois tipos.
+### 2. `supabase/functions/delete-user/index.ts`
+- Atualizar os CORS headers para incluir os headers adicionais do cliente (x-client-info, x-supabase-client-platform, etc.)
+- Usar `getClaims()` em vez de `getUser()` para validacao do token (mais eficiente e compativel com signing-keys)
 
+Nenhuma outra alteracao necessaria. A funcao ja tem toda a logica de autorizacao (verificacao de admin, protecao do primeiro admin, etc.).
