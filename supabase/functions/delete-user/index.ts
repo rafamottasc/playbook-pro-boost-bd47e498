@@ -89,32 +89,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Buscar avatar_url antes de limpar
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', userId)
-      .single()
-
-    // Deletar avatar via Storage API (antes de deletar perfil)
-    if (profile?.avatar_url) {
-      const avatarPath = profile.avatar_url.split('/avatars/').pop()
-      if (avatarPath) {
-        console.log(`Deleting avatar: ${avatarPath}`)
-        await supabaseClient.storage.from('avatars').remove([avatarPath])
-      }
-    }
-
-    // Limpar avatar_url para evitar que o trigger delete_profile_avatar_from_storage
-    // tente fazer DELETE direto em storage.objects (bloqueado pelo protect_objects_delete)
-    await supabaseClient
-      .from('profiles')
-      .update({ avatar_url: null })
-      .eq('id', userId)
-
-    console.log(`Avatar cleaned, now deleting auth user: ${userId}`)
-
     // Deletar o usuário usando Admin API
+    // Os triggers do banco agora lidam com a limpeza de storage corretamente
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
 
     if (deleteError) {
