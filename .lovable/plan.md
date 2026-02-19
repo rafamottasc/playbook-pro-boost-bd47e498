@@ -1,42 +1,74 @@
 
 
-# Corrigir exclusao de usuarios bloqueada por foreign keys
+# Correcao definitiva da exclusao de usuarios
 
-## Problema
-A funcao de exclusao esta funcionando corretamente (o fix anterior do JWT resolveu o acesso). Porem, o banco de dados retorna "Database error deleting user" porque existem 4 foreign keys que referenciam a tabela `profiles` **sem ON DELETE CASCADE ou SET NULL**, bloqueando a exclusao em cadeia.
+## Causa raiz identificada
 
-Foreign keys problematicas:
-- `announcements.created_by` -> profiles(id) -- sem regra de delete
-- `lesson_questions.answered_by` -> profiles(id) -- sem regra de delete  
-- `meetings.cancelled_by` -> profiles(id) -- sem regra de delete
-- `partner_files.uploaded_by` -> profiles(id) -- sem regra de delete
+O banco possui um trigger de seguranca `protect_objects_delete` na tabela `storage.objects` que bloqueia qualquer `DELETE` via SQL direto, a menos que a configuracao de sessao `storage.allow_delete_query` seja `'true'`.
+
+O fluxo que falha:
+
+1. Edge function faz `UPDATE profiles SET avatar_url = null`
+2. O trigger `cleanup_old_avatar` dispara e tenta `DELETE FROM storage.objects` -- **BLOQUEADO** pelo `protect_objects_delete`
+3. O update falha silenciosamente (o codigo nao verifica o erro)
+4. `avatar_url` permanece com valor original
+5. `auth.admin.deleteUser()` faz cascade delete do profile
+6. O trigger `before_delete_profile` dispara e tenta `DELETE FROM storage.objects` com `avatar_url` ainda preenchido -- **BLOQUEADO**
+7. Erro: "Database error deleting user"
+
+Existem 5 funcoes de trigger que fazem `DELETE FROM storage.objects` diretamente e que serao afetadas pelo mesmo problema:
+- `delete_profile_avatar_from_storage` (profiles DELETE)
+- `cleanup_old_avatar` (profiles UPDATE)
+- `delete_partner_file_from_storage` (partner_files DELETE)
+- `delete_module_cover_from_storage` (academy_modules DELETE)
+- `cleanup_old_module_cover` (academy_modules UPDATE)
+- `delete_resource_from_storage` (resources DELETE)
+- `delete_lesson_attachment_from_storage` (lesson_attachments DELETE)
 
 ## Solucao
-Alterar essas 4 foreign keys para usar `ON DELETE SET NULL`, preservando os registros historicos (anuncios, perguntas respondidas, reunioes canceladas, arquivos) mas removendo a referencia ao usuario deletado.
+
+Corrigir todas as 7 funcoes de trigger para configurar `SET LOCAL storage.allow_delete_query = 'true'` antes de executar o DELETE, permitindo que operem corretamente com o trigger de protecao.
 
 ## Detalhes tecnicos
 
-**Migracao SQL:**
+**Migracao SQL** - atualizar todas as funcoes para incluir `PERFORM set_config('storage.allow_delete_query', 'true', true);` antes de cada `DELETE FROM storage.objects`:
+
 ```sql
--- 1. announcements.created_by
-ALTER TABLE public.announcements DROP CONSTRAINT announcements_created_by_fkey;
-ALTER TABLE public.announcements ADD CONSTRAINT announcements_created_by_fkey 
-  FOREIGN KEY (created_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+-- 1. delete_profile_avatar_from_storage
+CREATE OR REPLACE FUNCTION public.delete_profile_avatar_from_storage()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public', 'storage' AS $$
+DECLARE file_path TEXT;
+BEGIN
+  IF OLD.avatar_url IS NOT NULL THEN
+    file_path := public.extract_storage_path(OLD.avatar_url);
+    PERFORM set_config('storage.allow_delete_query', 'true', true);
+    DELETE FROM storage.objects WHERE bucket_id = 'avatars' AND name = file_path;
+  END IF;
+  RETURN OLD;
+END; $$;
 
--- 2. lesson_questions.answered_by
-ALTER TABLE public.lesson_questions DROP CONSTRAINT lesson_questions_answered_by_fkey;
-ALTER TABLE public.lesson_questions ADD CONSTRAINT lesson_questions_answered_by_fkey 
-  FOREIGN KEY (answered_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+-- 2. cleanup_old_avatar
+CREATE OR REPLACE FUNCTION public.cleanup_old_avatar()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public', 'storage' AS $$
+DECLARE old_path TEXT;
+BEGIN
+  IF OLD.avatar_url IS DISTINCT FROM NEW.avatar_url AND OLD.avatar_url IS NOT NULL THEN
+    old_path := public.extract_storage_path(OLD.avatar_url);
+    PERFORM set_config('storage.allow_delete_query', 'true', true);
+    DELETE FROM storage.objects WHERE bucket_id = 'avatars' AND name = old_path;
+  END IF;
+  RETURN NEW;
+END; $$;
 
--- 3. meetings.cancelled_by
-ALTER TABLE public.meetings DROP CONSTRAINT meetings_cancelled_by_fkey;
-ALTER TABLE public.meetings ADD CONSTRAINT meetings_cancelled_by_fkey 
-  FOREIGN KEY (cancelled_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
-
--- 4. partner_files.uploaded_by
-ALTER TABLE public.partner_files DROP CONSTRAINT partner_files_uploaded_by_fkey;
-ALTER TABLE public.partner_files ADD CONSTRAINT partner_files_uploaded_by_fkey 
-  FOREIGN KEY (uploaded_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+-- 3-7: Mesma correcao para as demais funcoes
 ```
 
-Nenhuma alteracao de codigo e necessaria. Apos a migracao, a exclusao dos usuarios Nadia e Mariana deve funcionar normalmente.
+**Edge function** - simplificar `delete-user/index.ts` removendo a limpeza manual de avatar (os triggers agora funcionam corretamente):
+- Remover busca de avatar_url e limpeza via Storage API
+- Remover update de avatar_url para null
+- Chamar diretamente `auth.admin.deleteUser(userId)`
+
+Isso resolve nao apenas a exclusao de usuarios, mas tambem qualquer outra operacao no sistema que dependa desses triggers de limpeza de storage (ex: atualizar avatar, deletar recursos, deletar covers de modulos).
+
