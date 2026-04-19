@@ -233,6 +233,22 @@ export function usePaymentFlow() {
         }
       }
 
+      // Helper: meses entre o firstDueDate específico de uma seção e a entrega
+      const monthsFromDateToDelivery = (firstDueDate?: string): number => {
+        if (!firstDueDate || !data.deliveryDate) return monthsUntilDelivery;
+        try {
+          const start = parseISO(firstDueDate);
+          const end = parseISO(data.deliveryDate);
+          return Math.max(0, differenceInMonths(end, start));
+        } catch {
+          return monthsUntilDelivery;
+        }
+      };
+
+      const monthsForMonthly = monthsFromDateToDelivery(data.monthly?.firstDueDate);
+      const monthsForSemi = monthsFromDateToDelivery(data.semiannualReinforcement?.firstDueDate);
+      const monthsForAnnual = monthsFromDateToDelivery(data.annualReinforcement?.firstDueDate);
+
       // 2. Calcular entrada (com Ato)
       let atoValue = 0;
       if (data.downPayment.ato) {
