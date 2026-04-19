@@ -338,26 +338,24 @@ export function usePaymentFlow() {
         }
       }
 
-      // 6. Distribuir parcelas mensais até/após entrega
+      // 6. Distribuir parcelas mensais até/após entrega (usando firstDueDate da própria seção)
       const monthlyUntilDelivery = data.monthly?.enabled && data.monthly.count
-        ? Math.min(data.monthly.count, monthsUntilDelivery)
+        ? Math.min(data.monthly.count, monthsForMonthly + 1)
         : 0;
       const monthlyAfterDelivery = data.monthly?.enabled && data.monthly.count
         ? data.monthly.count - monthlyUntilDelivery
         : 0;
 
-      // 7. Distribuir reforços até/após entrega
-      const yearsUntilDelivery = monthsUntilDelivery / 12;
-      
+      // 7. Distribuir reforços até/após entrega (usando firstDueDate de cada reforço)
       const semiannualUntilDelivery = data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count
-        ? Math.min(data.semiannualReinforcement.count, Math.floor(yearsUntilDelivery * 2))
+        ? Math.min(data.semiannualReinforcement.count, Math.floor(monthsForSemi / 6) + 1)
         : 0;
       const semiannualAfterDelivery = data.semiannualReinforcement?.enabled && data.semiannualReinforcement.count
         ? data.semiannualReinforcement.count - semiannualUntilDelivery
         : 0;
 
       const annualUntilDelivery = data.annualReinforcement?.enabled && data.annualReinforcement.count
-        ? Math.min(data.annualReinforcement.count, Math.floor(yearsUntilDelivery))
+        ? Math.min(data.annualReinforcement.count, Math.floor(monthsForAnnual / 12) + 1)
         : 0;
       const annualAfterDelivery = data.annualReinforcement?.enabled && data.annualReinforcement.count
         ? data.annualReinforcement.count - annualUntilDelivery
