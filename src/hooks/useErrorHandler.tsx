@@ -1,5 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
+import { translateAuthError } from "@/lib/validations";
 
 interface ErrorContext {
   action?: string;
@@ -15,6 +16,8 @@ export function useErrorHandler() {
   ) => {
     const errorMessage = error?.message || "Erro desconhecido";
     const errorCode = error?.code || error?.status;
+    const errorCodeStr = String(errorCode || "").toLowerCase();
+    const lowerMsg = errorMessage.toLowerCase();
 
     // Log error for monitoring
     logger.error("Application error", {

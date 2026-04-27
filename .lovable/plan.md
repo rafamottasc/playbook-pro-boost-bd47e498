@@ -1,85 +1,53 @@
+## Diagnóstico
 
+Testei diretamente o backend e **o cadastro funciona**: criei `teste-diag-2026@example-test.com` com sucesso (HTTP 200), trigger `handle_new_user` rodou, profile + role `corretor` foram criados.
 
-## Diagnostico do bug
+O problema está **na camada de UI** — quando o Supabase retorna um erro real, a mensagem certa nunca chega ao usuário. Encontrei **três causas** que se combinam:
 
-Analisei o fluxo completo da calculadora (`usePaymentFlow.tsx`, `Calculator.tsx`, `PaymentBlock.tsx`, `BasicInfoSection.tsx`, `FlowSummary.tsx`).
-
-### Causa raiz
-
-A funcao `getFirstPaymentDate()` (linha 200) coleta TODAS as datas de primeiro vencimento (Ato, Entrada, Inicio Obra, Mensais) e retorna a **MAIS ANTIGA**. Esse valor unico (`monthsUntilDelivery`) e depois usado como "regua" para tudo:
-
+### 1. Senhas vazadas (HIBP) bloqueadas em silêncio — provavelmente a principal causa
+A proteção "Leaked Password" está ativa no projeto. Testei `Password123` (que passa na validação do formulário: 8+ chars, maiúscula, minúscula, número) e o Supabase retorna:
 ```
-monthsUntilDelivery = differenceInMonths(deliveryDate, MENOR_data)
+HTTP 422 | error_code: "weak_password" | "Password is known to be weak and easy to guess"
 ```
+O `useErrorHandler` não trata esse código, então o usuário vê só **"Ocorreu um erro inesperado. Tente novamente."** — sem entender que precisa escolher outra senha. Como muitos usuários reutilizam senhas comuns, **isso bloqueia a maioria dos cadastros novos**.
 
-E em seguida na distribuicao temporal (linha 326-348), o codigo usa essa regua unica para calcular quantas mensais cabem ate a entrega:
+### 2. E-mail já cadastrado também cai no erro genérico
+Supabase retorna `error_code: "user_already_exists"` com msg `"User already registered"`. A função `translateAuthError` em `src/lib/validations.ts` traduz isso para "Usuário já cadastrado", mas **nunca é chamada** no fluxo de signup. O `useErrorHandler.tsx` também não tem regra para essa mensagem → usuário vê de novo o erro genérico.
 
-```
-monthlyUntilDelivery = Math.min(monthly.count, monthsUntilDelivery)
-```
+A pré-checagem de duplicidade em `Auth.tsx` (linhas 134-138) consulta `profiles` como **anônimo**, mas todas as policies SELECT exigem `authenticated`, então a query sempre retorna vazio e nunca detecta duplicado antes de chamar `signUp`.
 
-### Cenario do usuario
+### 3. Google Sign-In tem o mesmo problema de mensagem genérica
+Erros do OAuth (exceto "Unable to exchange external code") caem direto no `handleError` genérico, sem tradução.
 
-- Ato hoje (Abr/2026)
-- Primeira parcela mensal: mes 7 (Nov/2026)
-- Entrega das chaves: Dez/2030
-- 356 parcelas mensais de R$ 5.000
+## Correções
 
-O que o codigo faz:
+**Arquivo: `src/hooks/useErrorHandler.tsx`**
+- Importar `translateAuthError` de `@/lib/validations`.
+- Adicionar tratamento para erros do Supabase Auth ANTES dos blocos genéricos:
+  - `weak_password` / mensagem contém "weak" / "pwned" → título "Senha insegura", mensagem: "Esta senha foi encontrada em vazamentos públicos. Escolha uma senha única que você não use em outros sites."
+  - `user_already_exists` / mensagem contém "already registered" → título "E-mail já cadastrado", mensagem: "Este e-mail já possui conta. Faça login ou use 'Esqueci minha senha'."
+  - `over_email_send_rate_limit` → mensagem clara de aguardar.
+  - Caso geral: chamar `translateAuthError(errorMessage)` para traduzir antes de mostrar.
 
-1. `firstPaymentDate` = data do Ato (hoje) — porque e a mais antiga
-2. `monthsUntilDelivery` = ~56 meses (Abr/26 → Dez/30) **a partir de hoje**
-3. Mas as mensais so comecam no mes 7. Logo, o periodo real disponivel para mensais e **56 − 7 = 49 meses**, nao 56.
-4. Os reforcos (semestrais e anuais) tambem usam `monthsUntilDelivery / 12` para distribuir, ignorando o seu proprio `firstDueDate`.
-5. No modo automatico (saldo das chaves ou auto-calculate de mensais), o codigo distribui valores como se houvesse mais tempo disponivel do que realmente ha — gerando os 2 parcelas a mais (R$ 10.000) que o usuario percebeu.
+**Arquivo: `src/pages/Auth.tsx`**
+- Remover (ou tornar não-bloqueante) a pré-checagem de duplicidade nas linhas 133-154. Como a tabela `profiles` não é legível por anônimos, a checagem nunca funciona e só atrasa o fluxo. O Supabase já retorna erro de duplicado — basta exibi-lo corretamente (corrigido no item acima).
+- Manter apenas a checagem de WhatsApp duplicado **opcional**, mas via uma RPC `SECURITY DEFINER` que retorne só `boolean` (recomendo remover por simplicidade).
 
-Resultado: a calculadora trata "data de hoje" como inicio implicito de todos os pagamentos, mesmo quando o usuario configura `firstDueDate` especifico para cada secao.
+**Arquivo: `src/lib/validations.ts`**
+- Acrescentar entradas no dicionário `translateAuthError`:
+  - `"Password is known to be weak and easy to guess, please choose a different one."` → "Esta senha foi encontrada em vazamentos. Escolha uma senha única."
+  - `"weak_password"` (fallback)
+  - `"user_already_exists"`
 
-### Bugs adicionais correlatos
+**Aviso preventivo no formulário de senha (UX)**
+- Em `Auth.tsx`, abaixo dos requisitos de senha existentes, adicionar uma nota discreta: *"Evite senhas comuns ou reutilizadas — elas são bloqueadas por segurança."*
 
-- `BasicInfoSection.tsx` (linha 27-50) duplica a mesma logica errada para mostrar "X meses ate a entrega" no banner azul — tambem usando a data mais antiga.
-- A distribuicao de reforcos semestrais/anuais (linhas 336-348) usa `yearsUntilDelivery` derivado do `monthsUntilDelivery` global, sem respeitar o `firstDueDate` proprio de cada reforco.
-- O `monthly.afterDelivery` pode aparecer como zero quando, na realidade, parte das mensais cai depois da entrega (porque a regua "infla" o tempo disponivel).
+## Não vou mudar (e por quê)
+- **Não desativar o HIBP.** É proteção de segurança importante; o problema é só a mensagem ao usuário.
+- **Não alterar RLS de `profiles`** para permitir leitura anônima. Manter privacidade dos dados.
+- **Não alterar o trigger `handle_new_user`** — está funcionando corretamente.
 
-## Solucao proposta
-
-### 1. Fazer cada secao respeitar seu proprio `firstDueDate`
-
-Em `usePaymentFlow.tsx`, separar a regua por tipo de pagamento:
-
-```
-monthsForMonthly  = differenceInMonths(deliveryDate, monthly.firstDueDate)
-monthsForSemi     = differenceInMonths(deliveryDate, semiannualReinforcement.firstDueDate)
-monthsForAnnual   = differenceInMonths(deliveryDate, annualReinforcement.firstDueDate)
-```
-
-E usar essas reguas individuais na distribuicao temporal (`monthlyUntilDelivery`, `semiannualUntilDelivery`, `annualUntilDelivery`).
-
-### 2. Corrigir `monthsUntilDelivery` global
-
-Manter um `monthsUntilDelivery` apenas para exibicao geral (do primeiro pagamento ate a entrega), mas **nao** usa-lo para distribuir mensais/reforcos.
-
-### 3. Validacao de coerencia
-
-Se `firstDueDate + count > deliveryDate` para mensais, marcar quantas caem apos a entrega corretamente (em vez de zerar). Adicionar warning se o usuario configurar mais parcelas do que cabe no intervalo real.
-
-### 4. Sincronizar `BasicInfoSection.tsx`
-
-Usar a mesma logica corrigida (importar helper compartilhado) para o banner "X meses ate a entrega" refletir a realidade.
-
-### 5. Modo "auto-calculate" (saldo das chaves e mensais)
-
-Quando o usuario ativa auto-calculate, recalcular usando o periodo real (`firstDueDate → deliveryDate`) em vez do `monthsUntilDelivery` global. Isso elimina os ~R$ 10.000 a mais que apareciam no cenario do usuario.
-
-### Detalhes tecnicos
-
-**Arquivo a editar:** `src/hooks/usePaymentFlow.tsx`
-- Refatorar `getFirstPaymentDate()` para tambem expor `getMonthsUntilDelivery(firstDueDate)`.
-- Substituir os 3 calculos de `*UntilDelivery` (linhas 326, 336, 343) para usarem o `firstDueDate` proprio de cada secao.
-- Manter `monthsUntilDelivery` global apenas para `result.timeline.monthsUntilDelivery` (usado em UI).
-
-**Arquivo a editar:** `src/components/calculator/BasicInfoSection.tsx`
-- Substituir `calculateMonthsUntilDelivery()` por chamada ao helper exportado de `usePaymentFlow.tsx`.
-
-**Sem mudancas de schema** — apenas correcao da logica de calculo client-side.
-
+## Validação após o fix
+1. Tentar cadastrar com `Password123` → deve aparecer "Esta senha foi encontrada em vazamentos…"
+2. Tentar cadastrar com e-mail já existente → deve aparecer "E-mail já cadastrado…"
+3. Tentar cadastrar com senha forte e nova → deve completar normalmente.
