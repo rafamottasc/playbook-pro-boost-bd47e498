@@ -490,6 +490,9 @@ export default function Auth() {
                         </span>
                       </div>
                     ))}
+                    <p className="text-xs text-amber-600 dark:text-amber-400 pt-1">
+                      ⚠ Evite senhas comuns ou já usadas em outros sites — elas são bloqueadas por segurança.
+                    </p>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
