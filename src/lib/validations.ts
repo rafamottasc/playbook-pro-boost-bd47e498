@@ -132,7 +132,8 @@ export const changePasswordSchema = z.object({
 // Função para traduzir erros do Supabase Auth para português
 export function translateAuthError(errorMessage: string): string {
   const translations: Record<string, string> = {
-    "User already registered": "Usuário já cadastrado",
+    "User already registered": "Este e-mail já está cadastrado. Faça login ou recupere sua senha.",
+    "user_already_exists": "Este e-mail já está cadastrado. Faça login ou recupere sua senha.",
     "Invalid login credentials": "Credenciais inválidas",
     "Email not confirmed": "Email não confirmado",
     "Invalid email or password": "Email ou senha inválidos",
@@ -145,6 +146,9 @@ export function translateAuthError(errorMessage: string): string {
     "For security purposes, you can only request this after": "Por segurança, você só pode solicitar isso após",
     "Token has expired or is invalid": "Token expirado ou inválido",
     "New password should be different from the old password": "Nova senha deve ser diferente da senha antiga",
+    "Password is known to be weak and easy to guess, please choose a different one.": "Esta senha foi encontrada em vazamentos de dados públicos. Escolha uma senha única que você não usa em outros sites.",
+    "weak_password": "Esta senha foi encontrada em vazamentos de dados públicos. Escolha uma senha única que você não usa em outros sites.",
+    "over_email_send_rate_limit": "Muitos e-mails enviados. Aguarde alguns minutos antes de tentar novamente.",
   };
 
   // Procura por correspondência exata

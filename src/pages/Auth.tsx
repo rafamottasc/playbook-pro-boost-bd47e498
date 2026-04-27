@@ -130,28 +130,10 @@ export default function Auth() {
         return;
       }
       
-      // Verificar se email ou whatsapp já existem
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('email, whatsapp')
-        .or(`email.eq.${validated.email},whatsapp.eq.${validated.whatsapp}`)
-        .maybeSingle();
-      
-      if (checkError && checkError.code !== 'PGRST116') {
-        setLoading(false);
-        handleError(checkError, { action: 'check_duplicate_user' });
-        return;
-      }
-      
-      if (existingProfile) {
-        setLoading(false);
-        const isDuplicateEmail = existingProfile.email === validated.email;
-        handleError({
-          message: isDuplicateEmail ? "Este e-mail já está em uso" : "Este WhatsApp já está cadastrado",
-          userMessage: isDuplicateEmail ? "Este e-mail já está em uso" : "Este WhatsApp já está cadastrado"
-        }, { action: 'duplicate_user' });
-        return;
-      }
+      // Nota: a checagem de duplicidade prévia foi removida porque a tabela
+      // 'profiles' não é legível por usuários anônimos (RLS exige authenticated),
+      // então a query sempre retornava vazio e atrasava o cadastro.
+      // O Supabase Auth já retorna 'user_already_exists' que é tratado em useErrorHandler.
       
       const { error } = await signUp(
         validated.email, 
@@ -508,6 +490,9 @@ export default function Auth() {
                         </span>
                       </div>
                     ))}
+                    <p className="text-xs text-amber-600 dark:text-amber-400 pt-1">
+                      ⚠ Evite senhas comuns ou já usadas em outros sites — elas são bloqueadas por segurança.
+                    </p>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
