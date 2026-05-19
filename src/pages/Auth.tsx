@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check, Circle, AlertCircle } from "lucide-react";
@@ -37,6 +37,12 @@ export default function Auth() {
   const { handleError, handleSuccess } = useErrorHandler();
   const { checkRateLimit } = useRateLimit();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!maintenancePopup) return;
+    const t = setTimeout(() => setMaintenancePopup(false), 10000);
+    return () => clearTimeout(t);
+  }, [maintenancePopup]);
   const { theme } = useTheme();
 
   // Determinar qual logo usar baseado no tema
@@ -547,18 +553,54 @@ export default function Auth() {
         </CardContent>
       </Card>
 
-      <Dialog open={maintenancePopup} onOpenChange={setMaintenancePopup}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-destructive">
-              Erro de conexão 503
-            </DialogTitle>
-            <DialogDescription className="text-base leading-relaxed pt-2 text-foreground">
+      {maintenancePopup && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          <div
+            style={{
+              marginTop: 0,
+              minWidth: 380,
+              maxWidth: 480,
+              background: "#ffffff",
+              color: "#000000",
+              border: "1px solid #b8b8b8",
+              borderTop: "none",
+              borderRadius: "0 0 6px 6px",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+              padding: "14px 18px 16px 18px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                color: "#5f5f5f",
+                marginBottom: 8,
+              }}
+            >
+              {typeof window !== "undefined" ? window.location.hostname : ""} diz
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                lineHeight: 1.45,
+                color: "#000000",
+                whiteSpace: "pre-wrap",
+              }}
+            >
               {MAINTENANCE_MESSAGE.replace(/^[^A-Za-z0-9]+/, "")}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
