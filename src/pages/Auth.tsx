@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check, Circle, AlertCircle } from "lucide-react";
@@ -30,6 +31,7 @@ export default function Auth() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
+  const [maintenancePopup, setMaintenancePopup] = useState(false);
   
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { handleError, handleSuccess } = useErrorHandler();
@@ -60,6 +62,7 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -108,6 +111,7 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -163,6 +167,7 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -278,14 +283,6 @@ export default function Auth() {
           </div>
         </CardHeader>
         <CardContent>
-          {MAINTENANCE_MODE && (
-            <div className="mb-4 flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md">
-              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-              <p className="text-sm text-destructive font-medium leading-relaxed">
-                {MAINTENANCE_MESSAGE}
-              </p>
-            </div>
-          )}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -549,6 +546,23 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <AlertDialog open={maintenancePopup} onOpenChange={setMaintenancePopup}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Erro de conexão 503
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base leading-relaxed pt-2">
+              {MAINTENANCE_MESSAGE}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>Entendi</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
