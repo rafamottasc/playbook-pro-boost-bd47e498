@@ -111,6 +111,7 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
