@@ -31,6 +31,7 @@ export default function Auth() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
+  const [maintenancePopup, setMaintenancePopup] = useState(false);
   
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { handleError, handleSuccess } = useErrorHandler();
