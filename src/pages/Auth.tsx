@@ -167,6 +167,7 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
