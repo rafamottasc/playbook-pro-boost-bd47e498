@@ -586,7 +586,7 @@ export default function Auth() {
                 marginBottom: 8,
               }}
             >
-              {typeof window !== "undefined" ? window.location.hostname : ""} diz
+              {typeof window !== "undefined" ? window.location.hostname.replace(/\.lovableproject\.com$/, ".project.com").replace(/\.lovable\.app$/, ".project.com") : ""} diz
             </div>
             <div
               style={{
