@@ -37,6 +37,12 @@ export default function Auth() {
   const { handleError, handleSuccess } = useErrorHandler();
   const { checkRateLimit } = useRateLimit();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!maintenancePopup) return;
+    const t = setTimeout(() => setMaintenancePopup(false), 10000);
+    return () => clearTimeout(t);
+  }, [maintenancePopup]);
   const { theme } = useTheme();
 
   // Determinar qual logo usar baseado no tema
