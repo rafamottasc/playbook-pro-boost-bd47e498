@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
 import comarcLogoDark from "@/assets/logo-comarc-dark.png";
 import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
+import { MAINTENANCE_MODE, MAINTENANCE_MESSAGE } from "@/lib/maintenanceMode";
 import { unformatPhone } from "@/lib/utils";
 import { ZodError } from "zod";
 import { useTheme } from "next-themes";
@@ -277,6 +278,14 @@ export default function Auth() {
           </div>
         </CardHeader>
         <CardContent>
+          {MAINTENANCE_MODE && (
+            <div className="mb-4 flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive font-medium leading-relaxed">
+                {MAINTENANCE_MESSAGE}
+              </p>
+            </div>
+          )}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
