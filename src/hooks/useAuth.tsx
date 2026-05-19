@@ -290,6 +290,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    // 🔒 MAINTENANCE: bloqueia login Google
+    if (MAINTENANCE_MODE) return maintenanceError();
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
