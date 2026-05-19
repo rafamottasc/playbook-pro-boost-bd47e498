@@ -267,7 +267,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, whatsapp: string) => {
-    const { error } = await supabase.auth.signUp({
+    // 🔒 MAINTENANCE: bloqueia cadastros
+    if (MAINTENANCE_MODE) return maintenanceError();
+
+
       email,
       password,
       options: {
