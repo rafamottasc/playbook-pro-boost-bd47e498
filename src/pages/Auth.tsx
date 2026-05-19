@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
 import comarcLogoDark from "@/assets/logo-comarc-dark.png";
 import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
+import { MAINTENANCE_MODE, MAINTENANCE_MESSAGE } from "@/lib/maintenanceMode";
 import { unformatPhone } from "@/lib/utils";
 import { ZodError } from "zod";
 import { useTheme } from "next-themes";
