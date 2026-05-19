@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check, Circle, AlertCircle } from "lucide-react";
@@ -547,22 +547,18 @@ export default function Auth() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={maintenancePopup} onOpenChange={setMaintenancePopup}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
+      <Dialog open={maintenancePopup} onOpenChange={setMaintenancePopup}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">
               Erro de conexão 503
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-base leading-relaxed pt-2">
-              {MAINTENANCE_MESSAGE}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>Entendi</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </DialogTitle>
+            <DialogDescription className="text-base leading-relaxed pt-2 text-foreground">
+              {MAINTENANCE_MESSAGE.replace(/^[^A-Za-z0-9]+/, "")}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
