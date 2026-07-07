@@ -152,21 +152,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!mounted) return;
 
-      // 🔒 MAINTENANCE: força logout de sessões já ativas
-      if (MAINTENANCE_MODE && session?.user) {
-        await supabase.auth.signOut();
-        clearAuthStorage();
-        setSession(null);
-        setUser(null);
-        setIsAdmin(false);
-        setIsApproved(false);
-        setLoading(false);
-        setInitializing(false);
-        if (window.location.pathname !== "/auth") {
-          navigate("/auth");
-        }
-        return;
-      }
+
+
 
       setSession(session);
       setUser(session?.user ?? null);
