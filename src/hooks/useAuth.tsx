@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setIsAdmin(!!role);
+    setIsAdmin(role);
 
     // Verificar se perfil está incompleto e redirecionar para /profile
     const isProfileIncomplete = !profile?.avatar_url || !profile?.whatsapp || !profile?.team;
