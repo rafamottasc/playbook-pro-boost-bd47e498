@@ -127,20 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: authSubscription } = supabase.auth.onAuthStateChange((event, session) => {
         if (!mounted) return;
 
-        // 🔒 MAINTENANCE: derruba qualquer sessão que tente subir
-        if (MAINTENANCE_MODE && session?.user) {
-          supabase.auth.signOut().finally(() => {
-            clearAuthStorage();
-            setSession(null);
-            setUser(null);
-            setIsAdmin(false);
-            setIsApproved(false);
-            if (window.location.pathname !== "/auth") {
-              navigate("/auth");
-            }
-          });
-          return;
-        }
+
+
 
         setSession(session);
         setUser(session?.user ?? null);
