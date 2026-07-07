@@ -32,19 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAdminStatus = async (userId: string) => {
     console.log("[useAuth] Checking admin status for user:", userId);
 
-    // Execute queries in parallel
+    // Execute queries in parallel. Admin status is verified server-side via
+    // the has_role security definer function so the client cannot self-elevate.
     const [profileResult, roleResult] = await Promise.all([
       supabase
         .from("profiles")
         .select("blocked, approved, avatar_url, whatsapp, team, profile_onboarding_completed")
         .eq("id", userId)
         .maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     ]);
 
     const profile = profileResult.data;
     const profileError = profileResult.error;
-    const role = roleResult.data;
+    const role = roleResult.data === true;
 
     console.log("[useAuth] Profile data received:", profile);
 
@@ -93,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setIsAdmin(!!role);
+    setIsAdmin(role);
 
     // Verificar se perfil está incompleto e redirecionar para /profile
     const isProfileIncomplete = !profile?.avatar_url || !profile?.whatsapp || !profile?.team;

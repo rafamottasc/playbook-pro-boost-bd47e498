@@ -1,0 +1,20 @@
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, app_role) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.is_user_blocked(uuid) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.is_first_admin(uuid) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.extract_storage_path(text) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_active_announcements() FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_public_profiles() FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.increment_question_likes(uuid) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.decrement_question_likes(uuid) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_mood_metrics(integer, integer, integer) FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_mood_metrics(integer, integer, integer, uuid, text) FROM anon, PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_user_blocked(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_first_admin(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_announcements() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_profiles() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_question_likes(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.decrement_question_likes(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_mood_metrics(integer, integer, integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_mood_metrics(integer, integer, integer, uuid, text) TO authenticated;
