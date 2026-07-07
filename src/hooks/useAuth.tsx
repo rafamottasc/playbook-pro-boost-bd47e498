@@ -3,19 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { MAINTENANCE_MODE, maintenanceError } from "@/lib/maintenanceMode";
 
-const clearAuthStorage = () => {
-  try {
-    [localStorage, sessionStorage].forEach((store) => {
-      Object.keys(store)
-        .filter((k) => k.startsWith("sb-") || k.includes("supabase.auth"))
-        .forEach((k) => store.removeItem(k));
-    });
-  } catch {
-    /* ignore */
-  }
-};
 
 interface AuthContextType {
   user: User | null;
