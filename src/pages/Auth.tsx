@@ -31,18 +31,12 @@ export default function Auth() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
-  const [maintenancePopup, setMaintenancePopup] = useState(false);
-  
+
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { handleError, handleSuccess } = useErrorHandler();
   const { checkRateLimit } = useRateLimit();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!maintenancePopup) return;
-    const t = setTimeout(() => setMaintenancePopup(false), 10000);
-    return () => clearTimeout(t);
-  }, [maintenancePopup]);
   const { theme } = useTheme();
 
   // Determinar qual logo usar baseado no tema
