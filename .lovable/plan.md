@@ -1,22 +1,24 @@
-## Objetivo
-Desativar o modo de manutenção e restaurar o login normal (email/senha e Google), removendo o popup de erro fake da tela de login.
+## Diagnóstico
+Logs de auth mostram login OK seguido de `POST /logout` automático. Perfil está `approved=true`, `blocked=false` — não é guard de bloqueado. A única fonte de logout automático no código são os 3 guards de `MAINTENANCE_MODE` em `useAuth.tsx`. Mesmo com a flag em `false` agora, o bundle da URL `preview--playbook-pro-boost.lovable.app` provavelmente está em cache com a versão antiga (`MAINTENANCE_MODE=true`).
 
-## Alterações
+## Plano — remover o modo manutenção por completo
 
-### 1. `src/lib/maintenanceMode.ts`
-- Mudar `MAINTENANCE_MODE = true` para `MAINTENANCE_MODE = false`.
-- Isso já basta para:
-  - Liberar `signIn`, `signUp` e `signInWithGoogle` em `useAuth.tsx` (os guards `if (MAINTENANCE_MODE) return maintenanceError()` deixam de disparar).
-  - Parar de derrubar sessões ativas no `AuthProvider` (os blocos de force-logout deixam de rodar).
+### 1. `src/hooks/useAuth.tsx`
+- Remover `import { MAINTENANCE_MODE, maintenanceError } from "@/lib/maintenanceMode"`.
+- Remover helper `clearAuthStorage` (só era usado pelos guards).
+- Remover os 3 blocos `if (MAINTENANCE_MODE ...)`:
+  - No callback do `onAuthStateChange` (derrubava sessão nova).
+  - Após `getSession()` no `initAuth` (derrubava sessão existente).
+  - No topo de `signIn`, `signUp` e `signInWithGoogle` (bloqueava tentativas).
 
-### 2. `src/pages/Auth.tsx`
-- Remover o popup custom "estilo alerta nativo" (`.project.com diz ...`) e o `useEffect` que auto-dismissa em 10s.
-- Remover o state `maintenancePopup` e qualquer trigger que abre o popup ao tentar logar.
-- Garantir que os erros normais do Supabase (senha errada, email inválido, etc.) voltem a ser exibidos via `toast`/`handleError` como era antes do modo manutenção.
+### 2. `src/lib/maintenanceMode.ts`
+- Excluir o arquivo (não terá mais nenhum importador).
 
-## Não muda
-- Nada no backend (Supabase, RLS, edge functions, usuários, senhas) — o bloqueio era 100% frontend.
-- Arquivo `maintenanceMode.ts` fica no projeto (só com a flag em `false`), pronto para reativar futuramente se você pedir. Se preferir remover completamente o arquivo e todas as referências, me avise.
+### 3. `.lovable/plan.md`
+- Excluir o plano antigo de "bloqueio total de login" — está obsoleto e descreve exatamente o comportamento que estamos removendo.
+
+### 4. Depois de aplicar
+- Recomendar republicar para invalidar o bundle antigo em `preview--playbook-pro-boost.lovable.app` / domínio publicado.
 
 ## Resultado
-Login volta ao normal instantaneamente, tela `/auth` limpa sem popup de erro, sessões existentes deixam de ser derrubadas.
+Zero código capaz de disparar signOut automático. Login volta ao normal (email/senha e Google) e a sessão persiste corretamente.
