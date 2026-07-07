@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import comarcLogo from "@/assets/logo-comarc.png";
 import comarcLogoDark from "@/assets/logo-comarc-dark.png";
 import { signInSchema, signUpSchema, resetPasswordSchema, translateAuthError } from "@/lib/validations";
-import { MAINTENANCE_MODE, MAINTENANCE_MESSAGE } from "@/lib/maintenanceMode";
+
 import { unformatPhone } from "@/lib/utils";
 import { ZodError } from "zod";
 import { useTheme } from "next-themes";
@@ -31,18 +31,12 @@ export default function Auth() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
-  const [maintenancePopup, setMaintenancePopup] = useState(false);
-  
+
   const { signIn, signUp, signInWithGoogle, user, initializing } = useAuth();
   const { handleError, handleSuccess } = useErrorHandler();
   const { checkRateLimit } = useRateLimit();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!maintenancePopup) return;
-    const t = setTimeout(() => setMaintenancePopup(false), 10000);
-    return () => clearTimeout(t);
-  }, [maintenancePopup]);
   const { theme } = useTheme();
 
   // Determinar qual logo usar baseado no tema
@@ -68,7 +62,6 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -117,7 +110,6 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -173,7 +165,6 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -553,54 +544,6 @@ export default function Auth() {
         </CardContent>
       </Card>
 
-      {maintenancePopup && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 9999,
-            fontFamily:
-              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-          }}
-        >
-          <div
-            style={{
-              marginTop: 0,
-              minWidth: 380,
-              maxWidth: 480,
-              background: "#ffffff",
-              color: "#000000",
-              border: "1px solid #b8b8b8",
-              borderTop: "none",
-              borderRadius: "0 0 6px 6px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
-              padding: "14px 18px 16px 18px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                color: "#5f5f5f",
-                marginBottom: 8,
-              }}
-            >
-              {typeof window !== "undefined" ? window.location.hostname.replace(/\.lovableproject\.com$/, ".project.com").replace(/\.lovable\.app$/, ".project.com") : ""} diz
-            </div>
-            <div
-              style={{
-                fontSize: 13,
-                lineHeight: 1.45,
-                color: "#000000",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {MAINTENANCE_MESSAGE.replace(/^[^A-Za-z0-9]+/, "")}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
