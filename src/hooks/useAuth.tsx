@@ -178,8 +178,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
-    // 🔒 MAINTENANCE: bloqueia login
-    if (MAINTENANCE_MODE) return maintenanceError();
 
 
     const { error, data } = await supabase.auth.signInWithPassword({
@@ -230,8 +228,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, whatsapp: string) => {
-    // 🔒 MAINTENANCE: bloqueia cadastros
-    if (MAINTENANCE_MODE) return maintenanceError();
     const { error } = await supabase.auth.signUp({
 
       email,
@@ -253,8 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    // 🔒 MAINTENANCE: bloqueia login Google
-    if (MAINTENANCE_MODE) return maintenanceError();
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
