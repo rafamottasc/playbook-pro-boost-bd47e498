@@ -3,19 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { MAINTENANCE_MODE, maintenanceError } from "@/lib/maintenanceMode";
 
-const clearAuthStorage = () => {
-  try {
-    [localStorage, sessionStorage].forEach((store) => {
-      Object.keys(store)
-        .filter((k) => k.startsWith("sb-") || k.includes("supabase.auth"))
-        .forEach((k) => store.removeItem(k));
-    });
-  } catch {
-    /* ignore */
-  }
-};
 
 interface AuthContextType {
   user: User | null;
@@ -139,20 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: authSubscription } = supabase.auth.onAuthStateChange((event, session) => {
         if (!mounted) return;
 
-        // 🔒 MAINTENANCE: derruba qualquer sessão que tente subir
-        if (MAINTENANCE_MODE && session?.user) {
-          supabase.auth.signOut().finally(() => {
-            clearAuthStorage();
-            setSession(null);
-            setUser(null);
-            setIsAdmin(false);
-            setIsApproved(false);
-            if (window.location.pathname !== "/auth") {
-              navigate("/auth");
-            }
-          });
-          return;
-        }
+
+
 
         setSession(session);
         setUser(session?.user ?? null);
@@ -176,21 +152,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!mounted) return;
 
-      // 🔒 MAINTENANCE: força logout de sessões já ativas
-      if (MAINTENANCE_MODE && session?.user) {
-        await supabase.auth.signOut();
-        clearAuthStorage();
-        setSession(null);
-        setUser(null);
-        setIsAdmin(false);
-        setIsApproved(false);
-        setLoading(false);
-        setInitializing(false);
-        if (window.location.pathname !== "/auth") {
-          navigate("/auth");
-        }
-        return;
-      }
+
+
 
       setSession(session);
       setUser(session?.user ?? null);
@@ -215,8 +178,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
-    // 🔒 MAINTENANCE: bloqueia login
-    if (MAINTENANCE_MODE) return maintenanceError();
 
 
     const { error, data } = await supabase.auth.signInWithPassword({
@@ -267,8 +228,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, whatsapp: string) => {
-    // 🔒 MAINTENANCE: bloqueia cadastros
-    if (MAINTENANCE_MODE) return maintenanceError();
     const { error } = await supabase.auth.signUp({
 
       email,
@@ -290,8 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    // 🔒 MAINTENANCE: bloqueia login Google
-    if (MAINTENANCE_MODE) return maintenanceError();
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
