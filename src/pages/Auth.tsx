@@ -62,7 +62,6 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -111,7 +110,6 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
@@ -167,7 +165,6 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (MAINTENANCE_MODE) { setMaintenancePopup(true); return; }
     setRateLimitMessage(null);
     
     try {
