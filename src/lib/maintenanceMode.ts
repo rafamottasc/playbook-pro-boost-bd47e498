@@ -7,7 +7,7 @@
  *
  * Para REATIVAR o login normal, basta mudar MAINTENANCE_MODE para false.
  */
-export const MAINTENANCE_MODE = true;
+export const MAINTENANCE_MODE = false;
 
 export const MAINTENANCE_MESSAGE =
   "⚠️ Erro de conexão 503 - Falha ao comunicar com o servidor de autenticação (code: AUTH_DB_TIMEOUT). Aguarde alguns minutos e tente novamente.";
